@@ -40,8 +40,8 @@ export default function Login() {
 
     if (error) Alert.alert(error.message);
     if (data.user) {
-      //   authContext.logIn();
-      authContext.setUserId(data.user.id);
+        authContext.logIn();
+      // authContext.setUserId(data.user.id);
       router.push("/name");
     }
 

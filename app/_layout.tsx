@@ -1,10 +1,10 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useContext } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider } from "../contexts/auth-context";
 import { ThemeContext, ThemeProvider } from "../contexts/theme-context";
 import { useAppFonts } from "../lib/fonts";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const RootLayout = () => {
   const { fontsLoaded, fontError } = useAppFonts();
@@ -55,6 +55,12 @@ const AppContainer = () => {
           />
           <Stack.Screen
             name="name"
+            options={{
+              animation: "none",
+            }}
+          />
+          <Stack.Screen
+            name="media-preferences"
             options={{
               animation: "none",
             }}

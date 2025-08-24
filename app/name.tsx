@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import React, {
   useCallback,
   useContext,
@@ -25,6 +26,7 @@ export default function NameScreen() {
   const { theme } = useContext(ThemeContext);
   const [firstName, setFirstName] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const router = useRouter();
   useEffect(() => {
     if (
       Platform.OS === "android" &&
@@ -80,6 +82,8 @@ export default function NameScreen() {
     }
     if (error) hideError();
     // Navigate to next onboarding step here if needed
+    authContext.setUserName(firstName);
+    router.push("/media-preferences");
   }, [firstName, error, showError, hideError]);
 
   const onChangeFirstName = useCallback(

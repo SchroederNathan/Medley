@@ -77,6 +77,10 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   };
 
   useEffect(() => {
+    console.log(user);
+  }, [user]);
+
+  useEffect(() => {
     const getAuthFromStorage = async () => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       try {
