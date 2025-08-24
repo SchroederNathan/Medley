@@ -25,12 +25,6 @@ const RootLayout = () => {
 const AppContainer = () => {
   const { theme } = useContext(ThemeContext);
 
-  // Debug: log the current theme
-  console.log(
-    "Current theme background color:",
-    theme?.background || "undefined"
-  );
-
   return (
     <AuthProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
@@ -55,6 +49,12 @@ const AppContainer = () => {
           />
           <Stack.Screen
             name="login"
+            options={{
+              animation: "none",
+            }}
+          />
+          <Stack.Screen
+            name="signup"
             options={{
               animation: "none",
             }}

@@ -31,8 +31,12 @@ const Button = ({
   const { theme } = useContext(ThemeContext);
 
   // Use secondary colors for secondary variant, primary colors for primary variant
-  const buttonBackground = variant === "secondary" ? theme.secondaryButtonBackground : theme.buttonBackground;
-  const buttonBorder = variant === "secondary" ? theme.secondaryButtonBorder : theme.buttonBorder;
+  const buttonBackground =
+    variant === "secondary"
+      ? theme.secondaryButtonBackground
+      : theme.buttonBackground;
+  const buttonBorder =
+    variant === "secondary" ? theme.secondaryButtonBorder : theme.buttonBorder;
 
   return (
     <TouchableOpacity
@@ -53,7 +57,14 @@ const Button = ({
         style={[styles.blurView, { backgroundColor: buttonBackground }]}
       >
         {icon && icon}
-        <Text style={[styles.buttonText, { color: variant === "secondary" ? theme.background : theme.text }]}>{title}</Text>
+        <Text
+          style={[
+            styles.buttonText,
+            { color: variant === "secondary" ? theme.background : theme.text },
+          ]}
+        >
+          {title}
+        </Text>
       </BlurView>
     </TouchableOpacity>
   );

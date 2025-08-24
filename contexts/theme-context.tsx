@@ -33,26 +33,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const loadSavedTheme = async () => {
     try {
       const savedThemeMode = await AsyncStorage.getItem(THEME_STORAGE_KEY);
-      console.log('Loading saved theme mode:', savedThemeMode);
-      console.log('System color scheme:', systemColorScheme);
 
       if (savedThemeMode) {
         setThemeMode(savedThemeMode);
         if (savedThemeMode === "system") {
           const selectedTheme = themes[(systemColorScheme || "light") as keyof typeof themes];
-          console.log('Setting system theme:', selectedTheme);
           setTheme(selectedTheme);
         } else {
           const selectedTheme = themes[savedThemeMode as keyof typeof themes];
-          console.log('Setting manual theme:', selectedTheme);
           setTheme(selectedTheme);
         }
       } else {
         // Default to system mode if no saved preference
-        console.log('No saved theme, defaulting to system mode');
         setThemeMode("system");
         const defaultTheme = themes[(systemColorScheme || "light") as keyof typeof themes];
-        console.log('Setting default theme:', defaultTheme);
         setTheme(defaultTheme);
       }
     } catch (error) {

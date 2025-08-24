@@ -1,9 +1,9 @@
-import React, { useContext, useState } from "react";
+import { useRouter } from "expo-router";
+import React, { useContext } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { fontFamily } from "../../../lib/fonts";
 import Button from "../button";
-import Input from "../input";
 import Modal from "../modal";
 
 interface AuthModalProps {
@@ -13,17 +13,28 @@ interface AuthModalProps {
 
 const AuthModal = ({ visible, onClose }: AuthModalProps) => {
   const { theme } = useContext(ThemeContext);
+  const router = useRouter();
 
   return (
     <Modal visible={visible} onClose={onClose} title="Login or Sign Up">
       <View style={styles.container}>
         <Button
           title="Login"
-          onPress={() => {}}
+          onPress={() => {
+            router.push("/login");
+            onClose();
+          }}
           styles={{ marginBottom: 16 }}
           variant="secondary"
         />
-        <Button title="Sign Up" onPress={() => {}} styles={{marginBottom: 24}} />
+        <Button
+          title="Sign Up"
+          onPress={() => {
+            router.push("/signup");
+            onClose();
+          }}
+          styles={{ marginBottom: 24 }}
+        />
         <Text style={[styles.description, { color: theme.secondaryText }]}>
           Sign up or log in to create boards, find personalized recommendations
           and more.
