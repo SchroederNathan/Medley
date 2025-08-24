@@ -54,6 +54,12 @@ const AppContainer = () => {
             }}
           />
           <Stack.Screen
+            name="name"
+            options={{
+              animation: "none",
+            }}
+          />
+          <Stack.Screen
             name="signup"
             options={{
               animation: "none",

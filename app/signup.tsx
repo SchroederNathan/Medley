@@ -1,34 +1,14 @@
-import { useRouter } from "expo-router";
-import { ArrowLeft } from "lucide-react-native";
-import React, { useCallback, useContext, useRef, useState } from "react";
-import {
-  Alert,
-  Animated,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import Svg, {
-  Defs,
-  FeBlend,
-  FeFlood,
-  FeGaussianBlur,
-  Filter,
-  Path,
-} from "react-native-svg";
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { Alert, Animated, LayoutAnimation, Platform, StyleSheet, Text, UIManager } from "react-native";
 import Button from "../components/ui/button";
 import Input from "../components/ui/input";
 import { AuthContext } from "../contexts/auth-context";
-import { ThemeContext } from "../contexts/theme-context";
 import { fontFamily } from "../lib/fonts";
 import { supabase } from "../lib/utils";
+import AuthScreenLayout from "../components/ui/auth-screen-layout";
+import { useRouter } from "expo-router";
 
 export default function Signup() {
-  const { theme } = useContext(ThemeContext);
   const authContext = useContext(AuthContext);
 
   const [email, setEmail] = useState("");
@@ -39,8 +19,12 @@ export default function Signup() {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [currentStep, setCurrentStep] = useState<"email" | "password">("email");
-
-  const router = useRouter();
+  // Enable LayoutAnimation on Android
+  useEffect(() => {
+    if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+      UIManager.setLayoutAnimationEnabledExperimental(true);
+    }
+  }, []);
 
   // Animation values (reuse same pattern as login)
   const passwordFieldOpacity = useRef(new Animated.Value(0)).current;
@@ -49,6 +33,9 @@ export default function Signup() {
   const errorTranslateY = useRef(new Animated.Value(-10)).current;
   const passwordErrorOpacity = useRef(new Animated.Value(0)).current;
   const passwordErrorTranslateY = useRef(new Animated.Value(-10)).current;
+  // Animated values only control opacity/translate; layout is handled by LayoutAnimation
+
+  const router = useRouter();
 
   // Email validation function
   const validateEmail = useCallback((value: string) => {
@@ -74,6 +61,7 @@ export default function Signup() {
 
   const showError = useCallback(
     (message: string) => {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setEmailError(message);
       Animated.parallel([
         Animated.timing(errorOpacity, {
@@ -88,10 +76,11 @@ export default function Signup() {
         }),
       ]).start();
     },
-    [errorOpacity, errorTranslateY],
+    [errorOpacity, errorTranslateY]
   );
 
   const hideError = useCallback(() => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     Animated.parallel([
       Animated.timing(errorOpacity, {
         toValue: 0,
@@ -110,6 +99,7 @@ export default function Signup() {
 
   const showPasswordError = useCallback(
     (message: string) => {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setPasswordError(message);
       Animated.parallel([
         Animated.timing(passwordErrorOpacity, {
@@ -124,10 +114,11 @@ export default function Signup() {
         }),
       ]).start();
     },
-    [passwordErrorOpacity, passwordErrorTranslateY],
+    [passwordErrorOpacity, passwordErrorTranslateY]
   );
 
   const hidePasswordError = useCallback(() => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     Animated.parallel([
       Animated.timing(passwordErrorOpacity, {
         toValue: 0,
@@ -170,7 +161,7 @@ export default function Signup() {
       setEmail(text);
       if (emailError) hideError();
     },
-    [emailError, hideError],
+    [emailError, hideError]
   );
 
   const handlePasswordChange = useCallback(
@@ -178,7 +169,7 @@ export default function Signup() {
       setPassword(text);
       if (passwordError) hidePasswordError();
     },
-    [passwordError, hidePasswordError],
+    [passwordError, hidePasswordError]
   );
 
   const handleConfirmPasswordChange = useCallback(
@@ -186,7 +177,7 @@ export default function Signup() {
       setConfirmPassword(text);
       if (passwordError) hidePasswordError();
     },
-    [passwordError, hidePasswordError],
+    [passwordError, hidePasswordError]
   );
 
   async function signUpWithEmail() {
@@ -207,199 +198,113 @@ export default function Signup() {
 
     if (error) Alert.alert(error.message);
 
-    if (data.user) authContext.logIn();
+    if (data.user) {
+      //   authContext.logIn();
+      authContext.setUserId(data.user.id);
+      router.push("/name");
+    }
 
     setLoading(false);
   }
 
   return (
-    <View style={styles.mainContainer}>
-      <Svg
-        width="150%"
-        height="100%"
-        viewBox="0 0 500 550"
-        style={styles.spotlightSvg}
+    <AuthScreenLayout title="Sign Up">
+      <Animated.View
+        style={[
+          styles.errorContainer,
+          {
+            opacity: errorOpacity,
+            transform: [{ translateY: errorTranslateY }],
+            marginBottom: emailError ? 8 : 0,
+          },
+        ]}
       >
-        <Defs>
-          <Filter
-            id="filter0_f_2_34"
-            x="-167.2"
-            y="-262.2"
-            width="700.02"
-            height="850.854"
-            filterUnits="userSpaceOnUse"
-          >
-            <FeFlood floodOpacity="0" result="BackgroundImageFix" />
-            <FeBlend
-              mode="normal"
-              in="SourceGraphic"
-              in2="BackgroundImageFix"
-              result="shape"
-            />
-            <FeGaussianBlur
-              stdDeviation="61.85"
-              result="effect1_foregroundBlur_2_34"
-            />
-          </Filter>
-        </Defs>
-        <Path
-          d="M-43.5 -81.5L7.5 -138.5L420.12 380.955L280.62 480.954L-43.5 -81.5Z"
-          fill="#D4D4D4"
-          fillOpacity="0.1"
-          filter="url(#filter0_f_2_34)"
-        />
-      </Svg>
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? -150 : 0}
-        enabled={true}
-      >
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-          keyboardDismissMode="on-drag"
+        {emailError ? (
+          <Text style={[styles.errorText, { color: "#ff4444" }]}>
+            {emailError}
+          </Text>
+        ) : null}
+      </Animated.View>
+
+      <Input
+        placeholder="email@address.com"
+        value={email}
+        onChangeText={handleEmailChange}
+        style={{ marginBottom: 12 }}
+        autoCapitalize="none"
+        keyboardType="email-address"
+        autoComplete="email"
+        returnKeyType="next"
+        onSubmitEditing={currentStep === "email" ? handleContinue : undefined}
+      />
+
+      {showPassword && (
+        <Animated.View
+          style={[
+            styles.passwordFieldContainer,
+            {
+              opacity: passwordFieldOpacity,
+              transform: [{ translateY: passwordFieldTranslateY }],
+            },
+          ]}
         >
-          <View style={styles.container}>
-            <View style={styles.formContainer}>
-              <Text style={[styles.title, { color: theme.text }]}>Sign Up</Text>
+          <Animated.View
+            style={[
+              styles.errorContainer,
+              {
+                opacity: passwordErrorOpacity,
+                transform: [{ translateY: passwordErrorTranslateY }],
+                marginBottom: passwordError ? 8 : 0,
+              },
+            ]}
+          >
+            {passwordError ? (
+              <Text style={[styles.errorText, { color: "#ff4444" }]}>
+                {passwordError}
+              </Text>
+            ) : null}
+          </Animated.View>
+          <Input
+            placeholder="Password"
+            value={password}
+            onChangeText={handlePasswordChange}
+            secureTextEntry={true}
+            style={{ marginBottom: 12 }}
+            keyboardType="visible-password"
+            autoCapitalize="none"
+            autoComplete="password"
+            returnKeyType="next"
+          />
+          <Input
+            placeholder="Confirm Password"
+            value={confirmPassword}
+            onChangeText={handleConfirmPasswordChange}
+            secureTextEntry={true}
+            style={{ marginBottom: 24 }}
+            keyboardType="visible-password"
+            autoCapitalize="none"
+            autoComplete="password"
+            returnKeyType="done"
+            onSubmitEditing={signUpWithEmail}
+          />
+        </Animated.View>
+      )}
 
-              <Animated.View
-                style={[
-                  styles.errorContainer,
-                  {
-                    opacity: errorOpacity,
-                    transform: [{ translateY: errorTranslateY }],
-                  },
-                ]}
-              >
-                <Text style={[styles.errorText, { color: "#ff4444" }]}>
-                  {emailError}
-                </Text>
-              </Animated.View>
-
-              <Input
-                placeholder="email@address.com"
-                value={email}
-                onChangeText={handleEmailChange}
-                style={{ marginBottom: 12 }}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                autoComplete="email"
-                returnKeyType="next"
-                onSubmitEditing={
-                  currentStep === "email" ? handleContinue : undefined
-                }
-              />
-
-              {showPassword && (
-                <Animated.View
-                  style={[
-                    styles.passwordFieldContainer,
-                    {
-                      opacity: passwordFieldOpacity,
-                      transform: [{ translateY: passwordFieldTranslateY }],
-                    },
-                  ]}
-                >
-                  <Animated.View
-                    style={[
-                      styles.errorContainer,
-                      {
-                        opacity: passwordErrorOpacity,
-                        transform: [{ translateY: passwordErrorTranslateY }],
-                      },
-                    ]}
-                  >
-                    <Text style={[styles.errorText, { color: "#ff4444" }]}>
-                      {passwordError}
-                    </Text>
-                  </Animated.View>
-                  <Input
-                    placeholder="Password"
-                    value={password}
-                    onChangeText={handlePasswordChange}
-                    secureTextEntry={true}
-                    style={{ marginBottom: 12 }}
-                    keyboardType="visible-password"
-                    autoCapitalize="none"
-                    autoComplete="password"
-                    returnKeyType="next"
-                  />
-                  <Input
-                    placeholder="Confirm Password"
-                    value={confirmPassword}
-                    onChangeText={handleConfirmPasswordChange}
-                    secureTextEntry={true}
-                    style={{ marginBottom: 24 }}
-                    keyboardType="visible-password"
-                    autoCapitalize="none"
-                    autoComplete="password"
-                    returnKeyType="done"
-                    onSubmitEditing={signUpWithEmail}
-                  />
-                </Animated.View>
-              )}
-
-              <Button
-                title={
-                  currentStep === "email"
-                    ? "Continue"
-                    : loading
-                      ? "Creating Account..."
-                      : "Create Account"
-                }
-                onPress={
-                  currentStep === "email" ? handleContinue : signUpWithEmail
-                }
-              />
-            </View>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <ArrowLeft size={24} strokeWidth={3} color={theme.text} />
-      </TouchableOpacity>
-    </View>
+      <Button
+        title={
+          currentStep === "email"
+            ? "Continue"
+            : loading
+              ? "Creating Account..."
+              : "Create Account"
+        }
+        onPress={currentStep === "email" ? handleContinue : signUpWithEmail}
+      />
+    </AuthScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  mainContainer: {
-    flex: 1,
-    position: "relative",
-  },
-  keyboardAvoidingView: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: "center",
-    minHeight: "100%",
-  },
-  container: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  formContainer: {
-    marginTop: 60,
-    padding: 20,
-    flex: 1,
-    justifyContent: "center",
-  },
-  spotlightSvg: {
-    position: "absolute",
-    top: -200,
-    left: -150,
-    width: "150%",
-    height: "100%",
-    zIndex: 0,
-  },
   errorContainer: {
     marginBottom: 8,
     paddingHorizontal: 4,
@@ -410,17 +315,5 @@ const styles = StyleSheet.create({
   },
   passwordFieldContainer: {
     position: "relative",
-  },
-  title: {
-    fontSize: 32,
-    paddingHorizontal: 12,
-    marginBottom: 24,
-    fontFamily: fontFamily.tanker.regular,
-  },
-  backButton: {
-    position: "absolute",
-    top: (Platform.OS === "ios" ? 52 : 40) + 52,
-    left: 28,
-    zIndex: 1000,
   },
 });

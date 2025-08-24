@@ -1,41 +1,27 @@
 import { useRouter } from "expo-router";
-import { ArrowLeft } from "lucide-react-native";
-import React, { useCallback, useContext, useRef, useState } from "react";
-import {
-  Alert,
-  Animated,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import Svg, {
-  Defs,
-  FeBlend,
-  FeFlood,
-  FeGaussianBlur,
-  Filter,
-  Path,
-} from "react-native-svg";
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { Alert, Animated, LayoutAnimation, Platform, StyleSheet, Text, UIManager } from "react-native";
+import AuthScreenLayout from "../components/ui/auth-screen-layout";
 import Button from "../components/ui/button";
 import Input from "../components/ui/input";
 import { AuthContext } from "../contexts/auth-context";
-import { ThemeContext } from "../contexts/theme-context";
 import { fontFamily } from "../lib/fonts";
 import { supabase } from "../lib/utils";
 
 export default function Login() {
   const authContext = useContext(AuthContext);
-  const { theme } = useContext(ThemeContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [currentStep, setCurrentStep] = useState<"email" | "password">("email");
+  // Enable LayoutAnimation on Android
+  useEffect(() => {
+    if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+      UIManager.setLayoutAnimationEnabledExperimental(true);
+    }
+  }, []);
 
   const router = useRouter();
 
@@ -53,7 +39,11 @@ export default function Login() {
     });
 
     if (error) Alert.alert(error.message);
-    if (data.user) authContext.logIn();
+    if (data.user) {
+      //   authContext.logIn();
+      authContext.setUserId(data.user.id);
+      router.push("/name");
+    }
 
     setLoading(false);
   }
@@ -84,6 +74,7 @@ export default function Login() {
   // Show error animation
   const showError = useCallback(
     (errorMessage: string) => {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setEmailError(errorMessage);
       Animated.parallel([
         Animated.timing(errorOpacity, {
@@ -98,11 +89,12 @@ export default function Login() {
         }),
       ]).start();
     },
-    [errorOpacity, errorTranslateY],
+    [errorOpacity, errorTranslateY]
   );
 
   // Hide error animation
   const hideError = useCallback(() => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     Animated.parallel([
       Animated.timing(errorOpacity, {
         toValue: 0,
@@ -156,176 +148,80 @@ export default function Login() {
         hideError();
       }
     },
-    [emailError, hideError],
+    [emailError, hideError]
   );
 
   return (
-    <View style={styles.mainContainer}>
-      {/* Spotlight SVG - Fixed position, stays behind everything */}
-      <Svg
-        width="150%"
-        height="100%"
-        viewBox="0 0 500 550"
-        style={styles.spotlightSvg}
+    <AuthScreenLayout title="Sign In">
+      <Animated.View
+        style={[
+          styles.errorContainer,
+          {
+            opacity: errorOpacity,
+            transform: [{ translateY: errorTranslateY }],
+            marginBottom: emailError ? 8 : 0,
+          },
+        ]}
       >
-        <Defs>
-          <Filter
-            id="filter0_f_2_34"
-            x="-167.2"
-            y="-262.2"
-            width="700.02"
-            height="850.854"
-            filterUnits="userSpaceOnUse"
-          >
-            <FeFlood floodOpacity="0" result="BackgroundImageFix" />
-            <FeBlend
-              mode="normal"
-              in="SourceGraphic"
-              in2="BackgroundImageFix"
-              result="shape"
-            />
-            <FeGaussianBlur
-              stdDeviation="61.85"
-              result="effect1_foregroundBlur_2_34"
-            />
-          </Filter>
-        </Defs>
-        <Path
-          d="M-43.5 -81.5L7.5 -138.5L420.12 380.955L280.62 480.954L-43.5 -81.5Z"
-          fill="#D4D4D4"
-          fillOpacity="0.1"
-          filter="url(#filter0_f_2_34)"
-        />
-      </Svg>
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? -150 : 0}
-        enabled={true}
-      >
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-          keyboardDismissMode="on-drag"
+        {emailError ? (
+          <Text style={[styles.errorText, { color: "#ff4444" }]}>
+            {emailError}
+          </Text>
+        ) : null}
+      </Animated.View>
+
+      <Input
+        placeholder="email@address.com"
+        value={email}
+        onChangeText={handleEmailChange}
+        style={{ marginBottom: 12 }}
+        autoCapitalize="none"
+        keyboardType="email-address"
+        autoComplete="email"
+        returnKeyType="next"
+        onSubmitEditing={currentStep === "email" ? handleContinue : undefined}
+      />
+
+      {showPassword && (
+        <Animated.View
+          style={[
+            styles.passwordFieldContainer,
+            {
+              opacity: passwordFieldOpacity,
+              transform: [{ translateY: passwordFieldTranslateY }],
+            },
+          ]}
         >
-          <View style={styles.container}>
-            <View style={styles.formContainer}>
-              <Text style={[styles.title, { color: theme.text }]}>Sign In</Text>
+          <Input
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={true}
+            style={{ marginBottom: 24 }}
+            keyboardType="visible-password"
+            autoCapitalize="none"
+            autoComplete="password"
+            returnKeyType="done"
+            onSubmitEditing={signInWithEmail}
+          />
+        </Animated.View>
+      )}
 
-              {/* Error message with animation */}
-              <Animated.View
-                style={[
-                  styles.errorContainer,
-                  {
-                    opacity: errorOpacity,
-                    transform: [{ translateY: errorTranslateY }],
-                  },
-                ]}
-              >
-                <Text style={[styles.errorText, { color: "#ff4444" }]}>
-                  {emailError}
-                </Text>
-              </Animated.View>
-
-              <Input
-                placeholder="email@address.com"
-                value={email}
-                onChangeText={handleEmailChange}
-                style={{ marginBottom: 12 }}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                autoComplete="email"
-                returnKeyType="next"
-                onSubmitEditing={
-                  currentStep === "email" ? handleContinue : undefined
-                }
-              />
-
-              {/* Password field with animation */}
-              {showPassword && (
-                <Animated.View
-                  style={[
-                    styles.passwordFieldContainer,
-                    {
-                      opacity: passwordFieldOpacity,
-                      transform: [{ translateY: passwordFieldTranslateY }],
-                    },
-                  ]}
-                >
-                  <Input
-                    placeholder="Password"
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry={true}
-                    style={{ marginBottom: 24 }}
-                    keyboardType="visible-password"
-                    autoCapitalize="none"
-                    autoComplete="password"
-                    returnKeyType="done"
-                    onSubmitEditing={signInWithEmail}
-                  />
-                </Animated.View>
-              )}
-
-              <Button
-                title={
-                  currentStep === "email"
-                    ? "Continue"
-                    : loading
-                      ? "Signing In..."
-                      : "Sign In"
-                }
-                onPress={
-                  currentStep === "email" ? handleContinue : signInWithEmail
-                }
-              />
-            </View>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <ArrowLeft size={24} strokeWidth={3} color={theme.text} />
-      </TouchableOpacity>
-    </View>
+      <Button
+        title={
+          currentStep === "email"
+            ? "Continue"
+            : loading
+              ? "Signing In..."
+              : "Sign In"
+        }
+        onPress={currentStep === "email" ? handleContinue : signInWithEmail}
+      />
+    </AuthScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  mainContainer: {
-    flex: 1,
-    position: "relative",
-  },
-  keyboardAvoidingView: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: "center",
-    minHeight: "100%",
-  },
-  container: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  formContainer: {
-    marginTop: 60,
-    padding: 20,
-    flex: 1,
-    justifyContent: "center",
-  },
-  spotlightSvg: {
-    position: "absolute",
-    top: -200,
-    left: -150,
-    width: "150%",
-    height: "100%",
-    zIndex: 0, // Behind content
-  },
   errorContainer: {
     marginBottom: 8,
     paddingHorizontal: 4,
@@ -336,21 +232,5 @@ const styles = StyleSheet.create({
   },
   passwordFieldContainer: {
     position: "relative",
-  },
-  button: {
-    padding: 12,
-    borderRadius: 5,
-  },
-  title: {
-    fontSize: 32,
-    paddingHorizontal: 12,
-    marginBottom: 24,
-    fontFamily: fontFamily.tanker.regular,
-  },
-  backButton: {
-    position: "absolute",
-    top: (Platform.OS === "ios" ? 52 : 40) + 52,
-    left: 28,
-    zIndex: 1000,
   },
 });

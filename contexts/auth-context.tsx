@@ -6,23 +6,39 @@ const authStorageKey = "authState";
 
 SplashScreen.preventAutoHideAsync();
 
+// This will only be held in memory and not saved to the database until the user completes the onboarding process
+type User = {
+  id?: string;
+  name?: string;
+  preffered_media?: Array<"Games" | "Movies" | "Books">;
+};
+
 type AuthState = {
   isLoggedIn: boolean;
   isReady: boolean;
+  user?: User;
   logIn: () => void;
   logOut: () => void;
+  setUserId: (id: string) => void;
+  setUserName: (name: string) => void;
+  setUserPrefferedMedia: (media: Array<"Games" | "Movies" | "Books">) => void;
 };
 
 export const AuthContext = createContext<AuthState>({
   isLoggedIn: false,
   isReady: false,
+  user: undefined,
   logIn: () => {},
   logOut: () => {},
+  setUserId: () => {},
+  setUserName: () => {},
+  setUserPrefferedMedia: () => {},
 });
 
 export const AuthProvider = ({ children }: PropsWithChildren) => {
   const [isReady, setIsReady] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState<User>({});
   const router = useRouter();
 
   const storeAuthState = async (newState: { isLoggedIn: boolean }) => {
@@ -32,6 +48,20 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     } catch (error) {
       console.error("Error storing auth state:", error);
     }
+  };
+
+  const setUserId = (id: string) => {
+    setUser({ ...user, id });
+  };
+
+  const setUserName = (name: string) => {
+    setUser({ ...user, name });
+  };
+
+  const setUserPrefferedMedia = (
+    media: Array<"Games" | "Movies" | "Books">
+  ) => {
+    setUser({ ...user, preffered_media: media });
   };
 
   const logIn = () => {
@@ -70,7 +100,18 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   }, [isReady]);
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, isReady, logIn, logOut }}>
+    <AuthContext.Provider
+      value={{
+        isLoggedIn,
+        isReady,
+        logIn,
+        logOut,
+        user,
+        setUserId,
+        setUserName,
+        setUserPrefferedMedia,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
