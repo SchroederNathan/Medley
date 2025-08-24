@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   const logOut = () => {
     setIsLoggedIn(false);
     storeAuthState({ isLoggedIn: false });
-    router.replace("/index");
+    router.replace("/onboarding");
   };
 
   useEffect(() => {

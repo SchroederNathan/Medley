@@ -1,15 +1,22 @@
 import { BlurView } from "expo-blur";
 import React, { useContext } from "react";
-import { StyleSheet, TextInput, TextInputProps, View } from "react-native";
+import {
+  StyleProp,
+  StyleSheet,
+  TextInput,
+  TextInputProps,
+  View,
+  ViewStyle,
+} from "react-native";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
 
-interface InputProps {
+interface InputProps extends TextInputProps {
   placeholder?: string;
   value?: string;
+  style?: StyleProp<ViewStyle>;
   onChangeText?: (text: string) => void;
   secureTextEntry?: boolean;
-  otherProps?: TextInputProps;
 }
 
 const Input = ({
@@ -17,11 +24,14 @@ const Input = ({
   value,
   onChangeText,
   secureTextEntry = false,
+  style,
   ...otherProps
 }: InputProps) => {
   const { theme } = useContext(ThemeContext);
   return (
-    <View style={[styles.inputContainer, { borderColor: theme.inputBorder }]}>
+    <View
+      style={[styles.inputContainer, { borderColor: theme.inputBorder }, style]}
+    >
       <BlurView
         intensity={20}
         tint="default"

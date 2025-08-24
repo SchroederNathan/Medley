@@ -27,7 +27,7 @@ const AppContainer = () => {
   // Debug: log the current theme
   console.log(
     "Current theme background color:",
-    theme?.background || "undefined"
+    theme?.background || "undefined",
   );
 
   return (
@@ -46,7 +46,7 @@ const AppContainer = () => {
           }}
         />
         <Stack.Screen
-          name="index"
+          name="onboarding"
           options={{
             animation: "none",
           }}

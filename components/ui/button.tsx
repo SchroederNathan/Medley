@@ -1,4 +1,5 @@
 import { BlurView } from "expo-blur";
+import * as Haptics from "expo-haptics";
 import React, { useContext } from "react";
 import {
   StyleSheet,
@@ -9,7 +10,6 @@ import {
 } from "react-native";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
-import * as Haptics from "expo-haptics";
 
 interface ButtonProps {
   title: string;

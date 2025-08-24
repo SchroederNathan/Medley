@@ -10,7 +10,7 @@ const ProtectedLayout = () => {
   }
 
   if (!authState.isLoggedIn) {
-    return <Redirect href="/index" />;
+    return <Redirect href="/onboarding" />;
   }
 
   return (
