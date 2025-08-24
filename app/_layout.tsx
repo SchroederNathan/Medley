@@ -4,6 +4,7 @@ import React, { useContext } from "react";
 import { AuthProvider } from "../contexts/auth-context";
 import { ThemeContext, ThemeProvider } from "../contexts/theme-context";
 import { useAppFonts } from "../lib/fonts";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const RootLayout = () => {
   const { fontsLoaded, fontError } = useAppFonts();
@@ -27,37 +28,39 @@ const AppContainer = () => {
   // Debug: log the current theme
   console.log(
     "Current theme background color:",
-    theme?.background || "undefined",
+    theme?.background || "undefined"
   );
 
   return (
     <AuthProvider>
-      <StatusBar style="auto" />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: theme.background },
-        }}
-      >
-        <Stack.Screen
-          name="(protected)"
-          options={{
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <StatusBar style="auto" />
+        <Stack
+          screenOptions={{
             headerShown: false,
+            contentStyle: { backgroundColor: theme.background },
           }}
-        />
-        <Stack.Screen
-          name="onboarding"
-          options={{
-            animation: "none",
-          }}
-        />
-        <Stack.Screen
-          name="login"
-          options={{
-            animation: "none",
-          }}
-        />
-      </Stack>
+        >
+          <Stack.Screen
+            name="(protected)"
+            options={{
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="onboarding"
+            options={{
+              animation: "none",
+            }}
+          />
+          <Stack.Screen
+            name="login"
+            options={{
+              animation: "none",
+            }}
+          />
+        </Stack>
+      </GestureHandlerRootView>
     </AuthProvider>
   );
 };

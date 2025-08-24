@@ -1,6 +1,5 @@
 import { Image } from "expo-image";
-import { router } from "expo-router";
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, {
   Easing,
@@ -22,6 +21,7 @@ import Svg, {
   Stop,
 } from "react-native-svg";
 import Button from "../components/ui/button";
+import AuthModal from "../components/ui/modals/auth-modal";
 import { ThemeContext } from "../contexts/theme-context";
 import { fontFamily } from "../lib/fonts";
 
@@ -37,6 +37,8 @@ const GetStarted = () => {
     require("../assets/images/onboarding/frankenstein.jpg"),
     require("../assets/images/onboarding/tkamb.jpg"),
   ];
+
+  const [showModal, setShowModal] = useState(false);
 
   const CARD_WIDTH = 133;
   const CARD_GAP = 20;
@@ -61,51 +63,51 @@ const GetStarted = () => {
     // Title animation - fade in up
     titleOpacity.value = withDelay(
       200,
-      withTiming(1, { duration: 800, easing: Easing.out(Easing.cubic) }),
+      withTiming(1, { duration: 800, easing: Easing.out(Easing.cubic) })
     );
     titleTranslateY.value = withDelay(
       200,
-      withTiming(0, { duration: 800, easing: Easing.out(Easing.cubic) }),
+      withTiming(0, { duration: 800, easing: Easing.out(Easing.cubic) })
     );
 
     // Subtitle and spotlight animation - fade in together
     subtitleOpacity.value = withDelay(
       600,
-      withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) }),
+      withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) })
     );
     spotlightOpacity.value = withDelay(
       600,
-      withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) }),
+      withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) })
     );
     spotlightTranslateX.value = withDelay(
       600,
-      withTiming(0, { duration: 600, easing: Easing.out(Easing.cubic) }),
+      withTiming(0, { duration: 600, easing: Easing.out(Easing.cubic) })
     );
     spotlightTranslateY.value = withDelay(
       600,
-      withTiming(0, { duration: 600, easing: Easing.out(Easing.cubic) }),
+      withTiming(0, { duration: 600, easing: Easing.out(Easing.cubic) })
     );
 
     // Poster carousel animation - fade in from bottom
     posterOpacity.value = withDelay(
       1000,
-      withTiming(1, { duration: 700, easing: Easing.out(Easing.cubic) }),
+      withTiming(1, { duration: 700, easing: Easing.out(Easing.cubic) })
     );
     posterTranslateY.value = withDelay(
       1000,
-      withTiming(0, { duration: 700, easing: Easing.out(Easing.cubic) }),
+      withTiming(0, { duration: 700, easing: Easing.out(Easing.cubic) })
     );
 
     // Button and text animation - fade in last
     buttonOpacity.value = withDelay(
       1400,
-      withTiming(1, { duration: 500, easing: Easing.out(Easing.cubic) }),
+      withTiming(1, { duration: 500, easing: Easing.out(Easing.cubic) })
     );
 
     // Bottom gradient animation - fade in after button
     bottomGradientOpacity.value = withDelay(
       1600,
-      withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) }),
+      withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) })
     );
   }, []);
 
@@ -114,7 +116,7 @@ const GetStarted = () => {
     offset.value = withRepeat(
       withTiming(TRACK_WIDTH, { duration: 45000, easing: Easing.linear }),
       -1,
-      false,
+      false
     );
   }, []);
 
@@ -165,7 +167,7 @@ const GetStarted = () => {
         const translateY = Math.round(rand(2) * 20 - 10); // -10 to 10
         return { rotate: `${rotate}deg`, translateY };
       }),
-    [],
+    []
   );
 
   return (
@@ -334,13 +336,14 @@ const GetStarted = () => {
         <Button
           title="Get Started"
           styles={styles.button}
-          onPress={() => router.push("/login")}
+          onPress={() => setShowModal(true)}
         />
         <Text style={[styles.info, { color: theme.text }]}>
           By proceeding to use Medley, you agree to the terms of service and
           privacy policy.
         </Text>
       </Animated.View>
+      <AuthModal visible={showModal} onClose={() => setShowModal(false)} />
     </View>
   );
 };
@@ -353,6 +356,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 20,
+    paddingBottom: 120
   },
   spotlightContainer: {
     position: "absolute",
