@@ -5,8 +5,12 @@ import { AuthContext } from "../../contexts/auth-context";
 const ProtectedLayout = () => {
   const authState = useContext(AuthContext);
 
+  if (!authState.isReady) {
+    return null;
+  }
+
   if (!authState.isLoggedIn) {
-    return <Redirect href="/login" />;
+    return <Redirect href="/index" />;
   }
 
   return (

@@ -7,29 +7,29 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0AC741D04AFABAD08143C53A /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9416510EC4104F5C069F51 /* ExpoModulesProvider.swift */; };
+		0F4377ADCA85D6BD2A7966C5 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 582A6033F414BDFA7BC09355 /* PrivacyInfo.xcprivacy */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		6E05B006D5DC9D935CDFDFE5 /* libPods-medley.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 13F42BBEF0AF66AAE34545B5 /* libPods-medley.a */; };
-		8490D42D5C2607CBEBA95011 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F255FAA2817B55AC5426EF6 /* ExpoModulesProvider.swift */; };
-		A7AF3DF9B8E3D4843CE3AA07 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F40A3BBA29CA49D2C8962214 /* PrivacyInfo.xcprivacy */; };
+		790474E29F20966735FC2338 /* libPods-Medley.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DE1FFFF15A8CCD3310A6D2E1 /* libPods-Medley.a */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		13B07F961A680F5B00A75B9A /* medley.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = medley.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = medley/Images.xcassets; sourceTree = "<group>"; };
-		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = medley/Info.plist; sourceTree = "<group>"; };
-		13F42BBEF0AF66AAE34545B5 /* libPods-medley.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-medley.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		1F255FAA2817B55AC5426EF6 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-medley/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		8AF24A83D64EDA9738215137 /* Pods-medley.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-medley.release.xcconfig"; path = "Target Support Files/Pods-medley/Pods-medley.release.xcconfig"; sourceTree = "<group>"; };
-		A969CC1F541434331BA7CB00 /* Pods-medley.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-medley.debug.xcconfig"; path = "Target Support Files/Pods-medley/Pods-medley.debug.xcconfig"; sourceTree = "<group>"; };
-		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = medley/SplashScreen.storyboard; sourceTree = "<group>"; };
+		0A3F996CE9B802BC06AB2110 /* Pods-Medley.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Medley.release.xcconfig"; path = "Target Support Files/Pods-Medley/Pods-Medley.release.xcconfig"; sourceTree = "<group>"; };
+		13B07F961A680F5B00A75B9A /* Medley.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Medley.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Medley/Images.xcassets; sourceTree = "<group>"; };
+		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Medley/Info.plist; sourceTree = "<group>"; };
+		25870C188428224B04CCDAC8 /* Pods-Medley.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Medley.debug.xcconfig"; path = "Target Support Files/Pods-Medley/Pods-Medley.debug.xcconfig"; sourceTree = "<group>"; };
+		2B9416510EC4104F5C069F51 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-Medley/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		582A6033F414BDFA7BC09355 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = Medley/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = Medley/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
+		DE1FFFF15A8CCD3310A6D2E1 /* libPods-Medley.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Medley.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = medley/AppDelegate.swift; sourceTree = "<group>"; };
-		F11748442D0722820044C1D9 /* medley-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "medley-Bridging-Header.h"; path = "medley/medley-Bridging-Header.h"; sourceTree = "<group>"; };
-		F40A3BBA29CA49D2C8962214 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = medley/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = Medley/AppDelegate.swift; sourceTree = "<group>"; };
+		F11748442D0722820044C1D9 /* Medley-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "Medley-Bridging-Header.h"; path = "Medley/Medley-Bridging-Header.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,58 +37,50 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6E05B006D5DC9D935CDFDFE5 /* libPods-medley.a in Frameworks */,
+				790474E29F20966735FC2338 /* libPods-Medley.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		13B07FAE1A68108700A75B9A /* medley */ = {
+		13B07FAE1A68108700A75B9A /* Medley */ = {
 			isa = PBXGroup;
 			children = (
 				F11748412D0307B40044C1D9 /* AppDelegate.swift */,
-				F11748442D0722820044C1D9 /* medley-Bridging-Header.h */,
+				F11748442D0722820044C1D9 /* Medley-Bridging-Header.h */,
 				BB2F792B24A3F905000567C9 /* Supporting */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				F40A3BBA29CA49D2C8962214 /* PrivacyInfo.xcprivacy */,
+				582A6033F414BDFA7BC09355 /* PrivacyInfo.xcprivacy */,
 			);
-			name = medley;
+			name = Medley;
 			sourceTree = "<group>";
 		};
-		1FA10D8A0B1AE9BAE0436579 /* medley */ = {
+		2A01617B07BE5A44300124F9 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				1F255FAA2817B55AC5426EF6 /* ExpoModulesProvider.swift */,
+				25870C188428224B04CCDAC8 /* Pods-Medley.debug.xcconfig */,
+				0A3F996CE9B802BC06AB2110 /* Pods-Medley.release.xcconfig */,
 			);
-			name = medley;
+			name = Pods;
+			path = Pods;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				13F42BBEF0AF66AAE34545B5 /* libPods-medley.a */,
+				DE1FFFF15A8CCD3310A6D2E1 /* libPods-Medley.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		3D5D923A4D6C6EE7E4286EB7 /* Pods */ = {
+		5171C068397D1BA2459A6295 /* ExpoModulesProviders */ = {
 			isa = PBXGroup;
 			children = (
-				A969CC1F541434331BA7CB00 /* Pods-medley.debug.xcconfig */,
-				8AF24A83D64EDA9738215137 /* Pods-medley.release.xcconfig */,
-			);
-			name = Pods;
-			path = Pods;
-			sourceTree = "<group>";
-		};
-		5C2AE537652919A219CFAD5E /* ExpoModulesProviders */ = {
-			isa = PBXGroup;
-			children = (
-				1FA10D8A0B1AE9BAE0436579 /* medley */,
+				C19889CDFF33E9EFDECB6707 /* Medley */,
 			);
 			name = ExpoModulesProviders;
 			sourceTree = "<group>";
@@ -103,12 +95,12 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
-				13B07FAE1A68108700A75B9A /* medley */,
+				13B07FAE1A68108700A75B9A /* Medley */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				3D5D923A4D6C6EE7E4286EB7 /* Pods */,
-				5C2AE537652919A219CFAD5E /* ExpoModulesProviders */,
+				2A01617B07BE5A44300124F9 /* Pods */,
+				5171C068397D1BA2459A6295 /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -118,7 +110,7 @@
 		83CBBA001A601CBA00E9B192 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				13B07F961A680F5B00A75B9A /* medley.app */,
+				13B07F961A680F5B00A75B9A /* Medley.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -129,32 +121,40 @@
 				BB2F792C24A3F905000567C9 /* Expo.plist */,
 			);
 			name = Supporting;
-			path = medley/Supporting;
+			path = Medley/Supporting;
+			sourceTree = "<group>";
+		};
+		C19889CDFF33E9EFDECB6707 /* Medley */ = {
+			isa = PBXGroup;
+			children = (
+				2B9416510EC4104F5C069F51 /* ExpoModulesProvider.swift */,
+			);
+			name = Medley;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		13B07F861A680F5B00A75B9A /* medley */ = {
+		13B07F861A680F5B00A75B9A /* Medley */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "medley" */;
+			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Medley" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				77AE56718B9869AA01F70A8E /* [Expo] Configure project */,
+				5AE7A9A2DF11BC6AE653F58E /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				8210ED64CABDDD1B2B392183 /* [CP] Embed Pods Frameworks */,
+				CA396C102D4B4ACF115B2F48 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			name = medley;
-			productName = medley;
-			productReference = 13B07F961A680F5B00A75B9A /* medley.app */;
+			name = Medley;
+			productName = Medley;
+			productReference = 13B07F961A680F5B00A75B9A /* Medley.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -166,13 +166,13 @@
 				LastUpgradeCheck = 1130;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
-						DevelopmentTeam = PH3XBLZS8A;
 						LastSwiftMigration = 1250;
+						DevelopmentTeam = "PH3XBLZS8A";
 						ProvisioningStyle = Automatic;
 					};
 				};
 			};
-			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "medley" */;
+			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Medley" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -185,7 +185,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				13B07F861A680F5B00A75B9A /* medley */,
+				13B07F861A680F5B00A75B9A /* Medley */,
 			);
 		};
 /* End PBXProject section */
@@ -198,7 +198,7 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				A7AF3DF9B8E3D4843CE3AA07 /* PrivacyInfo.xcprivacy in Resources */,
+				0F4377ADCA85D6BD2A7966C5 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -235,14 +235,14 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-medley-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-Medley-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		77AE56718B9869AA01F70A8E /* [Expo] Configure project */ = {
+		5AE7A9A2DF11BC6AE653F58E /* [Expo] Configure project */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -259,7 +259,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-medley/expo-configure-project.sh\"\n";
+			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-Medley/expo-configure-project.sh\"\n";
 		};
 		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -267,14 +267,17 @@
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-medley/Pods-medley-resources.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-Medley/Pods-Medley-resources.sh",
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXConstants/EXConstants.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXConstants/ExpoConstants_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/ExpoFileSystem/ExpoFileSystem_privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/ExpoSystemUI/ExpoSystemUI_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/RCT-Folly/RCT-Folly_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/RNCAsyncStorage/RNCAsyncStorage_resources.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/RNSVG/RNSVGFilters.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/React-Core_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-cxxreact/React-cxxreact_privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/SDWebImage/SDWebImage.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/boost/boost_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/glog/glog_privacy.bundle",
 			);
@@ -283,25 +286,28 @@
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/EXConstants.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoConstants_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoFileSystem_privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoSystemUI_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/RCT-Folly_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/RNCAsyncStorage_resources.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/RNSVGFilters.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-Core_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-cxxreact_privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/SDWebImage.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/boost_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/glog_privacy.bundle",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-medley/Pods-medley-resources.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Medley/Pods-Medley-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		8210ED64CABDDD1B2B392183 /* [CP] Embed Pods Frameworks */ = {
+		CA396C102D4B4ACF115B2F48 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-medley/Pods-medley-frameworks.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-Medley/Pods-Medley-frameworks.sh",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
 			);
 			name = "[CP] Embed Pods Frameworks";
@@ -310,7 +316,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-medley/Pods-medley-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Medley/Pods-Medley-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -321,7 +327,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				8490D42D5C2607CBEBA95011 /* ExpoModulesProvider.swift in Sources */,
+				0AC741D04AFABAD08143C53A /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -330,21 +336,18 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A969CC1F541434331BA7CB00 /* Pods-medley.debug.xcconfig */;
+			baseConfigurationReference = 25870C188428224B04CCDAC8 /* Pods-Medley.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = medley/medley.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = Medley/Medley.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = PH3XBLZS8A;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"FB_SONARKIT_ENABLED=1",
 				);
-				INFOPLIST_FILE = medley/Info.plist;
+				INFOPLIST_FILE = Medley/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -359,26 +362,26 @@
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.schroedernathan.medley;
 				PRODUCT_NAME = Medley;
-				SWIFT_OBJC_BRIDGING_HEADER = "medley/medley-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "Medley/Medley-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
+				DEVELOPMENT_TEAM = "PH3XBLZS8A";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 			};
 			name = Debug;
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 8AF24A83D64EDA9738215137 /* Pods-medley.release.xcconfig */;
+			baseConfigurationReference = 0A3F996CE9B802BC06AB2110 /* Pods-Medley.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = medley/medley.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = Medley/Medley.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = PH3XBLZS8A;
-				INFOPLIST_FILE = medley/Info.plist;
+				INFOPLIST_FILE = Medley/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -393,10 +396,13 @@
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.schroedernathan.medley;
 				PRODUCT_NAME = Medley;
-				SWIFT_OBJC_BRIDGING_HEADER = "medley/medley-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "Medley/Medley-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
+				DEVELOPMENT_TEAM = "PH3XBLZS8A";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 			};
 			name = Release;
 		};
@@ -527,7 +533,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "medley" */ = {
+		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Medley" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				13B07F941A680F5B00A75B9A /* Debug */,
@@ -536,7 +542,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "medley" */ = {
+		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Medley" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,
