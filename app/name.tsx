@@ -14,16 +14,16 @@ import {
   Text,
   UIManager,
 } from "react-native";
-import AuthScreenLayout, { useAnimatedNavigation } from "../components/ui/auth-screen-layout";
+import AuthScreenLayout, {
+  useAnimatedNavigation,
+} from "../components/ui/auth-screen-layout";
 import Button from "../components/ui/button";
 import Input from "../components/ui/input";
 import { AuthContext } from "../contexts/auth-context";
-import { ThemeContext } from "../contexts/theme-context";
 import { fontFamily } from "../lib/fonts";
 
 export default function NameScreen() {
   const authContext = useContext(AuthContext);
-  const { theme } = useContext(ThemeContext);
   const { triggerExitAnimation } = useAnimatedNavigation();
   const [firstName, setFirstName] = useState<string>("");
   const [error, setError] = useState<string>("");

@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
-import React, { useContext, useEffect, useRef } from "react";
+import React, { useContext, useEffect } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -11,11 +11,10 @@ import {
   View,
 } from "react-native";
 import Animated, {
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
-  runOnJS,
-  interpolate,
 } from "react-native-reanimated";
 import Svg, {
   Defs,
@@ -194,14 +193,12 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: "center",
     padding: 20,
     paddingTop: 80,
-    
   },
   content: {
     flex: 1,
@@ -209,7 +206,6 @@ const styles = StyleSheet.create({
     maxWidth: 400,
     alignSelf: "center",
     width: "100%",
-
   },
   spotlightSvg: {
     position: "absolute",
