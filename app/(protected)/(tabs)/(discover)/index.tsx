@@ -1,17 +1,28 @@
 import React, { useContext } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
-import { AuthContext } from "../../../../contexts/auth-context";
+import { StyleSheet, Text, View } from "react-native";
+import { ThemeContext } from "../../../../contexts/theme-context";
+import { fontFamily } from "../../../../lib/fonts";
 
 const DiscoverScreen = () => {
-  const authContext = useContext(AuthContext);
-
+  const { theme } = useContext(ThemeContext);
   return (
-    <View>
-      <TouchableOpacity onPress={() => authContext.logOut()}>
-        <Text>Logout</Text>
-      </TouchableOpacity>
+    <View style={styles.container}>
+      <Text style={[styles.title, { color: theme.text }]}>Discover</Text>
     </View>
   );
 };
 
 export default DiscoverScreen;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  title: {
+    fontSize: 20,
+    fontFamily: fontFamily.plusJakarta.bold,
+  },
+});
