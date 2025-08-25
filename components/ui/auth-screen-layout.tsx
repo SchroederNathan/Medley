@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, forwardRef, useImperativeHandle, useCallback } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -10,12 +10,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Animated, {
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
 import Svg, {
   Defs,
   FeBlend,
@@ -24,6 +18,15 @@ import Svg, {
   Filter,
   Path,
 } from "react-native-svg";
+import { useFocusEffect } from "@react-navigation/native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withDelay,
+  Easing,
+  runOnJS,
+} from "react-native-reanimated";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
 
@@ -31,67 +34,54 @@ interface AuthScreenLayoutProps {
   title: string;
   children: React.ReactNode;
   showBackButton?: boolean;
-  onAnimationComplete?: () => void;
-  animateOnMount?: boolean;
 }
 
-const AuthScreenLayout = ({
-  title,
-  children,
-  showBackButton = true,
-  onAnimationComplete,
-  animateOnMount = true,
-}: AuthScreenLayoutProps) => {
+export type AuthScreenLayoutHandle = {
+  animateOut: (onDone?: () => void) => void;
+};
+
+const AuthScreenLayout = forwardRef<AuthScreenLayoutHandle, AuthScreenLayoutProps>(function AuthScreenLayout(
+  { title, children, showBackButton = true }: AuthScreenLayoutProps,
+  ref,
+) {
   const { theme } = useContext(ThemeContext);
   const router = useRouter();
 
-  // Animation values
+  // Simple enter/exit animation shared by all auth screens
   const opacity = useSharedValue(0);
-  const translateX = useSharedValue(50);
+  const translateX = useSharedValue(24);
 
-  // Enter animation (fade in from right)
-  const enterAnimation = () => {
-    opacity.value = withTiming(1, { duration: 400 });
-    translateX.value = withTiming(0, { duration: 400 }, (finished) => {
-      if (finished && onAnimationComplete) {
-        runOnJS(onAnimationComplete)();
+  useFocusEffect(
+    useCallback(() => {
+      const delayMs = 120;
+      opacity.value = 0;
+      translateX.value = 24;
+      opacity.value = withDelay(
+        delayMs,
+        withTiming(1, { duration: 260, easing: Easing.out(Easing.cubic) }),
+      );
+      translateX.value = withDelay(
+        delayMs,
+        withTiming(0, { duration: 260, easing: Easing.out(Easing.cubic) }),
+      );
+    }, [opacity, translateX]),
+  );
+
+  const animateOut = (onDone?: () => void) => {
+    opacity.value = withTiming(0, { duration: 200, easing: Easing.in(Easing.cubic) });
+    translateX.value = withTiming(-24, { duration: 200, easing: Easing.in(Easing.cubic) }, (finished) => {
+      if (finished && onDone) {
+        runOnJS(onDone)();
       }
     });
   };
 
-  // Exit animation (fade out to left)
-  const exitAnimation = (callback?: () => void) => {
-    opacity.value = withTiming(0, { duration: 300 });
-    translateX.value = withTiming(-50, { duration: 300 }, (finished) => {
-      if (finished && callback) {
-        runOnJS(callback)();
-      }
-    });
-  };
+  useImperativeHandle(ref, () => ({ animateOut }), [opacity, translateX]);
 
-  // Trigger enter animation on mount
-  useEffect(() => {
-    if (animateOnMount) {
-      enterAnimation();
-    } else {
-      opacity.value = 1;
-      translateX.value = 0;
-    }
-  }, [animateOnMount]);
-
-  // Animated styles
-  const animatedStyle = useAnimatedStyle(() => ({
+  const contentAnimatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
     transform: [{ translateX: translateX.value }],
   }));
-
-  // Expose exit animation for parent components
-  useEffect(() => {
-    if (onAnimationComplete) {
-      // Store reference to exit function for external use
-      (global as any).exitAuthScreen = exitAnimation;
-    }
-  }, [onAnimationComplete]);
 
   return (
     <View style={styles.mainContainer}>
@@ -130,52 +120,35 @@ const AuthScreenLayout = ({
           filter="url(#filter0_f_2_34)"
         />
       </Svg>
-      <Animated.View style={[styles.animatedContainer, animatedStyle]}>
-        <KeyboardAvoidingView
-          style={styles.keyboardAvoidingView}
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={Platform.OS === "ios" ? -150 : 0}
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? -150 : 0}
+      >
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          keyboardDismissMode="interactive"
         >
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollContent}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-            keyboardDismissMode="interactive"
-          >
-            <View style={styles.content}>
-              <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
-              {children}
-            </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-        {showBackButton && (
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <ArrowLeft size={24} strokeWidth={3} color={theme.text} />
-          </TouchableOpacity>
-        )}
-      </Animated.View>
+          <Animated.View style={[styles.content, contentAnimatedStyle]}>
+            <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
+            {children}
+          </Animated.View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+      {showBackButton && (
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <ArrowLeft size={24} strokeWidth={3} color={theme.text} />
+        </TouchableOpacity>
+      )}
     </View>
   );
-};
-
-// Hook for handling animated navigation
-export const useAnimatedNavigation = () => {
-  const triggerExitAnimation = (callback: () => void) => {
-    const exitFunction = (global as any).exitAuthScreen;
-    if (exitFunction) {
-      exitFunction(callback);
-    } else {
-      // Fallback if animation function is not available
-      callback();
-    }
-  };
-
-  return { triggerExitAnimation };
-};
+});
 
 export default AuthScreenLayout;
 
@@ -184,21 +157,19 @@ const styles = StyleSheet.create({
     flex: 1,
     position: "relative",
   },
-  animatedContainer: {
-    flex: 1,
-    position: "relative",
-  },
   keyboardAvoidingView: {
     flex: 1,
   },
   scrollView: {
     flex: 1,
+    
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: "center",
     padding: 20,
     paddingTop: 80,
+    
   },
   content: {
     flex: 1,
@@ -206,6 +177,7 @@ const styles = StyleSheet.create({
     maxWidth: 400,
     alignSelf: "center",
     width: "100%",
+
   },
   spotlightSvg: {
     position: "absolute",

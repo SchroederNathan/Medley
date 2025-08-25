@@ -19,14 +19,12 @@ import Input from "../components/ui/input";
 import { AuthContext } from "../contexts/auth-context";
 import { fontFamily } from "../lib/fonts";
 import { supabase } from "../lib/utils";
-import AuthScreenLayout, {
-  useAnimatedNavigation,
-} from "../components/ui/auth-screen-layout";
+import AuthScreenLayout, { AuthScreenLayoutHandle } from "../components/ui/auth-screen-layout";
 import { useRouter } from "expo-router";
 
 export default function Signup() {
   const authContext = useContext(AuthContext);
-  const { triggerExitAnimation } = useAnimatedNavigation();
+  const layoutRef = useRef<AuthScreenLayoutHandle>(null);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -221,16 +219,14 @@ export default function Signup() {
     if (data.user) {
       //   authContext.logIn();
       authContext.setUserId(data.user.id);
-      triggerExitAnimation(() => {
-        router.push("/name");
-      });
+      layoutRef.current?.animateOut(() => router.push("/name"));
     }
 
     setLoading(false);
   }
 
   return (
-    <AuthScreenLayout title="Sign Up">
+    <AuthScreenLayout ref={layoutRef} title="Sign Up">
       <Animated.View
         style={[
           styles.errorContainer,

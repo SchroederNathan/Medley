@@ -67,7 +67,6 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   const logIn = () => {
     setIsLoggedIn(true);
     storeAuthState({ isLoggedIn: true });
-    router.replace("/");
   };
 
   const logOut = () => {

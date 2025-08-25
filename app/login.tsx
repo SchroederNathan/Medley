@@ -15,9 +15,7 @@ import {
   Text,
   UIManager,
 } from "react-native";
-import AuthScreenLayout, {
-  useAnimatedNavigation,
-} from "../components/ui/auth-screen-layout";
+import AuthScreenLayout, { AuthScreenLayoutHandle } from "../components/ui/auth-screen-layout";
 import Button from "../components/ui/button";
 import Input from "../components/ui/input";
 import { AuthContext } from "../contexts/auth-context";
@@ -26,7 +24,7 @@ import { supabase } from "../lib/utils";
 
 export default function Login() {
   const authContext = useContext(AuthContext);
-  const { triggerExitAnimation } = useAnimatedNavigation();
+  const layoutRef = useRef<AuthScreenLayoutHandle>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -62,9 +60,7 @@ export default function Login() {
     if (data.user) {
       authContext.logIn();
       // authContext.setUserId(data.user.id);
-      triggerExitAnimation(() => {
-        router.push("/name");
-      });
+      layoutRef.current?.animateOut(() => router.push("/name"));
     }
 
     setLoading(false);
@@ -174,7 +170,7 @@ export default function Login() {
   );
 
   return (
-    <AuthScreenLayout title="Sign In">
+    <AuthScreenLayout ref={layoutRef} title="Sign In">
       <Animated.View
         style={[
           styles.errorContainer,

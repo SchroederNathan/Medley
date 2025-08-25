@@ -27,7 +27,7 @@ const AppContainer = () => {
 
   return (
     <AuthProvider>
-      <GestureHandlerRootView style={{ flex: 1 }}>
+      <GestureHandlerRootView>
         <StatusBar style="auto" />
         <Stack
           screenOptions={{

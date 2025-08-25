@@ -1,10 +1,8 @@
 import { useRouter } from "expo-router";
 import { BookOpen, Clapperboard, Gamepad2 } from "lucide-react-native";
-import React, { useContext, useMemo, useState } from "react";
+import React, { useContext, useMemo, useRef, useState } from "react";
 import { Alert } from "react-native";
-import AuthScreenLayout, {
-  useAnimatedNavigation,
-} from "../components/ui/auth-screen-layout";
+import AuthScreenLayout, { AuthScreenLayoutHandle } from "../components/ui/auth-screen-layout";
 import Button from "../components/ui/button";
 import RadioCard from "../components/ui/radio-card";
 import { AuthContext } from "../contexts/auth-context";
@@ -14,8 +12,8 @@ type Preference = "Movies" | "Games" | "Books";
 export default function MediaPreferences() {
   const [selected, setSelected] = useState<Preference[]>([]);
   const authContext = useContext(AuthContext);
-  const { triggerExitAnimation } = useAnimatedNavigation();
   const router = useRouter();
+  const layoutRef = useRef<AuthScreenLayoutHandle>(null);
   const items = useMemo(
     () => [
       {
@@ -53,13 +51,11 @@ export default function MediaPreferences() {
     }
     authContext.setUserPrefferedMedia(selected);
     authContext.logIn();
-    triggerExitAnimation(() => {
-      router.push("/");
-    });
+    layoutRef.current?.animateOut(() => router.push("/"));
   };
 
   return (
-    <AuthScreenLayout title="What interests you?">
+    <AuthScreenLayout ref={layoutRef} title="What interests you?">
       {items.map((item, idx) => (
         <RadioCard
           key={item.key}
