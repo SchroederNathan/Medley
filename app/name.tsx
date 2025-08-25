@@ -14,7 +14,7 @@ import {
   Text,
   UIManager,
 } from "react-native";
-import AuthScreenLayout from "../components/ui/auth-screen-layout";
+import AuthScreenLayout, { useAnimatedNavigation } from "../components/ui/auth-screen-layout";
 import Button from "../components/ui/button";
 import Input from "../components/ui/input";
 import { AuthContext } from "../contexts/auth-context";
@@ -24,6 +24,7 @@ import { fontFamily } from "../lib/fonts";
 export default function NameScreen() {
   const authContext = useContext(AuthContext);
   const { theme } = useContext(ThemeContext);
+  const { triggerExitAnimation } = useAnimatedNavigation();
   const [firstName, setFirstName] = useState<string>("");
   const [error, setError] = useState<string>("");
   const router = useRouter();
@@ -56,7 +57,7 @@ export default function NameScreen() {
         }),
       ]).start();
     },
-    [errorOpacity, errorTranslateY]
+    [errorOpacity, errorTranslateY],
   );
 
   const hideError = useCallback(() => {
@@ -83,7 +84,9 @@ export default function NameScreen() {
     if (error) hideError();
     // Navigate to next onboarding step here if needed
     authContext.setUserName(firstName);
-    router.push("/media-preferences");
+    triggerExitAnimation(() => {
+      router.push("/media-preferences");
+    });
   }, [firstName, error, showError, hideError]);
 
   const onChangeFirstName = useCallback(
@@ -91,7 +94,7 @@ export default function NameScreen() {
       setFirstName(text);
       if (error) hideError();
     },
-    [error, hideError]
+    [error, hideError],
   );
 
   return (

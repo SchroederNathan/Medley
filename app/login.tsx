@@ -1,7 +1,21 @@
 import { useRouter } from "expo-router";
-import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { Alert, Animated, LayoutAnimation, Platform, StyleSheet, Text, UIManager } from "react-native";
-import AuthScreenLayout from "../components/ui/auth-screen-layout";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import {
+  Alert,
+  Animated,
+  LayoutAnimation,
+  Platform,
+  StyleSheet,
+  Text,
+  UIManager,
+} from "react-native";
+import AuthScreenLayout, { useAnimatedNavigation } from "../components/ui/auth-screen-layout";
 import Button from "../components/ui/button";
 import Input from "../components/ui/input";
 import { AuthContext } from "../contexts/auth-context";
@@ -10,6 +24,7 @@ import { supabase } from "../lib/utils";
 
 export default function Login() {
   const authContext = useContext(AuthContext);
+  const { triggerExitAnimation } = useAnimatedNavigation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,7 +33,10 @@ export default function Login() {
   const [currentStep, setCurrentStep] = useState<"email" | "password">("email");
   // Enable LayoutAnimation on Android
   useEffect(() => {
-    if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+    if (
+      Platform.OS === "android" &&
+      UIManager.setLayoutAnimationEnabledExperimental
+    ) {
       UIManager.setLayoutAnimationEnabledExperimental(true);
     }
   }, []);
@@ -40,9 +58,11 @@ export default function Login() {
 
     if (error) Alert.alert(error.message);
     if (data.user) {
-        authContext.logIn();
+      authContext.logIn();
       // authContext.setUserId(data.user.id);
-      router.push("/name");
+      triggerExitAnimation(() => {
+        router.push("/name");
+      });
     }
 
     setLoading(false);
@@ -89,7 +109,7 @@ export default function Login() {
         }),
       ]).start();
     },
-    [errorOpacity, errorTranslateY]
+    [errorOpacity, errorTranslateY],
   );
 
   // Hide error animation
@@ -148,7 +168,7 @@ export default function Login() {
         hideError();
       }
     },
-    [emailError, hideError]
+    [emailError, hideError],
   );
 
   return (

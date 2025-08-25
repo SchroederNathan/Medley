@@ -1,15 +1,30 @@
-import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { Alert, Animated, LayoutAnimation, Platform, StyleSheet, Text, UIManager } from "react-native";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import {
+  Alert,
+  Animated,
+  LayoutAnimation,
+  Platform,
+  StyleSheet,
+  Text,
+  UIManager,
+} from "react-native";
 import Button from "../components/ui/button";
 import Input from "../components/ui/input";
 import { AuthContext } from "../contexts/auth-context";
 import { fontFamily } from "../lib/fonts";
 import { supabase } from "../lib/utils";
-import AuthScreenLayout from "../components/ui/auth-screen-layout";
+import AuthScreenLayout, { useAnimatedNavigation } from "../components/ui/auth-screen-layout";
 import { useRouter } from "expo-router";
 
 export default function Signup() {
   const authContext = useContext(AuthContext);
+  const { triggerExitAnimation } = useAnimatedNavigation();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,7 +36,10 @@ export default function Signup() {
   const [currentStep, setCurrentStep] = useState<"email" | "password">("email");
   // Enable LayoutAnimation on Android
   useEffect(() => {
-    if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+    if (
+      Platform.OS === "android" &&
+      UIManager.setLayoutAnimationEnabledExperimental
+    ) {
       UIManager.setLayoutAnimationEnabledExperimental(true);
     }
   }, []);
@@ -76,7 +94,7 @@ export default function Signup() {
         }),
       ]).start();
     },
-    [errorOpacity, errorTranslateY]
+    [errorOpacity, errorTranslateY],
   );
 
   const hideError = useCallback(() => {
@@ -114,7 +132,7 @@ export default function Signup() {
         }),
       ]).start();
     },
-    [passwordErrorOpacity, passwordErrorTranslateY]
+    [passwordErrorOpacity, passwordErrorTranslateY],
   );
 
   const hidePasswordError = useCallback(() => {
@@ -161,7 +179,7 @@ export default function Signup() {
       setEmail(text);
       if (emailError) hideError();
     },
-    [emailError, hideError]
+    [emailError, hideError],
   );
 
   const handlePasswordChange = useCallback(
@@ -169,7 +187,7 @@ export default function Signup() {
       setPassword(text);
       if (passwordError) hidePasswordError();
     },
-    [passwordError, hidePasswordError]
+    [passwordError, hidePasswordError],
   );
 
   const handleConfirmPasswordChange = useCallback(
@@ -177,7 +195,7 @@ export default function Signup() {
       setConfirmPassword(text);
       if (passwordError) hidePasswordError();
     },
-    [passwordError, hidePasswordError]
+    [passwordError, hidePasswordError],
   );
 
   async function signUpWithEmail() {
@@ -201,7 +219,9 @@ export default function Signup() {
     if (data.user) {
       //   authContext.logIn();
       authContext.setUserId(data.user.id);
-      router.push("/name");
+      triggerExitAnimation(() => {
+        router.push("/name");
+      });
     }
 
     setLoading(false);

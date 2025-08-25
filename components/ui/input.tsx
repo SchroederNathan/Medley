@@ -44,6 +44,7 @@ const Input = ({
           value={value}
           onChangeText={onChangeText}
           secureTextEntry={secureTextEntry}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           {...otherProps}
         />
       </BlurView>
@@ -66,6 +67,8 @@ const styles = StyleSheet.create({
   inputText: {
     fontSize: 16,
     fontFamily: fontFamily.plusJakarta.regular,
+    width: "100%",
+    height: "100%",
   },
   blurView: {
     position: "absolute",

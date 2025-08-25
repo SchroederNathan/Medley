@@ -2,7 +2,7 @@ import { useRouter } from "expo-router";
 import { BookOpen, Clapperboard, Gamepad2 } from "lucide-react-native";
 import React, { useContext, useMemo, useState } from "react";
 import { Alert } from "react-native";
-import AuthScreenLayout from "../components/ui/auth-screen-layout";
+import AuthScreenLayout, { useAnimatedNavigation } from "../components/ui/auth-screen-layout";
 import Button from "../components/ui/button";
 import RadioCard from "../components/ui/radio-card";
 import { AuthContext } from "../contexts/auth-context";
@@ -12,6 +12,7 @@ type Preference = "Movies" | "Games" | "Books";
 export default function MediaPreferences() {
   const [selected, setSelected] = useState<Preference[]>([]);
   const authContext = useContext(AuthContext);
+  const { triggerExitAnimation } = useAnimatedNavigation();
   const router = useRouter();
   const items = useMemo(
     () => [
@@ -31,7 +32,7 @@ export default function MediaPreferences() {
         icon: <BookOpen color="#fff" size={32} strokeWidth={1.5} />,
       },
     ],
-    []
+    [],
   );
 
   const toggle = (key: Preference) => {
@@ -50,7 +51,9 @@ export default function MediaPreferences() {
     }
     authContext.setUserPrefferedMedia(selected);
     authContext.logIn();
-    router.push("/");
+    triggerExitAnimation(() => {
+      router.push("/");
+    });
   };
 
   return (
