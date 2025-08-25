@@ -19,7 +19,9 @@ import Input from "../components/ui/input";
 import { AuthContext } from "../contexts/auth-context";
 import { fontFamily } from "../lib/fonts";
 import { supabase } from "../lib/utils";
-import AuthScreenLayout, { AuthScreenLayoutHandle } from "../components/ui/auth-screen-layout";
+import AuthScreenLayout, {
+  AuthScreenLayoutHandle,
+} from "../components/ui/auth-screen-layout";
 import { useRouter } from "expo-router";
 
 export default function Signup() {

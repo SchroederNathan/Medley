@@ -2,7 +2,9 @@ import { useRouter } from "expo-router";
 import { BookOpen, Clapperboard, Gamepad2 } from "lucide-react-native";
 import React, { useContext, useMemo, useRef, useState } from "react";
 import { Alert } from "react-native";
-import AuthScreenLayout, { AuthScreenLayoutHandle } from "../components/ui/auth-screen-layout";
+import AuthScreenLayout, {
+  AuthScreenLayoutHandle,
+} from "../components/ui/auth-screen-layout";
 import Button from "../components/ui/button";
 import RadioCard from "../components/ui/radio-card";
 import { AuthContext } from "../contexts/auth-context";

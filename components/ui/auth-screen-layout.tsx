@@ -1,6 +1,12 @@
 import { useRouter } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
-import React, { useContext, useEffect, forwardRef, useImperativeHandle, useCallback } from "react";
+import React, {
+  useContext,
+  useEffect,
+  forwardRef,
+  useImperativeHandle,
+  useCallback,
+} from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -40,7 +46,10 @@ export type AuthScreenLayoutHandle = {
   animateOut: (onDone?: () => void) => void;
 };
 
-const AuthScreenLayout = forwardRef<AuthScreenLayoutHandle, AuthScreenLayoutProps>(function AuthScreenLayout(
+const AuthScreenLayout = forwardRef<
+  AuthScreenLayoutHandle,
+  AuthScreenLayoutProps
+>(function AuthScreenLayout(
   { title, children, showBackButton = true }: AuthScreenLayoutProps,
   ref,
 ) {
@@ -68,12 +77,19 @@ const AuthScreenLayout = forwardRef<AuthScreenLayoutHandle, AuthScreenLayoutProp
   );
 
   const animateOut = (onDone?: () => void) => {
-    opacity.value = withTiming(0, { duration: 200, easing: Easing.in(Easing.cubic) });
-    translateX.value = withTiming(-24, { duration: 200, easing: Easing.in(Easing.cubic) }, (finished) => {
-      if (finished && onDone) {
-        runOnJS(onDone)();
-      }
+    opacity.value = withTiming(0, {
+      duration: 200,
+      easing: Easing.in(Easing.cubic),
     });
+    translateX.value = withTiming(
+      -24,
+      { duration: 200, easing: Easing.in(Easing.cubic) },
+      (finished) => {
+        if (finished && onDone) {
+          runOnJS(onDone)();
+        }
+      },
+    );
   };
 
   useImperativeHandle(ref, () => ({ animateOut }), [opacity, translateX]);
@@ -162,14 +178,12 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: "center",
     padding: 20,
     paddingTop: 80,
-    
   },
   content: {
     flex: 1,
@@ -177,7 +191,6 @@ const styles = StyleSheet.create({
     maxWidth: 400,
     alignSelf: "center",
     width: "100%",
-
   },
   spotlightSvg: {
     position: "absolute",

@@ -14,7 +14,9 @@ import {
   Text,
   UIManager,
 } from "react-native";
-import AuthScreenLayout, { AuthScreenLayoutHandle } from "../components/ui/auth-screen-layout";
+import AuthScreenLayout, {
+  AuthScreenLayoutHandle,
+} from "../components/ui/auth-screen-layout";
 import Button from "../components/ui/button";
 import Input from "../components/ui/input";
 import { AuthContext } from "../contexts/auth-context";
