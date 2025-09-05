@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import React, {
   useCallback,
   useContext,
@@ -6,7 +7,6 @@ import React, {
   useState,
 } from "react";
 import {
-  Alert,
   Animated,
   LayoutAnimation,
   Platform,
@@ -14,15 +14,14 @@ import {
   Text,
   UIManager,
 } from "react-native";
+import AuthScreenLayout, {
+  AuthScreenLayoutHandle,
+} from "../components/ui/auth-screen-layout";
 import Button from "../components/ui/button";
 import Input from "../components/ui/input";
 import { AuthContext } from "../contexts/auth-context";
 import { fontFamily } from "../lib/fonts";
 import { supabase } from "../lib/utils";
-import AuthScreenLayout, {
-  AuthScreenLayoutHandle,
-} from "../components/ui/auth-screen-layout";
-import { useRouter } from "expo-router";
 
 export default function Signup() {
   const authContext = useContext(AuthContext);
@@ -211,20 +210,31 @@ export default function Signup() {
     }
     hidePasswordError();
     setLoading(true);
-    const { data, error } = await supabase.auth.signUp({
-      email: email,
-      password: password,
-    });
 
-    if (error) Alert.alert(error.message);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+      });
 
-    if (data.user) {
-      //   authContext.logIn();
-      authContext.setUserId(data.user.id);
-      layoutRef.current?.animateOut(() => router.push("/name"));
+      if (error) {
+        console.error("Signup error:", error);
+        showPasswordError(error.message || "Failed to create account");
+        setLoading(false);
+        return;
+      }
+
+      if (data.user) {
+        //   authContext.logIn();
+        authContext.setUserId(data.user.id);
+        layoutRef.current?.animateOut(() => router.push("/name"));
+      }
+    } catch (error) {
+      console.error("Unexpected error during signup:", error);
+      showPasswordError("An unexpected error occurred. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   return (

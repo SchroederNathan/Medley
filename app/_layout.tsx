@@ -4,6 +4,7 @@ import React, { useContext } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider } from "../contexts/auth-context";
 import { ThemeContext, ThemeProvider } from "../contexts/theme-context";
+import { QueryProvider } from "../components/providers/query-provider";
 import { useAppFonts } from "../lib/fonts";
 
 const RootLayout = () => {
@@ -26,54 +27,56 @@ const AppContainer = () => {
   const { theme } = useContext(ThemeContext);
 
   return (
-    <AuthProvider>
-      <GestureHandlerRootView>
-        <StatusBar style="auto" />
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: theme.background },
-          }}
-        >
-          <Stack.Screen
-            name="(protected)"
-            options={{
+    <QueryProvider>
+      <AuthProvider>
+        <GestureHandlerRootView>
+          <StatusBar style="auto" />
+          <Stack
+            screenOptions={{
               headerShown: false,
+              contentStyle: { backgroundColor: theme.background },
             }}
-          />
-          <Stack.Screen
-            name="onboarding"
-            options={{
-              animation: "none",
-            }}
-          />
-          <Stack.Screen
-            name="login"
-            options={{
-              animation: "none",
-            }}
-          />
-          <Stack.Screen
-            name="name"
-            options={{
-              animation: "none",
-            }}
-          />
-          <Stack.Screen
-            name="media-preferences"
-            options={{
-              animation: "none",
-            }}
-          />
-          <Stack.Screen
-            name="signup"
-            options={{
-              animation: "none",
-            }}
-          />
-        </Stack>
-      </GestureHandlerRootView>
-    </AuthProvider>
+          >
+            <Stack.Screen
+              name="(protected)"
+              options={{
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="onboarding"
+              options={{
+                animation: "none",
+              }}
+            />
+            <Stack.Screen
+              name="login"
+              options={{
+                animation: "none",
+              }}
+            />
+            <Stack.Screen
+              name="name"
+              options={{
+                animation: "none",
+              }}
+            />
+            <Stack.Screen
+              name="media-preferences"
+              options={{
+                animation: "none",
+              }}
+            />
+            <Stack.Screen
+              name="signup"
+              options={{
+                animation: "none",
+              }}
+            />
+          </Stack>
+        </GestureHandlerRootView>
+      </AuthProvider>
+    </QueryProvider>
   );
 };
 

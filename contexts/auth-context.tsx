@@ -1,27 +1,33 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SplashScreen, useRouter } from "expo-router";
 import { createContext, PropsWithChildren, useEffect, useState } from "react";
+import { supabase } from "../lib/utils";
+import { queryClient } from "../lib/query-client";
 
 const authStorageKey = "authState";
+const userStorageKey = "userProfile";
 
 SplashScreen.preventAutoHideAsync();
 
-// This will only be held in memory and not saved to the database until the user completes the onboarding process
 type User = {
   id?: string;
   name?: string;
-  preffered_media?: Array<"Games" | "Movies" | "Books">;
+  preferred_media?: Array<"Games" | "Movies" | "Books">;
 };
 
 type AuthState = {
   isLoggedIn: boolean;
   isReady: boolean;
   user?: User;
-  logIn: () => void;
+  logIn: (id: string) => void;
   logOut: () => void;
   setUserId: (id: string) => void;
   setUserName: (name: string) => void;
-  setUserPrefferedMedia: (media: Array<"Games" | "Movies" | "Books">) => void;
+  setUserPreferredMedia: (media: Array<"Games" | "Movies" | "Books">) => void;
+  completeOnboarding: (
+    mediaPreferences?: Array<"Games" | "Movies" | "Books">
+  ) => Promise<void>;
+  fetchUserProfile: (id: string) => Promise<any>;
 };
 
 export const AuthContext = createContext<AuthState>({
@@ -32,7 +38,9 @@ export const AuthContext = createContext<AuthState>({
   logOut: () => {},
   setUserId: () => {},
   setUserName: () => {},
-  setUserPrefferedMedia: () => {},
+  setUserPreferredMedia: () => {},
+  completeOnboarding: async () => {},
+  fetchUserProfile: async () => {},
 });
 
 export const AuthProvider = ({ children }: PropsWithChildren) => {
@@ -50,6 +58,21 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     }
   };
 
+  //get user profile from database
+  const fetchUserProfile = async (id: string) => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  };
+
   const setUserId = (id: string) => {
     setUser({ ...user, id });
   };
@@ -58,20 +81,90 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     setUser({ ...user, name });
   };
 
-  const setUserPrefferedMedia = (
+  const setUserPreferredMedia = (
     media: Array<"Games" | "Movies" | "Books">
   ) => {
-    setUser({ ...user, preffered_media: media });
+    setUser({ ...user, preferred_media: media });
   };
 
-  const logIn = () => {
+  const completeOnboarding = async (
+    preferredMedia?: Array<"Games" | "Movies" | "Books">
+  ) => {
+    if (!user.id || !user.name || !preferredMedia) {
+      throw new Error("Missing required user information");
+    }
+
+    try {
+      // First, ensure the profile exists (in case trigger failed)
+      const { data: existingProfile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", user.id)
+        .single();
+
+      if (!existingProfile) {
+        // Create profile if it doesn't exist
+        const { error: insertError } = await supabase.from("profiles").insert({
+          id: user.id,
+          name: user.name,
+          media_preferences: {
+            preferred_media: preferredMedia,
+            onboarding_completed: true,
+            completed_at: new Date().toISOString(),
+          },
+        });
+
+        console.log("created profile");
+        if (insertError) throw insertError;
+      } else {
+        // Update existing profile
+        const { error: updateError } = await supabase
+          .from("profiles")
+          .update({
+            name: user.name,
+            media_preferences: {
+              preferred_media: preferredMedia,
+              onboarding_completed: true,
+              completed_at: new Date().toISOString(),
+            },
+          })
+          .eq("id", user.id);
+
+        if (updateError) throw updateError;
+      }
+
+      console.log("Onboarding completed successfully");
+
+      logIn(user.id);
+
+      router.replace("/(tabs)"); // Navigate to main app
+    } catch (error) {
+      console.error("Error completing onboarding:", error);
+      throw error;
+    }
+  };
+
+  const logIn = (id: string) => {
     setIsLoggedIn(true);
     storeAuthState({ isLoggedIn: true });
+    setUserId(id);
   };
 
-  const logOut = () => {
+  const logOut = async () => {
     setIsLoggedIn(false);
+    setUser({});
     storeAuthState({ isLoggedIn: false });
+
+    // Sign out from Supabase too
+    await supabase.auth.signOut();
+    // Clear React Query cache and persisted storage
+    try {
+      await queryClient.cancelQueries();
+      queryClient.clear();
+      await AsyncStorage.removeItem("RQ_CACHE");
+    } catch (e) {
+      console.warn("Failed clearing persisted query cache", e);
+    }
     router.replace("/onboarding");
   };
 
@@ -80,20 +173,32 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   }, [user]);
 
   useEffect(() => {
-    const getAuthFromStorage = async () => {
+    const initializeAuth = async () => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       try {
-        const value = await AsyncStorage.getItem(authStorageKey);
-        if (value !== null) {
-          const auth = JSON.parse(value);
-          setIsLoggedIn(auth.isLoggedIn);
+        // Prefer Supabase session as the source of truth
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (session?.user?.id) {
+          setUser({ id: session.user.id });
+          setIsLoggedIn(true);
+          storeAuthState({ isLoggedIn: true });
+        } else {
+          // Fallback to last stored auth flag
+          const value = await AsyncStorage.getItem(authStorageKey);
+          if (value !== null) {
+            const auth = JSON.parse(value);
+            setIsLoggedIn(!!auth.isLoggedIn);
+          }
         }
       } catch (error) {
-        console.error("Error fetching from storage:", error);
+        console.error("Error initializing auth:", error);
       }
       setIsReady(true);
     };
-    getAuthFromStorage();
+    initializeAuth();
   }, []);
 
   useEffect(() => {
@@ -112,7 +217,9 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         user,
         setUserId,
         setUserName,
-        setUserPrefferedMedia,
+        setUserPreferredMedia,
+        completeOnboarding,
+        fetchUserProfile,
       }}
     >
       {children}

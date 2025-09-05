@@ -34,6 +34,7 @@ export default function MediaPreferences() {
         icon: <BookOpen color="#fff" size={32} strokeWidth={1.5} />,
       },
     ],
+
     [],
   );
 
@@ -46,14 +47,19 @@ export default function MediaPreferences() {
     });
   };
 
-  const onContinue = () => {
+  const onContinue = async () => {
     if (selected.length === 0) {
       Alert.alert("Select at least one");
       return;
     }
-    authContext.setUserPrefferedMedia(selected);
-    authContext.logIn();
-    layoutRef.current?.animateOut(() => router.push("/"));
+
+    try {
+      await authContext.completeOnboarding(selected);
+      layoutRef.current?.animateOut(() => router.push("/"));
+    } catch (error) {
+      console.error("Error completing onboarding:", error);
+      Alert.alert("Error", "Failed to complete setup. Please try again.");
+    }
   };
 
   return (

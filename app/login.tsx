@@ -60,9 +60,8 @@ export default function Login() {
 
     if (error) Alert.alert(error.message);
     if (data.user) {
-      authContext.logIn();
-      // authContext.setUserId(data.user.id);
-      layoutRef.current?.animateOut(() => router.push("/name"));
+      authContext.logIn(data.user.id);
+      layoutRef.current?.animateOut(() => router.push("/"));
     }
 
     setLoading(false);
