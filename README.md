@@ -1,4 +1,4 @@
-![Medley](assets/images/medley-readme-review.png)
+<img src="assets/images/medley-readme-review.png" alt="Medley" width="100%" />
 
 A simple media discovery app built with Expo + React Native, Expo Router, Supabase, and TanStack Query. It includes **coming soon**
 
