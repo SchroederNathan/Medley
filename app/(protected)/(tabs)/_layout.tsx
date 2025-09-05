@@ -22,24 +22,6 @@ const TabsLayout = () => {
         }}
       />
       <Tabs.Screen
-        name="(search)"
-        options={{
-          title: "Search",
-          tabBarShowLabel: false,
-          tabBarActiveTintColor: theme.text,
-          tabBarIcon: ({ color }) => <Search color={color} size={24} />,
-        }}
-      />
-      <Tabs.Screen
-        name="(discover)"
-        options={{
-          title: "Discover",
-          tabBarShowLabel: false,
-          tabBarActiveTintColor: theme.text,
-          tabBarIcon: ({ color }) => <Sparkles color={color} size={24} />,
-        }}
-      />
-      <Tabs.Screen
         name="(profile)"
         options={{
           title: "Profile",

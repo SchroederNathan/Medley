@@ -7,12 +7,11 @@ import { Media } from "../types/media";
 type DbMediaType = "game" | "movie" | "tv_show" | "book";
 
 // Map profile values to DB values
-const PROFILE_TO_DB_MAP: Record<string, DbMediaType> = {
-  Games: "game",
-  Movies: "movie",
-  Books: "book",
-  // If TV shows are added to onboarding later, map accordingly
-  "TV Shows": "tv_show",
+const PROFILE_TO_DB_MAP: Record<string, DbMediaType[]> = {
+  Games: ["game"],
+  Movies: ["movie", "tv_show"], // If Movies, also include tv_show
+  Books: ["book"],
+  TVShows: ["tv_show"],
 };
 
 export function usePreferredMedia(searchQuery?: string) {
@@ -41,7 +40,7 @@ export function usePreferredMedia(searchQuery?: string) {
         profile?.media_preferences?.preferred_media ?? [];
 
       const dbTypes: DbMediaType[] = profilePrefs
-        .map((p) => PROFILE_TO_DB_MAP[p])
+        .flatMap((p) => PROFILE_TO_DB_MAP[p] ?? [])
         .filter(Boolean) as DbMediaType[];
 
       if (dbTypes.length === 0) return [];
