@@ -1,8 +1,9 @@
 import { router } from "expo-router";
 import { UserRound } from "lucide-react-native";
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Search from "../../../../components/ui/search";
 import { ThemeContext } from "../../../../contexts/theme-context";
 import { useUserProfile } from "../../../../hooks/use-user-profile";
 import { fontFamily } from "../../../../lib/fonts";
@@ -10,6 +11,7 @@ import { fontFamily } from "../../../../lib/fonts";
 const IndexScreen = () => {
   const { theme } = useContext(ThemeContext);
   const userProfile = useUserProfile();
+  const [query, setQuery] = useState("");
 
   const topPadding = useSafeAreaInsets().top;
 
@@ -22,6 +24,7 @@ const IndexScreen = () => {
 
   return (
     <View style={[styles.container, { paddingTop: topPadding }]}>
+      {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.title, { color: theme.text }]}>
           {getTimeBasedGreeting()},{"\n"}
@@ -40,6 +43,13 @@ const IndexScreen = () => {
           <UserRound size={24} color={theme.text} />
         </TouchableOpacity>
       </View>
+      {/* Search */}
+      <Search
+        value={query}
+        onChangeText={setQuery}
+        placeholder="Search media"
+        onClear={() => setQuery("")}
+      />
     </View>
   );
 };
