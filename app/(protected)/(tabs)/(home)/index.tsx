@@ -1,10 +1,22 @@
+import { FlashList } from "@shopify/flash-list";
 import { router } from "expo-router";
 import { UserRound } from "lucide-react-native";
 import React, { useContext, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Keyboard,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Carousel from "../../../../components/ui/carousel";
+import MediaCard from "../../../../components/ui/media-card";
 import Search from "../../../../components/ui/search";
 import { ThemeContext } from "../../../../contexts/theme-context";
+import { usePreferredMedia } from "../../../../hooks/use-preferred-media";
 import { useUserProfile } from "../../../../hooks/use-user-profile";
 import { fontFamily } from "../../../../lib/fonts";
 
@@ -12,8 +24,10 @@ const IndexScreen = () => {
   const { theme } = useContext(ThemeContext);
   const userProfile = useUserProfile();
   const [query, setQuery] = useState("");
-
+  const mediaQuery = usePreferredMedia(query);
   const topPadding = useSafeAreaInsets().top;
+
+  console.log(mediaQuery.data);
 
   const getTimeBasedGreeting = () => {
     const hour = new Date().getHours();
@@ -21,36 +35,75 @@ const IndexScreen = () => {
     if (hour < 17) return "Good afternoon";
     return "Good evening";
   };
-
   return (
-    <View style={[styles.container, { paddingTop: topPadding }]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.text }]}>
-          {getTimeBasedGreeting()},{"\n"}
-          {userProfile.data?.name || "User"}
-        </Text>
-        <TouchableOpacity
-          style={[
-            styles.profileButton,
-            {
-              backgroundColor: theme.buttonBackground,
-              borderColor: theme.buttonBorder,
-            },
-          ]}
-          onPress={() => router.push("/profile")}
-        >
-          <UserRound size={24} color={theme.text} />
-        </TouchableOpacity>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <View style={[styles.container, { paddingTop: topPadding }]}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={[styles.title, { color: theme.text }]}>
+            {getTimeBasedGreeting()},{"\n"}
+            {userProfile.data?.name || "User"}
+          </Text>
+          <TouchableOpacity
+            style={[
+              styles.profileButton,
+              {
+                backgroundColor: theme.buttonBackground,
+                borderColor: theme.buttonBorder,
+              },
+            ]}
+            onPress={() => router.push("/profile")}
+          >
+            <UserRound size={24} color={theme.text} />
+          </TouchableOpacity>
+        </View>
+        {/* Search */}
+        <Search
+          value={query}
+          onChangeText={setQuery}
+          placeholder="Search media"
+          onClear={() => setQuery("")}
+        />
+        {query.length > 0 ? (
+          <>
+            {/* Search Results */}
+            <View style={{ marginTop: 16, flex: 1 }}>
+              {mediaQuery.isLoading ? (
+                <ActivityIndicator />
+              ) : mediaQuery.isError ? (
+                <Text style={{ color: theme.text }}>Failed to load media</Text>
+              ) : (
+                <FlashList
+                  data={mediaQuery.data}
+                  keyExtractor={(item) => item.id}
+                  renderItem={({ item, index }) => (
+                    <View
+                      style={[
+                        // Horizontal gap for the column
+                        index % 2 ? { paddingLeft: 6 } : { paddingRight: 6 },
+                        { flex: 1 },
+                      ]}
+                    >
+                      <MediaCard
+                        media={item}
+                        width={"100%"}
+                        height={"auto"}
+                        style={{ aspectRatio: 3 / 4, marginBottom: 12 }}
+                      />
+                    </View>
+                  )}
+                  numColumns={2}
+                  contentContainerStyle={{ paddingBottom: 24 }}
+                  showsVerticalScrollIndicator={false}
+                />
+              )}
+            </View>
+          </>
+        ) : (
+          <Carousel media={mediaQuery.data ?? []} title="Your Preferred Media" />
+        )}
       </View>
-      {/* Search */}
-      <Search
-        value={query}
-        onChangeText={setQuery}
-        placeholder="Search media"
-        onClear={() => setQuery("")}
-      />
-    </View>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -79,5 +132,10 @@ const styles = StyleSheet.create({
     borderRadius: 26,
     justifyContent: "center",
     alignItems: "center",
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontFamily: fontFamily.plusJakarta.bold,
+    marginBottom: 16,
   },
 });

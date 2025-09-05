@@ -27,7 +27,6 @@ const TabsLayout = () => {
           title: "Search",
           tabBarShowLabel: false,
           tabBarActiveTintColor: theme.text,
-
           tabBarIcon: ({ color }) => <Search color={color} size={24} />,
         }}
       />

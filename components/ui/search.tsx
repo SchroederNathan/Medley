@@ -1,6 +1,6 @@
 import { BlurView } from "expo-blur";
 import { X as ClearIcon, Search as SearchIcon } from "lucide-react-native";
-import React, { useContext } from "react";
+import React, { useContext, useRef } from "react";
 import {
   StyleProp,
   StyleSheet,
@@ -33,14 +33,23 @@ const Search = ({
   ...otherProps
 }: SearchProps) => {
   const { theme } = useContext(ThemeContext);
+  const textInputRef = useRef<TextInput>(null);
 
   const handleClear = () => {
     onChangeText && onChangeText("");
     onClear && onClear();
   };
 
+  const handleContainerPress = () => {
+    textInputRef.current?.focus();
+  };
+
   return (
-    <View style={[styles.container, { borderColor: theme.inputBorder }, style]}>
+    <TouchableOpacity
+      style={[styles.container, { borderColor: theme.inputBorder }, style]}
+      onPress={handleContainerPress}
+      activeOpacity={1}
+    >
       <BlurView
         intensity={20}
         tint="default"
@@ -48,6 +57,7 @@ const Search = ({
       >
         <SearchIcon size={18} color={theme.inputPlaceholderText} />
         <TextInput
+          ref={textInputRef}
           style={[styles.inputText, { color: theme.inputText }]}
           placeholder={placeholder}
           placeholderTextColor={theme.inputPlaceholderText}
@@ -68,7 +78,7 @@ const Search = ({
           </TouchableOpacity>
         )}
       </BlurView>
-    </View>
+    </TouchableOpacity>
   );
 };
 
