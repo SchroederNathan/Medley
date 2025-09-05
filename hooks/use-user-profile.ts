@@ -4,7 +4,6 @@ import { AuthContext } from "../contexts/auth-context";
 
 export function useUserProfile() {
   const { user, isLoggedIn, fetchUserProfile } = useContext(AuthContext);
-  console.log(user?.id);
 
   return useQuery({
     queryKey: ["userProfile", user?.id],

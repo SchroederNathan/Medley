@@ -2,10 +2,13 @@ import React, { useContext } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import Button from "../../../../components/ui/button";
 import { AuthContext } from "../../../../contexts/auth-context";
+import { ThemeContext } from "../../../../contexts/theme-context";
 import { useUserProfile } from "../../../../hooks/use-user-profile";
+import { fontFamily } from "../../../../lib/fonts";
 
 const ProfileScreen = () => {
   const authContext = useContext(AuthContext);
+  const { theme } = useContext(ThemeContext);
   const { data: profile, isLoading, error } = useUserProfile();
 
   if (isLoading) {
@@ -33,14 +36,12 @@ const ProfileScreen = () => {
     <View style={styles.container}>
       {profile && (
         <View style={styles.profileInfo}>
-          <Text style={styles.name}>Welcome, {profile.name}!</Text>
-          <Text style={styles.preferences}>
+          <Text style={[styles.name, { color: theme.text }]}>
+            Welcome, {profile.name}!
+          </Text>
+          <Text style={[styles.preferences, { color: theme.text }]}>
             Media Preferences:{" "}
             {profile.media_preferences?.preferred_media?.join(", ") || "None"}
-          </Text>
-          <Text style={styles.onboarding}>
-            Onboarding Completed:{" "}
-            {profile.media_preferences?.onboarding_completed ? "Yes" : "No"}
           </Text>
         </View>
       )}
@@ -68,19 +69,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   name: {
+    fontFamily: fontFamily.plusJakarta.bold,
     fontSize: 24,
-    fontWeight: "bold",
     marginBottom: 10,
   },
   preferences: {
+    fontFamily: fontFamily.plusJakarta.regular,
     fontSize: 16,
     marginBottom: 5,
   },
   onboarding: {
+    fontFamily: fontFamily.plusJakarta.regular,
     fontSize: 16,
     marginBottom: 20,
   },
   errorText: {
+    fontFamily: fontFamily.plusJakarta.regular,
     fontSize: 16,
     color: "red",
     marginBottom: 20,

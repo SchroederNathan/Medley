@@ -9,7 +9,7 @@ const TabsLayout = () => {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: { backgroundColor: theme.background, borderTopWidth: 0 },
+        tabBarStyle: { backgroundColor: theme.background, borderTopWidth: 0, paddingTop: 12, height: 80 },
       }}
     >
       <Tabs.Screen

@@ -114,7 +114,6 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
           },
         });
 
-        console.log("created profile");
         if (insertError) throw insertError;
       } else {
         // Update existing profile
@@ -132,8 +131,6 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
         if (updateError) throw updateError;
       }
-
-      console.log("Onboarding completed successfully");
 
       logIn(user.id);
 
@@ -167,10 +164,6 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     }
     router.replace("/onboarding");
   };
-
-  useEffect(() => {
-    console.log(user);
-  }, [user]);
 
   useEffect(() => {
     const initializeAuth = async () => {

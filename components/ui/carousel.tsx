@@ -1,14 +1,22 @@
 import { FlashList } from "@shopify/flash-list";
 import React, { useContext } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
 import { Media } from "../../types/media";
 import MediaCard from "./media-card";
-const Carousel = ({ media, title }: { media: Media[]; title: string }) => {
+const Carousel = ({
+  media,
+  title,
+  style,
+}: {
+  media: Media[];
+  title: string;
+  style?: StyleProp<ViewStyle>;
+}) => {
   const { theme } = useContext(ThemeContext);
   return (
-    <View>
+    <View style={style}>
       <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
       <FlashList
         data={media}

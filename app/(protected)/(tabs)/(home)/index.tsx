@@ -27,8 +27,6 @@ const IndexScreen = () => {
   const mediaQuery = usePreferredMedia(query);
   const topPadding = useSafeAreaInsets().top;
 
-  console.log(mediaQuery.data);
-
   const getTimeBasedGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
@@ -52,7 +50,7 @@ const IndexScreen = () => {
                 borderColor: theme.buttonBorder,
               },
             ]}
-            onPress={() => router.push("/profile")}
+            onPress={() => router.push("/(profile)")}
           >
             <UserRound size={24} color={theme.text} />
           </TouchableOpacity>
@@ -100,7 +98,11 @@ const IndexScreen = () => {
             </View>
           </>
         ) : (
-          <Carousel media={mediaQuery.data ?? []} title="Your Preferred Media" />
+          <Carousel
+            style={{ marginTop: 16 }}
+            media={mediaQuery.data ?? []}
+            title="All Preferred Media"
+          />
         )}
       </View>
     </TouchableWithoutFeedback>
