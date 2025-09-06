@@ -47,7 +47,7 @@ const Search = ({
   return (
     <TouchableOpacity
       style={[styles.container, { borderColor: theme.inputBorder }, style]}
-      onPress={handleContainerPress}
+      onPressIn={handleContainerPress}
       activeOpacity={1}
     >
       <BlurView

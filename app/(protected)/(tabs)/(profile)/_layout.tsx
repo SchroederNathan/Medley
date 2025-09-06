@@ -1,7 +1,7 @@
 import { Stack } from "expo-router";
 import React, { useContext } from "react";
+import { StyleSheet } from "react-native";
 import { ThemeContext } from "../../../../contexts/theme-context";
-
 const HomeLayout = () => {
   const { theme } = useContext(ThemeContext);
   return (

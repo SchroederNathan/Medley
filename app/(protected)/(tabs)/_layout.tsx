@@ -1,15 +1,19 @@
 import { Tabs } from "expo-router";
-import { Home, Search, Sparkles, UserRound } from "lucide-react-native";
+import { Home, UserRound } from "lucide-react-native";
 import React, { useContext } from "react";
 import { ThemeContext } from "../../../contexts/theme-context";
-
 const TabsLayout = () => {
   const { theme } = useContext(ThemeContext);
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: { backgroundColor: theme.background, borderTopWidth: 0, paddingTop: 12, height: 80 },
+        tabBarStyle: {
+          backgroundColor: theme.background,
+          borderTopWidth: 0,
+          paddingTop: 12,
+          height: 80,
+        },
       }}
     >
       <Tabs.Screen

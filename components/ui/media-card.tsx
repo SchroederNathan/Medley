@@ -46,7 +46,7 @@ export default MediaCard;
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 8,
+    borderRadius: 4,
     borderCurve: "continuous",
     overflow: "hidden",
   },

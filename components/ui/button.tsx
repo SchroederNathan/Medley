@@ -40,7 +40,7 @@ const Button = ({
 
   return (
     <TouchableOpacity
-      onPress={() => {
+      onPressIn={() => {
         Haptics.selectionAsync();
         onPress();
       }}

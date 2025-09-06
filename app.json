@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Medley",
+    "name": "Medley - Track & Discover",
     "slug": "medley",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -31,6 +31,12 @@
     "plugins": [
       "expo-router",
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "f9b4bb48-9ccf-4ba5-a2f9-9afe99770ee4"
+      }
+    }
   }
 }

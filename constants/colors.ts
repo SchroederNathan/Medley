@@ -27,7 +27,7 @@ export const themes = {
     inputBorder: "rgba(64, 64, 64, 0.3)",
   },
   dark: {
-    background: "#171717",
+    background: "#0A0A0A",
     text: "#E5E5E5",
     secondaryText: "#737373",
 

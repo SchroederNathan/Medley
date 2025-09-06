@@ -35,7 +35,7 @@ const RadioCard = ({
 
   return (
     <TouchableOpacity
-      onPress={() => {
+      onPressIn={() => {
         Haptics.selectionAsync();
         onPress();
       }}

@@ -169,7 +169,7 @@ const Modal = ({
     >
       {/* Backdrop */}
       <Animated.View style={[styles.backdrop, backdropStyle]}>
-        <TouchableOpacity style={styles.backdropTouchable} onPress={onClose} />
+        <TouchableOpacity style={styles.backdropTouchable} onPressIn={onClose} />
       </Animated.View>
 
       {/* Modal */}
