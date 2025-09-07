@@ -1,4 +1,5 @@
 // Test your new recommendation system
+/* eslint-disable */
 
 import { supabase } from "../lib/utils";
 

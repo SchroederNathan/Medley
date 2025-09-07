@@ -21,14 +21,12 @@ import Svg, {
   Filter,
   Path,
 } from "react-native-svg";
-import Button from "../../../../components/ui/button";
 import Carousel from "../../../../components/ui/carousel";
 import Search from "../../../../components/ui/search";
 import { ThemeContext } from "../../../../contexts/theme-context";
 import { usePreferredMedia } from "../../../../hooks/use-preferred-media";
 import { useUserProfile } from "../../../../hooks/use-user-profile";
 import { fontFamily } from "../../../../lib/fonts";
-import { TestRecommendations } from "../../../../scripts/test-recommendations";
 
 const IndexScreen = () => {
   const { theme } = useContext(ThemeContext);
@@ -110,12 +108,12 @@ const IndexScreen = () => {
         placeholder="Search media"
         onClear={() => setQuery("")}
       />
-      <Button
+      {/* <Button
         title="Test Recommendations"
         onPress={() => {
           TestRecommendations.testRecommendationSystem(userProfile.data?.id);
         }}
-      />
+      /> */}
       {query.length > 0 ? (
         <>
           {/* Search Results */}
@@ -161,6 +159,9 @@ const IndexScreen = () => {
                       source={{ uri: item.backdrop_url }}
                       contentFit="cover"
                       style={{
+                        borderRadius: 4,
+                        borderWidth: 1,
+                        borderColor: theme.border,
                         width: 150,
                         aspectRatio: 940 / 549,
                         marginBottom: 12,

@@ -12,8 +12,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Animated, { Easing, Layout } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../../../components/ui/button";
+import StatusButton from "../../../components/ui/status-button";
 import { AuthContext } from "../../../contexts/auth-context";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { useMediaItem } from "../../../hooks/use-media-item";
@@ -168,42 +170,48 @@ const MediaDetailScreen = () => {
       </View>
 
       {/* Body Content */}
-      <View style={styles.bodyContent}>
-        <Button
+      <Animated.View
+        style={styles.bodyContent}
+        layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
+      >
+        <StatusButton
           title={
             "Save " +
             mediaTypeToTitle(
-              media.media_type as "movie" | "tv_show" | "book" | "game"
+              media.media_type as "movie" | "tv_show" | "book" | "game",
             )
           }
-          onPress={async () => {
-            if (!isLoggedIn || !user?.id || !mediaId) return;
-            try {
-              await UserMediaService.addToUserList(user.id, mediaId, "want");
-              // Optimistically update cached library list
-              queryClient.setQueryData<any[]>(
-                ["userLibrary", user.id],
-                (prev) => {
-                  const list = Array.isArray(prev) ? prev : [];
-                  // Avoid duplicates
-                  if (list.some((m) => m.id === media.id)) return list;
-                  return [media, ...list];
-                }
-              );
-            } catch (e) {
-              // no-op visual feedback for now
-            }
-          }}
+          mediaId={mediaId!}
+          mediaType={media.media_type as "movie" | "tv_show" | "book" | "game"}
           styles={styles.button}
+          onStatusSaved={() => {
+            if (!user?.id) return;
+            // Optimistically update cached library list
+            queryClient.setQueryData<any[]>(
+              ["userLibrary", user.id],
+              (prev) => {
+                const list = Array.isArray(prev) ? prev : [];
+                if (list.some((m) => m.id === media.id)) return list;
+                return [media, ...list];
+              },
+            );
+          }}
         />
         {media.description?.length > 0 && (
-          <Text style={[styles.descriptionText, { color: theme.text }]}>
-            {media.description}
-          </Text>
+          <Animated.View
+            layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
+          >
+            <Text style={[styles.descriptionText, { color: theme.text }]}>
+              {media.description}
+            </Text>
+          </Animated.View>
         )}
 
         {/* Optional metadata */}
-        <View style={styles.metadataContainer}>
+        <Animated.View
+          style={styles.metadataContainer}
+          layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
+        >
           {media.metadata?.original_title &&
             media.metadata.original_title !== media.title && (
               <Text
@@ -215,8 +223,8 @@ const MediaDetailScreen = () => {
                 </Text>
               </Text>
             )}
-        </View>
-      </View>
+        </Animated.View>
+      </Animated.View>
     </ScrollView>
   );
 };

@@ -68,11 +68,7 @@ const LibraryScreen = () => {
             numColumns={4}
             contentContainerStyle={{ paddingBottom: 16 }}
             renderItem={({ item, index }) => (
-              <View
-                style={[
-                  { paddingHorizontal: 4, flex: 1 },
-                ]}
-              >
+              <View style={[{ paddingHorizontal: 4, flex: 1 }]}>
                 <MediaCard
                   media={item}
                   width={"100%"}

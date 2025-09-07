@@ -1,5 +1,8 @@
 // scripts/fixedGenreExtractor.ts
 // For your actual format: "Science Fiction,Thriller" (comma-separated strings)
+/* eslint-disable */
+
+
 
 import { GenreMapper } from "../lib/genremapper";
 import { supabase } from "../lib/utils";

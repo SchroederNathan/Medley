@@ -1,5 +1,6 @@
 // scripts/arrayGenreExtractor.ts
 // For Supabase that auto-converts to arrays: ["Science Fiction","Thriller"]
+/* eslint-disable */
 
 import { GenreMapper } from "../lib/genremapper";
 import { supabase } from "../lib/utils";

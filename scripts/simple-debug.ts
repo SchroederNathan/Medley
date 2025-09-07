@@ -1,4 +1,5 @@
 // Simple debug to see what's wrong
+/* eslint-disable */
 
 import { supabase } from "../lib/utils";
 
