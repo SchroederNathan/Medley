@@ -21,6 +21,8 @@ const Carousel = ({
       <FlashList
         data={media}
         keyExtractor={(item) => item.id}
+        style={{ marginHorizontal: -20 }}
+        contentContainerStyle={{ paddingHorizontal: 20 }}
         renderItem={({ item }) => (
           <MediaCard media={item} style={{ marginRight: 12 }} />
         )}

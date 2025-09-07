@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import React, { useContext } from "react";
 import {
   DimensionValue,
@@ -21,8 +22,10 @@ const MediaCard = ({
   style?: ViewStyle;
 }) => {
   const { theme } = useContext(ThemeContext);
+  const router = useRouter();
   return (
     <TouchableOpacity
+      onPress={() => router.push(`/media-detail?id=${media.id}`)}
       style={[
         styles.container,
         {
