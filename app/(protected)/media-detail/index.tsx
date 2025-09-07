@@ -1,9 +1,9 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import React, { useContext } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import {
   ActivityIndicator,
   ScrollView,
@@ -14,11 +14,24 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../../../components/ui/button";
+import { AuthContext } from "../../../contexts/auth-context";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { useMediaItem } from "../../../hooks/use-media-item";
 import { fontFamily } from "../../../lib/fonts";
 import { UserMediaService } from "../../../services/userMediaService";
-import { AuthContext } from "../../../contexts/auth-context";
+
+const mediaTypeToTitle = (mediaType: "movie" | "tv_show" | "book" | "game") => {
+  switch (mediaType) {
+    case "movie":
+      return "Movie";
+    case "tv_show":
+      return "TV Show";
+    case "book":
+      return "Book";
+    case "game":
+      return "Game";
+  }
+};
 
 const POSTER_PADDING = 72;
 
@@ -34,7 +47,12 @@ const MediaDetailScreen = () => {
 
   if (isLoading) {
     return (
-      <View style={[styles.loadingContainer, { paddingTop: topPadding, backgroundColor: theme.background }]}>
+      <View
+        style={[
+          styles.loadingContainer,
+          { paddingTop: topPadding, backgroundColor: theme.background },
+        ]}
+      >
         <ActivityIndicator size="large" color={theme.text} />
       </View>
     );
@@ -42,7 +60,12 @@ const MediaDetailScreen = () => {
 
   if (error) {
     return (
-      <View style={[styles.errorContainer, { backgroundColor: theme.background, paddingTop: topPadding }]}>
+      <View
+        style={[
+          styles.errorContainer,
+          { backgroundColor: theme.background, paddingTop: topPadding },
+        ]}
+      >
         <Text style={[styles.errorTitle, { color: theme.text }]}>
           Failed to load media details
         </Text>
@@ -56,7 +79,12 @@ const MediaDetailScreen = () => {
 
   if (!media) {
     return (
-      <View style={[styles.notFoundContainer, { backgroundColor: theme.background, paddingTop: topPadding }]}>
+      <View
+        style={[
+          styles.notFoundContainer,
+          { backgroundColor: theme.background, paddingTop: topPadding },
+        ]}
+      >
         <Text style={[styles.notFoundText, { color: theme.text }]}>
           Media not found
         </Text>
@@ -72,7 +100,12 @@ const MediaDetailScreen = () => {
       showsVerticalScrollIndicator={false}
     >
       {/* Backdrop Section */}
-      <View style={[styles.backdropContainer, { marginBottom: 16 + POSTER_PADDING }]}>
+      <View
+        style={[
+          styles.backdropContainer,
+          { marginBottom: 16 + POSTER_PADDING },
+        ]}
+      >
         <Image
           source={{ uri: media.backdrop_url }}
           cachePolicy="memory-disk"
@@ -89,11 +122,14 @@ const MediaDetailScreen = () => {
         {/* Overlay Back Button */}
         <TouchableOpacity
           onPress={() => router.back()}
-          style={[styles.backButton, {
-            top: topPadding + 12,
-            backgroundColor: theme.buttonBackground,
-            borderColor: theme.buttonBorder
-          }]}
+          style={[
+            styles.backButton,
+            {
+              top: topPadding + 12,
+              backgroundColor: theme.buttonBackground,
+              borderColor: theme.buttonBorder,
+            },
+          ]}
           accessibilityRole="button"
           accessibilityLabel="Go back"
         >
@@ -134,18 +170,26 @@ const MediaDetailScreen = () => {
       {/* Body Content */}
       <View style={styles.bodyContent}>
         <Button
-          title="Add to Library"
+          title={
+            "Save " +
+            mediaTypeToTitle(
+              media.media_type as "movie" | "tv_show" | "book" | "game"
+            )
+          }
           onPress={async () => {
             if (!isLoggedIn || !user?.id || !mediaId) return;
             try {
               await UserMediaService.addToUserList(user.id, mediaId, "want");
               // Optimistically update cached library list
-              queryClient.setQueryData<any[]>(["userLibrary", user.id], (prev) => {
-                const list = Array.isArray(prev) ? prev : [];
-                // Avoid duplicates
-                if (list.some((m) => m.id === media.id)) return list;
-                return [media, ...list];
-              });
+              queryClient.setQueryData<any[]>(
+                ["userLibrary", user.id],
+                (prev) => {
+                  const list = Array.isArray(prev) ? prev : [];
+                  // Avoid duplicates
+                  if (list.some((m) => m.id === media.id)) return list;
+                  return [media, ...list];
+                }
+              );
             } catch (e) {
               // no-op visual feedback for now
             }
@@ -162,7 +206,9 @@ const MediaDetailScreen = () => {
         <View style={styles.metadataContainer}>
           {media.metadata?.original_title &&
             media.metadata.original_title !== media.title && (
-              <Text style={[styles.metadataText, { color: theme.secondaryText }]}>
+              <Text
+                style={[styles.metadataText, { color: theme.secondaryText }]}
+              >
                 Original title:{" "}
                 <Text style={{ color: theme.text }}>
                   {media.metadata.original_title}
