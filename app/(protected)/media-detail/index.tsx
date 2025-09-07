@@ -3,6 +3,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import React, { useContext } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ActivityIndicator,
   ScrollView,
@@ -24,6 +25,7 @@ const POSTER_PADDING = 72;
 const MediaDetailScreen = () => {
   const { theme } = useContext(ThemeContext);
   const { user, isLoggedIn } = useContext(AuthContext);
+  const queryClient = useQueryClient();
   const { id } = useLocalSearchParams();
   const topPadding = useSafeAreaInsets().top;
   const mediaId = Array.isArray(id) ? id[0] : id;
@@ -137,6 +139,13 @@ const MediaDetailScreen = () => {
             if (!isLoggedIn || !user?.id || !mediaId) return;
             try {
               await UserMediaService.addToUserList(user.id, mediaId, "want");
+              // Optimistically update cached library list
+              queryClient.setQueryData<any[]>(["userLibrary", user.id], (prev) => {
+                const list = Array.isArray(prev) ? prev : [];
+                // Avoid duplicates
+                if (list.some((m) => m.id === media.id)) return list;
+                return [media, ...list];
+              });
             } catch (e) {
               // no-op visual feedback for now
             }

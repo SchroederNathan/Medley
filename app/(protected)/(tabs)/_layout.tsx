@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Home, UserRound } from "lucide-react-native";
+import { Home, Library, UserRound } from "lucide-react-native";
 import React, { useContext } from "react";
 import { ThemeContext } from "../../../contexts/theme-context";
 const TabsLayout = () => {
@@ -23,6 +23,15 @@ const TabsLayout = () => {
           tabBarShowLabel: false,
           tabBarActiveTintColor: theme.text,
           tabBarIcon: ({ color }) => <Home color={color} size={24} />,
+        }}
+      />
+      <Tabs.Screen
+        name="(library)"
+        options={{
+          title: "Library",
+          tabBarShowLabel: false,
+          tabBarActiveTintColor: theme.text,
+          tabBarIcon: ({ color }) => <Library color={color} size={24} />,
         }}
       />
       <Tabs.Screen
