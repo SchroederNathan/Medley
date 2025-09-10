@@ -25,6 +25,7 @@ import Carousel from "../../../../components/ui/carousel";
 import Search from "../../../../components/ui/search";
 import { ThemeContext } from "../../../../contexts/theme-context";
 import { usePreferredMedia } from "../../../../hooks/use-preferred-media";
+import { useRecommendations } from "../../../../hooks/use-recommendations";
 import { useUserProfile } from "../../../../hooks/use-user-profile";
 import { fontFamily } from "../../../../lib/fonts";
 
@@ -33,6 +34,18 @@ const IndexScreen = () => {
   const userProfile = useUserProfile();
   const [query, setQuery] = useState("");
   const mediaQuery = usePreferredMedia(query);
+  const recommendedGames = useRecommendations({
+    kind: "type",
+    mediaType: "game",
+  });
+  const recommendedMovies = useRecommendations({
+    kind: "type",
+    mediaType: "movie",
+  });
+  const recommendedTvShows = useRecommendations({
+    kind: "type",
+    mediaType: "tv_show",
+  });
   const topPadding = useSafeAreaInsets().top;
 
   const getTimeBasedGreeting = () => {
@@ -113,39 +126,46 @@ const IndexScreen = () => {
         onPress={() => {
           TestRecommendations.testRecommendationSystem(userProfile.data?.id);
         }}
+      />
+      <Button
+        title="Backfill Genres"
+        onPress={() => FixedGenreExtractor.backfillAllGenres()}
+      />
+      <Button
+        title="Test Genre Extraction"
+        onPress={() => FixedGenreExtractor.testExtraction(5)}
+      />
+      <Button
+        title="update utens"
+        onPress={async () => {
+          // await FixedGenreExtractor.updateSingleItem('abd6eb9b-a255-470a-82a4-bfd06bcfed49'); // Smurfs (movie)
+          // await FixedGenreExtractor.updateSingleItem('1ae089b4-907a-4eeb-bec7-698012598c3a'); // Superman (movie)
+          // await FixedGenreExtractor.updateSingleItem('9a2cd9fe-40a5-4fd0-8a4a-4de7eda157eb'); // The Studio (tv_show)
+          // await FixedGenreExtractor.updateSingleItem('974c3e1d-77c4-443f-806c-ca500adb97a3'); // Red Dead Revolver (game)
+          console.log(userProfile.data?.id);
+          await supabase;
+          supabase
+            .rpc("get_cross_media_recommendations", {
+              target_user_id: "c3f2f050-ffb2-4a93-aa2c-948a60bacad0",
+              target_media_type: "tv_show",
+              recommendation_limit: 10,
+            })
+            .then(({ data, error }) => console.log(error || data));
+        }}
       /> */}
       {query.length > 0 ? (
         <>
           {/* Search Results */}
           <View style={{ marginTop: 16, flex: 1 }}>
-            {mediaQuery.isLoading ? (
+            {recommendedGames.isLoading ||
+            recommendedMovies.isLoading ||
+            recommendedTvShows.isLoading ? (
               <ActivityIndicator />
-            ) : mediaQuery.isError ? (
+            ) : recommendedGames.isError ||
+              recommendedMovies.isError ||
+              recommendedTvShows.isError ? (
               <Text style={{ color: theme.text }}>Failed to load media</Text>
             ) : (
-              // <FlashList
-              //   data={mediaQuery.data}
-              //   keyExtractor={(item) => item.id}
-              //   renderItem={({ item, index }) => (
-              //     <View
-              //       style={[
-              //         // Horizontal gap for the column
-              //         index % 2 ? { paddingLeft: 6 } : { paddingRight: 6 },
-              //         { flex: 1 },
-              //       ]}
-              //     >
-              //       <MediaCard
-              //         media={item}
-              //         width={"100%"}
-              //         height={"auto"}
-              //         style={{ aspectRatio: 3 / 4, marginBottom: 12 }}
-              //       />
-              //     </View>
-              //   )}
-              //   numColumns={2}
-              //   contentContainerStyle={{ paddingBottom: 24 }}
-              //   showsVerticalScrollIndicator={false}
-              // />
               <FlashList
                 data={mediaQuery.data}
                 keyExtractor={(item) => item.id}
@@ -192,11 +212,23 @@ const IndexScreen = () => {
           </View>
         </>
       ) : (
-        <Carousel
-          style={{ marginTop: 16 }}
-          media={mediaQuery.data ?? []}
-          title="All Preferred Media"
-        />
+        <>
+          <Carousel
+            style={{ marginTop: 16 }}
+            media={recommendedMovies.data ?? []}
+            title="Movies for you"
+          />
+          <Carousel
+            style={{ marginTop: 16 }}
+            media={recommendedGames.data ?? []}
+            title="Games for you"
+          />
+          <Carousel
+            style={{ marginTop: 16 }}
+            media={recommendedTvShows.data ?? []}
+            title="TV for you"
+          />
+        </>
       )}
     </Pressable>
   );

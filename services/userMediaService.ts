@@ -1,6 +1,12 @@
 import { supabase } from "../lib/utils";
+import { queryClient } from "../lib/query-client";
 
-type UserMediaStatus = "want" | "watching" | "reading" | "playing" | "completed";
+type UserMediaStatus =
+  | "want"
+  | "watching"
+  | "reading"
+  | "playing"
+  | "completed";
 
 export class UserMediaService {
   static async addToUserList(
@@ -9,20 +15,24 @@ export class UserMediaService {
     status: UserMediaStatus = "want",
     rating?: number
   ) {
-    const { data, error } = await supabase
-      .from("user_media")
-      .upsert(
-        {
-          user_id: userId,
-          media_id: mediaId,
-          status,
-          user_rating: rating,
-          added_at: new Date().toISOString(),
-        },
-        { onConflict: "user_id,media_id" }
-      );
+    const { data, error } = await supabase.from("user_media").upsert(
+      {
+        user_id: userId,
+        media_id: mediaId,
+        status,
+        user_rating: rating,
+        added_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id,media_id" }
+    );
 
     if (error) throw error;
+    // Refresh recommendation-related queries
+    queryClient.invalidateQueries({ queryKey: ["recommendations2"] });
+    queryClient.invalidateQueries({ queryKey: ["recommendations"] });
+    // Also refresh user lists that might be displayed
+    queryClient.invalidateQueries({ queryKey: ["userLibrary", userId] });
+    queryClient.invalidateQueries({ queryKey: ["user-media-genres", userId] });
     return data;
   }
 
@@ -89,5 +99,3 @@ export class UserMediaService {
     }
   }
 }
-
-

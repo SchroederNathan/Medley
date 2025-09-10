@@ -120,7 +120,7 @@ const StatusButton = ({
         setIsSaving(null);
       }
     },
-    [mediaId, onStatusSaved, user?.id, isSaving],
+    [mediaId, onStatusSaved, user?.id, isSaving]
   );
 
   return (

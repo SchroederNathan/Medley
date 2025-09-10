@@ -16,11 +16,13 @@ import Animated, { Easing, Layout } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../../../components/ui/button";
 import StatusButton from "../../../components/ui/status-button";
+import Carousel from "../../../components/ui/carousel";
 import { AuthContext } from "../../../contexts/auth-context";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { useMediaItem } from "../../../hooks/use-media-item";
 import { fontFamily } from "../../../lib/fonts";
 import { UserMediaService } from "../../../services/userMediaService";
+import { RecommendationService } from "../../../services/recommendationService";
 
 const mediaTypeToTitle = (mediaType: "movie" | "tv_show" | "book" | "game") => {
   switch (mediaType) {
@@ -46,6 +48,27 @@ const MediaDetailScreen = () => {
   const mediaId = Array.isArray(id) ? id[0] : id;
 
   const { data: media, isLoading, error } = useMediaItem(mediaId);
+  const [recs, setRecs] = React.useState<any[]>([]);
+  React.useEffect(() => {
+    let mounted = true;
+    (async () => {
+      if (!mediaId) return;
+      try {
+        const results = await RecommendationService.getSimilarToMedia(
+          user?.id || "",
+          mediaId,
+          undefined,
+          { limit: 20 }
+        );
+        if (mounted) setRecs(results || []);
+      } catch {
+        if (mounted) setRecs([]);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [mediaId, user?.id]);
 
   if (isLoading) {
     return (
@@ -224,6 +247,14 @@ const MediaDetailScreen = () => {
               </Text>
             )}
         </Animated.View>
+        {recs.length > 0 && (
+          <Animated.View
+            layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
+            style={{ marginTop: 24 }}
+          >
+            <Carousel title="Recommended for you" media={recs as any} />
+          </Animated.View>
+        )}
       </Animated.View>
     </ScrollView>
   );
