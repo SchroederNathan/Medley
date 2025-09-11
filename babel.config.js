@@ -4,7 +4,7 @@ module.exports = function (api) {
     presets: ["babel-preset-expo"],
     plugins: [
       // Reanimated plugin has to be listed last
-      "react-native-reanimated/plugin",
+      "react-native-worklets/plugin",
     ],
   };
 };

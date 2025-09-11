@@ -15,13 +15,12 @@ import {
 import Animated, { Easing, Layout } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../../../components/ui/button";
-import StatusButton from "../../../components/ui/status-button";
 import Carousel from "../../../components/ui/carousel";
+import StatusButton from "../../../components/ui/status-button";
 import { AuthContext } from "../../../contexts/auth-context";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { useMediaItem } from "../../../hooks/use-media-item";
 import { fontFamily } from "../../../lib/fonts";
-import { UserMediaService } from "../../../services/userMediaService";
 import { RecommendationService } from "../../../services/recommendationService";
 
 const mediaTypeToTitle = (mediaType: "movie" | "tv_show" | "book" | "game") => {
@@ -60,6 +59,8 @@ const MediaDetailScreen = () => {
           undefined,
           { limit: 20 }
         );
+
+        console.log("results", results[0]);
         if (mounted) setRecs(results || []);
       } catch {
         if (mounted) setRecs([]);
@@ -178,7 +179,7 @@ const MediaDetailScreen = () => {
               {media.title}
             </Text>
             <Text style={[styles.subtitleText, { color: theme.secondaryText }]}>
-              {media.year}
+              {media.genres[0]} · {media.year}
               {typeof media.duration_minutes === "number" &&
               media.duration_minutes > 0
                 ? `  ·  ${media.duration_minutes} min`
@@ -201,7 +202,7 @@ const MediaDetailScreen = () => {
           title={
             "Save " +
             mediaTypeToTitle(
-              media.media_type as "movie" | "tv_show" | "book" | "game",
+              media.media_type as "movie" | "tv_show" | "book" | "game"
             )
           }
           mediaId={mediaId!}
@@ -216,7 +217,7 @@ const MediaDetailScreen = () => {
                 const list = Array.isArray(prev) ? prev : [];
                 if (list.some((m) => m.id === media.id)) return list;
                 return [media, ...list];
-              },
+              }
             );
           }}
         />
@@ -252,7 +253,7 @@ const MediaDetailScreen = () => {
             layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
             style={{ marginTop: 24 }}
           >
-            <Carousel title="Recommended for you" media={recs as any} />
+            <Carousel title="You might also like" media={recs as any} />
           </Animated.View>
         )}
       </Animated.View>

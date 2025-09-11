@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "Medley.app"
-               BlueprintName = "Medley"
-               ReferencedContainer = "container:Medley.xcodeproj">
+               BuildableName = "MedleyTrackDiscover.app"
+               BlueprintName = "MedleyTrackDiscover"
+               ReferencedContainer = "container:MedleyTrackDiscover.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "MedleyTests.xctest"
-               BlueprintName = "MedleyTests"
-               ReferencedContainer = "container:Medley.xcodeproj">
+               BuildableName = "MedleyTrackDiscoverTests.xctest"
+               BlueprintName = "MedleyTrackDiscoverTests"
+               ReferencedContainer = "container:MedleyTrackDiscover.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "Medley.app"
-            BlueprintName = "Medley"
-            ReferencedContainer = "container:Medley.xcodeproj">
+            BuildableName = "MedleyTrackDiscover.app"
+            BlueprintName = "MedleyTrackDiscover"
+            ReferencedContainer = "container:MedleyTrackDiscover.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "Medley.app"
-            BlueprintName = "Medley"
-            ReferencedContainer = "container:Medley.xcodeproj">
+            BuildableName = "MedleyTrackDiscover.app"
+            BlueprintName = "MedleyTrackDiscover"
+            ReferencedContainer = "container:MedleyTrackDiscover.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
