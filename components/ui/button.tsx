@@ -4,10 +4,14 @@ import React, { useContext } from "react";
 import {
   StyleSheet,
   Text,
-  TouchableOpacity,
-  TouchableOpacityProps,
   ViewStyle,
 } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
+import { Pressable } from "react-native";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
 
@@ -16,7 +20,6 @@ interface ButtonProps {
   icon?: React.ReactNode;
   onPress: () => void;
   variant?: "primary" | "secondary";
-  otherProps?: TouchableOpacityProps;
   styles?: ViewStyle;
 }
 
@@ -26,7 +29,6 @@ const Button = ({
   onPress,
   variant = "primary",
   styles: additionalStyles,
-  ...otherProps
 }: ButtonProps) => {
   const { theme } = useContext(ThemeContext);
 
@@ -38,23 +40,44 @@ const Button = ({
   const buttonBorder =
     variant === "secondary" ? theme.secondaryButtonBorder : theme.buttonBorder;
 
+  // Shared value for scale animation
+  const scale = useSharedValue(1);
+
+  // Animated style for the scale transformation
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: scale.value }],
+    };
+  });
+
   return (
-    <TouchableOpacity
-      onPressIn={() => {
-        Haptics.selectionAsync();
-        onPress();
-      }}
+    <Animated.View
       style={[
         styles.buttonContainer,
         { borderColor: buttonBorder },
+        animatedStyle,
         additionalStyles,
       ]}
-      {...otherProps}
     >
       <BlurView
         intensity={20}
         tint="default"
+        pointerEvents="none"
         style={[styles.blurView, { backgroundColor: buttonBackground }]}
+      />
+      <Pressable
+        onPressIn={() => {
+          scale.value = withSpring(0.95);
+          Haptics.selectionAsync();
+        }}
+        onPressOut={() => {
+          scale.value = withSpring(1, {
+            damping: 40,
+            stiffness: 300,
+          });
+        }}
+        onPress={onPress}
+        style={styles.pressableContent}
       >
         {icon && icon}
         <Text
@@ -65,8 +88,8 @@ const Button = ({
         >
           {title}
         </Text>
-      </BlurView>
-    </TouchableOpacity>
+      </Pressable>
+    </Animated.View>
   );
 };
 
@@ -74,18 +97,18 @@ export default Button;
 
 const styles = StyleSheet.create({
   buttonContainer: {
-    paddingVertical: 28,
+    height: 52,
     paddingHorizontal: 32,
     borderRadius: 16,
     borderWidth: 1,
     position: "relative",
     overflow: "hidden",
     borderCurve: "continuous",
+    justifyContent: "center",
   },
   buttonText: {
     fontSize: 16,
     fontWeight: "bold",
-
     fontFamily: fontFamily.plusJakarta.semiBold,
   },
   blurView: {
@@ -97,5 +120,11 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
+  },
+  pressableContent: {
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

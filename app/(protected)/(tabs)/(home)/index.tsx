@@ -121,6 +121,7 @@ const IndexScreen = () => {
         placeholder="Search media"
         onClear={() => setQuery("")}
       />
+      {/* <Button title="Test Button" onPress={() => { console.log("Test Button Pressed"); }} /> */}
       {/* <Button
         title="Test Recommendations"
         onPress={() => {
