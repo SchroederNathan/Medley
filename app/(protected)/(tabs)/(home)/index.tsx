@@ -5,8 +5,7 @@ import { UserRound } from "lucide-react-native";
 import React, { useContext, useState } from "react";
 import {
   ActivityIndicator,
-  Keyboard,
-  Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -55,11 +54,7 @@ const IndexScreen = () => {
     return "Good evening";
   };
   return (
-    <Pressable
-      onTouchStart={Keyboard.dismiss}
-      accessible={false}
-      style={[styles.container, { paddingTop: topPadding }]}
-    >
+    <View style={[styles.container, { paddingTop: topPadding }]}>
       <Svg
         width="150%"
         height="100%"
@@ -213,7 +208,14 @@ const IndexScreen = () => {
           </View>
         </>
       ) : (
-        <>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 32, paddingHorizontal: 20 }}
+          style={{ marginHorizontal: -20 }}
+          nestedScrollEnabled
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
+        >
           <Carousel
             style={{ marginTop: 16 }}
             media={recommendedMovies.data ?? []}
@@ -229,9 +231,9 @@ const IndexScreen = () => {
             media={recommendedTvShows.data ?? []}
             title="TV for you"
           />
-        </>
+        </ScrollView>
       )}
-    </Pressable>
+    </View>
   );
 };
 
@@ -239,6 +241,7 @@ export default IndexScreen;
 
 const styles = StyleSheet.create({
   container: {
+    overflow: "visible",
     flex: 1,
     paddingHorizontal: 20,
   },
