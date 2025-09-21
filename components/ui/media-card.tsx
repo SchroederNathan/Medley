@@ -24,11 +24,13 @@ const MediaCard = ({
   width = 150,
   height = 200,
   style,
+  isTouchable = true,
 }: {
   media: Media;
   width?: DimensionValue;
   height?: DimensionValue;
   style?: ViewStyle;
+  isTouchable?: boolean;
 }) => {
   const { theme } = useContext(ThemeContext);
   const router = useRouter();
@@ -55,7 +57,8 @@ const MediaCard = ({
   }, [isLoading]);
   return (
     <TouchableOpacity
-      onPress={() => router.push(`/media-detail?id=${media.id}`)}
+      onPress={() => isTouchable && router.push(`/media-detail?id=${media.id}`)}
+      activeOpacity={isTouchable ? 0.5 : 1}
       style={[
         styles.container,
         {

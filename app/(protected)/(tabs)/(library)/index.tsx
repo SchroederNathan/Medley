@@ -13,6 +13,28 @@ import { ThemeContext } from "../../../../contexts/theme-context";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useUserMedia } from "../../../../hooks/use-user-media";
 import MediaCard from "../../../../components/ui/media-card";
+import CollectionCard from "../../../../components/ui/collection-card";
+import { fontFamily } from "../../../../lib/fonts";
+
+        //   <FlashList
+        //     data={userMediaQuery.data ?? []}
+        //     keyExtractor={(item) => item.id}
+        //     numColumns={4}
+        //     contentContainerStyle={{ paddingBottom: 16 }}
+        //     renderItem={({ item, index }) => (
+        //       <View style={[{ paddingHorizontal: 4, flex: 1 }]}>
+        //         <MediaCard
+        //           media={item}
+        //           width={"100%"}
+        //           height={"auto"}
+        //           style={{ aspectRatio: 3 / 4, marginBottom: 8 }}
+        //         />
+        //       </View>
+        //     )}
+        //     showsVerticalScrollIndicator={false}
+        //   />
+        // )}
+        
 
 const LibraryScreen = () => {
   const { theme } = useContext(ThemeContext);
@@ -55,31 +77,19 @@ const LibraryScreen = () => {
           filter="url(#filter0_f_2_34)"
         />
       </Svg>
-      <Text style={{ color: theme.text, marginBottom: 16 }}>Your Library</Text>
+      <Text style={[styles.headerTitle,{ color: theme.text }]}>Your Library</Text>
       <View style={{ flex: 1 }}>
         {userMediaQuery.isLoading ? (
           <Text style={{ color: theme.secondaryText }}>Loading…</Text>
         ) : userMediaQuery.isError ? (
           <Text style={{ color: theme.text }}>Failed to load library</Text>
         ) : (
-          <FlashList
-            data={userMediaQuery.data ?? []}
-            keyExtractor={(item) => item.id}
-            numColumns={4}
-            contentContainerStyle={{ paddingBottom: 16 }}
-            renderItem={({ item, index }) => (
-              <View style={[{ paddingHorizontal: 4, flex: 1 }]}>
-                <MediaCard
-                  media={item}
-                  width={"100%"}
-                  height={"auto"}
-                  style={{ aspectRatio: 3 / 4, marginBottom: 8 }}
-                />
-              </View>
-            )}
-            showsVerticalScrollIndicator={false}
+          <CollectionCard
+            mediaItems={userMediaQuery.data ?? []}
+            title="Want to watch"
           />
         )}
+     
       </View>
     </View>
   );
@@ -99,5 +109,11 @@ const styles = StyleSheet.create({
     width: "150%",
     height: "100%",
     zIndex: 0,
+  },
+
+  headerTitle: {
+    fontSize: 32,
+    fontFamily: fontFamily.plusJakarta.bold,
+    marginVertical: 16,
   },
 });
