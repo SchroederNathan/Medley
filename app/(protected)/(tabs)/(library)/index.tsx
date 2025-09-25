@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { FlashList } from "@shopify/flash-list";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, {
   Defs,
   FeBlend,
@@ -9,37 +9,58 @@ import Svg, {
   Filter,
   Path,
 } from "react-native-svg";
-import { ThemeContext } from "../../../../contexts/theme-context";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useUserMedia } from "../../../../hooks/use-user-media";
-import MediaCard from "../../../../components/ui/media-card";
 import CollectionCard from "../../../../components/ui/collection-card";
+import TabPager from "../../../../components/ui/tab-pager";
+import { ThemeContext } from "../../../../contexts/theme-context";
+import { useUserMedia } from "../../../../hooks/use-user-media";
 import { fontFamily } from "../../../../lib/fonts";
 
-        //   <FlashList
-        //     data={userMediaQuery.data ?? []}
-        //     keyExtractor={(item) => item.id}
-        //     numColumns={4}
-        //     contentContainerStyle={{ paddingBottom: 16 }}
-        //     renderItem={({ item, index }) => (
-        //       <View style={[{ paddingHorizontal: 4, flex: 1 }]}>
-        //         <MediaCard
-        //           media={item}
-        //           width={"100%"}
-        //           height={"auto"}
-        //           style={{ aspectRatio: 3 / 4, marginBottom: 8 }}
-        //         />
-        //       </View>
-        //     )}
-        //     showsVerticalScrollIndicator={false}
-        //   />
-        // )}
-        
+//   <FlashList
+//     data={userMediaQuery.data ?? []}
+//     keyExtractor={(item) => item.id}
+//     numColumns={4}
+//     contentContainerStyle={{ paddingBottom: 16 }}
+//     renderItem={({ item, index }) => (
+//       <View style={[{ paddingHorizontal: 4, flex: 1 }]}>
+//         <MediaCard
+//           media={item}
+//           width={"100%"}
+//           height={"auto"}
+//           style={{ aspectRatio: 3 / 4, marginBottom: 8 }}
+//         />
+//       </View>
+//     )}
+//     showsVerticalScrollIndicator={false}
+//   />
+// )}
 
 const LibraryScreen = () => {
   const { theme } = useContext(ThemeContext);
   const topPadding = useSafeAreaInsets().top;
   const userMediaQuery = useUserMedia();
+  const [activeTab, setActiveTab] = React.useState("all");
+
+  const tabs = [
+    { key: "all", title: "All lists" },
+    { key: "movies", title: "Movie lists" },
+    { key: "games", title: "Game lists" },
+  ];
+
+  const allItems = userMediaQuery.data ?? [];
+  const movieItems = React.useMemo(
+    () =>
+      allItems.filter(
+        (m: any) => (m.media_type || "").toLowerCase() === "movie"
+      ),
+    [allItems]
+  );
+  const gameItems = React.useMemo(
+    () =>
+      allItems.filter(
+        (m: any) => (m.media_type || "").toLowerCase() === "game"
+      ),
+    [allItems]
+  );
   return (
     <View style={[styles.container, { paddingTop: topPadding }]}>
       <Svg
@@ -77,19 +98,39 @@ const LibraryScreen = () => {
           filter="url(#filter0_f_2_34)"
         />
       </Svg>
-      <Text style={[styles.headerTitle,{ color: theme.text }]}>Your Library</Text>
+      <Text style={[styles.headerTitle, { color: theme.text }]}>
+        Your Library
+      </Text>
       <View style={{ flex: 1 }}>
         {userMediaQuery.isLoading ? (
           <Text style={{ color: theme.secondaryText }}>Loading…</Text>
         ) : userMediaQuery.isError ? (
           <Text style={{ color: theme.text }}>Failed to load library</Text>
         ) : (
-          <CollectionCard
-            mediaItems={userMediaQuery.data ?? []}
-            title="Want to watch"
+          <TabPager
+            tabs={tabs}
+            selectedKey={activeTab}
+            onChange={(key: string) => setActiveTab(key)}
+            style={{ marginTop: 8 }}
+            pages={[
+              <View key="all" style={{ flex: 1, paddingTop: 24, gap: 16 }}>
+                <CollectionCard mediaItems={allItems} title="Big list" />
+                <CollectionCard mediaItems={allItems} title="Cool Collection" />
+                <CollectionCard mediaItems={allItems} title="All items" />
+              </View>,
+              <View key="movies" style={{ flex: 1, paddingTop: 24, gap: 16 }}>
+                <CollectionCard mediaItems={movieItems} title="Movie list" />
+                <CollectionCard
+                  mediaItems={movieItems}
+                  title="Awesome Movies"
+                />
+              </View>,
+              <View key="games" style={{ flex: 1, paddingTop: 24, gap: 16 }}>
+                <CollectionCard mediaItems={gameItems} title="Game lists" />
+              </View>,
+            ]}
           />
         )}
-     
       </View>
     </View>
   );
@@ -112,8 +153,8 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
-    fontSize: 32,
-    fontFamily: fontFamily.plusJakarta.bold,
-    marginVertical: 16,
+    fontSize: 40,
+    fontFamily: fontFamily.tanker.regular,
+    marginTop: 16,
   },
 });

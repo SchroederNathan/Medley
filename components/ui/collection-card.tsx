@@ -1,10 +1,12 @@
 import { ChevronRight } from "lucide-react-native";
 import React, { useContext } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
 import { Media } from "../../types/media";
 import MediaCard from "./media-card";
+
+const { width: ScreenWidth } = Dimensions.get("window");
 
 const CollectionMediaGrid = ({ mediaItems }: { mediaItems: Media[] }) => {
   const { theme } = useContext(ThemeContext);
@@ -77,6 +79,7 @@ const CollectionCard = ({
       style={[
         styles.container,
         {
+
           //   borderColor: theme.buttonBorder,
           //   backgroundColor: theme.buttonBackground,
         },
@@ -90,7 +93,7 @@ const CollectionCard = ({
             {mediaItems.length} items
           </Text>
         </View>
-        <ChevronRight size={24} color={theme.secondaryText} />
+        {/* <ChevronRight size={24} color={theme.secondaryText} /> */}
       </View>
     </TouchableOpacity>
   );
@@ -105,6 +108,7 @@ const styles = StyleSheet.create({
     // borderWidth: 1,
     // padding: 12,
     flexDirection: "row",
+    // backgroundColor: "red",
     gap: 12,
   },
 
@@ -120,8 +124,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: "row",
-    height: 100, // Square-ish aspect ratio
-    width: 100,
+    height: 140, // Square-ish aspect ratio
+    width: 140,
     padding: 8,
     gap: 4,
   },
