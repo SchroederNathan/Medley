@@ -71,10 +71,7 @@ const Button = ({
           Haptics.selectionAsync();
         }}
         onPressOut={() => {
-          scale.value = withSpring(1, {
-            damping: 40,
-            stiffness: 300,
-          });
+          scale.value = withSpring(1);
         }}
         onPress={onPress}
         style={styles.pressableContent}
