@@ -141,12 +141,12 @@ const IndexScreen = () => {
             title="Movies for you"
           />
           <Carousel
-            style={{ marginTop: 16 }}
+            style={{ marginTop: 32 }}
             media={recommendedGames.data ?? []}
             title="Games for you"
           />
           <Carousel
-            style={{ marginTop: 16 }}
+            style={{ marginTop: 32 }}
             media={recommendedTvShows.data ?? []}
             title="TV for you"
           />
