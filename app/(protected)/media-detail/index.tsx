@@ -6,13 +6,22 @@ import { ChevronLeft } from "lucide-react-native";
 import React, { useContext } from "react";
 import {
   ActivityIndicator,
-  ScrollView,
+  Dimensions,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import Animated, { Easing, Layout } from "react-native-reanimated";
+import Animated, {
+  Easing,
+  Extrapolation,
+  interpolate,
+  Layout,
+  SharedValue,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../../../components/ui/button";
 import Carousel from "../../../components/ui/carousel";
@@ -36,15 +45,119 @@ const mediaTypeToTitle = (mediaType: "movie" | "tv_show" | "book" | "game") => {
   }
 };
 
+// Parallax animation constants
+const BACKDROP_WIDTH = Dimensions.get("window").width;
+const BACKDROP_HEIGHT = 320; // Same as current backdrop height
+const TOP_OFFSET = 30; // Offset for parallax effect
+
+interface BackdropImageProps {
+  imageUri: string;
+}
+
+const BackdropImage: React.FC<BackdropImageProps> = ({ imageUri }) => {
+  return (
+    <View style={{ width: BACKDROP_WIDTH, height: BACKDROP_HEIGHT }}>
+      {/* Base crisp image layer */}
+      <Image
+        source={{ uri: imageUri }}
+        contentFit="cover"
+        cachePolicy="memory-disk"
+        transition={200}
+        style={{
+          width: BACKDROP_WIDTH,
+          height: BACKDROP_HEIGHT,
+          backgroundColor: "red",
+        }}
+      />
+      {/* Linear gradient overlay */}
+      <LinearGradient
+        colors={["rgba(10,10,10,0)", "rgba(10,10,10,1)"]}
+        locations={[0, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+    </View>
+  );
+};
+
+interface ParallaxBackdropImageProps {
+  scrollY: SharedValue<number>;
+  imageUri: string;
+}
+
+const ParallaxBackdropImage: React.FC<ParallaxBackdropImageProps> = ({
+  scrollY,
+  imageUri,
+}) => {
+  // Parallax animation style combining translateY movement and scale transforms
+  const rImageBgStyle = useAnimatedStyle(() => {
+    return {
+      // Negative offset compensates for status bar space
+      top: -TOP_OFFSET,
+      transform: [
+        {
+          // Parallax effect: image moves slower than scroll for depth illusion
+          // Pull down (-30px): image moves down 30px
+          // Normal scroll (0-height): image moves up at 1:1 ratio with scroll
+          translateY: interpolate(
+            scrollY.value,
+            [-TOP_OFFSET, 0, BACKDROP_HEIGHT], // Input: pull-down, start, full scroll
+            [TOP_OFFSET, 0, -BACKDROP_HEIGHT], // Output: move down, neutral, move up
+            Extrapolation.CLAMP
+          ),
+        },
+        {
+          // Scale animation for dramatic pull-to-zoom effect (iOS bounce)
+          // Overscroll creates 2x zoom, returns to normal at scroll start
+          scale: interpolate(
+            scrollY.value,
+            [-BACKDROP_HEIGHT, -TOP_OFFSET, 0], // Input: max overscroll, minor pull, normal
+            [2, 1, 1], // Output: 200% zoom, normal, normal
+            Extrapolation.CLAMP
+          ),
+        },
+      ],
+    };
+  });
+
+  return (
+    <Animated.View
+      style={[
+        rImageBgStyle,
+        // Fixed dimensions prevent layout shifts during animations
+        // transformOrigin "top" ensures scaling happens from header top edge
+        {
+          width: BACKDROP_WIDTH,
+          height: BACKDROP_HEIGHT,
+          transformOrigin: "top",
+          position: "absolute",
+        },
+      ]}
+    >
+      <BackdropImage imageUri={imageUri} />
+    </Animated.View>
+  );
+};
+
 const POSTER_PADDING = 72;
 
 const MediaDetailScreen = () => {
   const { theme } = useContext(ThemeContext);
-  const { user, isLoggedIn } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const queryClient = useQueryClient();
   const { id } = useLocalSearchParams();
   const topPadding = useSafeAreaInsets().top;
   const mediaId = Array.isArray(id) ? id[0] : id;
+
+  // Shared scroll position drives parallax transformations
+  const scrollY = useSharedValue(0);
+
+  // Worklet-optimized scroll handler for 60fps parallax animations
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: ({ contentOffset: { y } }) => {
+      // Direct shared value assignment runs on UI thread for smooth transforms
+      scrollY.value = y;
+    },
+  });
 
   const { data: media, isLoading, error } = useMediaItem(mediaId);
   const [recs, setRecs] = React.useState<any[]>([]);
@@ -120,50 +233,41 @@ const MediaDetailScreen = () => {
   }
 
   return (
-    <ScrollView
-      style={[{ backgroundColor: theme.background }, styles.scrollView]}
-      contentContainerStyle={styles.scrollViewContent}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Backdrop Section */}
-      <View
+    <View style={[{ flex: 1, backgroundColor: theme.background }]}>
+      {/* Parallax Backdrop */}
+      <ParallaxBackdropImage scrollY={scrollY} imageUri={media.backdrop_url} />
+
+      {/* Back Button Overlay */}
+      <TouchableOpacity
+        onPress={() => router.back()}
         style={[
-          styles.backdropContainer,
-          { marginBottom: 16 + POSTER_PADDING },
+          styles.backButton,
+          {
+            top: topPadding + 12,
+            backgroundColor: theme.buttonBackground,
+            borderColor: theme.buttonBorder,
+            position: "absolute",
+            zIndex: 10,
+          },
         ]}
+        accessibilityRole="button"
+        accessibilityLabel="Go back"
       >
-        <Image
-          source={{ uri: media.backdrop_url }}
-          cachePolicy="memory-disk"
-          transition={200}
-          contentFit="cover"
-          style={styles.backdropImage}
-        />
-        <LinearGradient
-          colors={["rgba(0,0,0,0)", theme.background]}
-          locations={[0, 1]}
-          style={styles.backdropGradient}
-        />
+        <ChevronLeft size={20} color={theme.text} />
+      </TouchableOpacity>
 
-        {/* Overlay Back Button */}
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={[
-            styles.backButton,
-            {
-              top: topPadding + 12,
-              backgroundColor: theme.buttonBackground,
-              borderColor: theme.buttonBorder,
-            },
-          ]}
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
-        >
-          <ChevronLeft size={20} color={theme.text} />
-        </TouchableOpacity>
-
+      <Animated.ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[
+          styles.scrollViewContent,
+          { paddingTop: BACKDROP_HEIGHT - POSTER_PADDING },
+        ]}
+        showsVerticalScrollIndicator={false}
+        onScroll={scrollHandler}
+        scrollEventThrottle={1000 / 60}
+      >
         {/* Poster + Core Details Row */}
-        <View style={[styles.posterRow, { bottom: -POSTER_PADDING }]}>
+        <View style={[styles.posterRow, { marginTop: POSTER_PADDING }]}>
           <Image
             source={{ uri: media.poster_url }}
             contentFit="cover"
@@ -191,73 +295,75 @@ const MediaDetailScreen = () => {
             </Text>
           </View>
         </View>
-      </View>
 
-      {/* Body Content */}
-      <Animated.View
-        style={styles.bodyContent}
-        layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
-      >
-        <StatusButton
-          title={
-            "Save " +
-            mediaTypeToTitle(
-              media.media_type as "movie" | "tv_show" | "book" | "game"
-            )
-          }
-          mediaId={mediaId!}
-          mediaType={media.media_type as "movie" | "tv_show" | "book" | "game"}
-          styles={styles.button}
-          onStatusSaved={() => {
-            if (!user?.id) return;
-            // Optimistically update cached library list
-            queryClient.setQueryData<any[]>(
-              ["userLibrary", user.id],
-              (prev) => {
-                const list = Array.isArray(prev) ? prev : [];
-                if (list.some((m) => m.id === media.id)) return list;
-                return [media, ...list];
-              }
-            );
-          }}
-        />
-        {media.description?.length > 0 && (
-          <Animated.View
-            layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
-          >
-            <Text style={[styles.descriptionText, { color: theme.text }]}>
-              {media.description}
-            </Text>
-          </Animated.View>
-        )}
-
-        {/* Optional metadata */}
+        {/* Body Content */}
         <Animated.View
-          style={styles.metadataContainer}
+          style={styles.bodyContent}
           layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
         >
-          {media.metadata?.original_title &&
-            media.metadata.original_title !== media.title && (
-              <Text
-                style={[styles.metadataText, { color: theme.secondaryText }]}
-              >
-                Original title:{" "}
-                <Text style={{ color: theme.text }}>
-                  {media.metadata.original_title}
-                </Text>
+          <StatusButton
+            title={
+              "Save " +
+              mediaTypeToTitle(
+                media.media_type as "movie" | "tv_show" | "book" | "game"
+              )
+            }
+            mediaId={mediaId!}
+            mediaType={
+              media.media_type as "movie" | "tv_show" | "book" | "game"
+            }
+            styles={styles.button}
+            onStatusSaved={() => {
+              if (!user?.id) return;
+              // Optimistically update cached library list
+              queryClient.setQueryData<any[]>(
+                ["userLibrary", user.id],
+                (prev) => {
+                  const list = Array.isArray(prev) ? prev : [];
+                  if (list.some((m) => m.id === media.id)) return list;
+                  return [media, ...list];
+                }
+              );
+            }}
+          />
+          {media.description?.length > 0 && (
+            <Animated.View
+              layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
+            >
+              <Text style={[styles.descriptionText, { color: theme.text }]}>
+                {media.description}
               </Text>
-            )}
-        </Animated.View>
-        {recs.length > 0 && (
+            </Animated.View>
+          )}
+
+          {/* Optional metadata */}
           <Animated.View
+            style={styles.metadataContainer}
             layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
-            style={{ marginTop: 24 }}
           >
-            <Carousel title="You might also like" media={recs as any} />
+            {media.metadata?.original_title &&
+              media.metadata.original_title !== media.title && (
+                <Text
+                  style={[styles.metadataText, { color: theme.secondaryText }]}
+                >
+                  Original title:{" "}
+                  <Text style={{ color: theme.text }}>
+                    {media.metadata.original_title}
+                  </Text>
+                </Text>
+              )}
           </Animated.View>
-        )}
-      </Animated.View>
-    </ScrollView>
+          {recs.length > 0 && (
+            <Animated.View
+              layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
+              style={{ marginTop: 24 }}
+            >
+              <Carousel title="You might also like" media={recs as any} />
+            </Animated.View>
+          )}
+        </Animated.View>
+      </Animated.ScrollView>
+    </View>
   );
 };
 
@@ -341,6 +447,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 16,
     right: 16,
+    top: 80,
     flexDirection: "row",
     gap: 16,
     alignItems: "flex-end",
@@ -368,6 +475,7 @@ const styles = StyleSheet.create({
   // Body content
   bodyContent: {
     paddingHorizontal: 16,
+    paddingTop: 100,
   },
   button: {
     marginBottom: 16,
