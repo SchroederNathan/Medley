@@ -95,9 +95,9 @@ const LibraryScreen = () => {
       </Svg>
 
       <PullToSearchContent searchResults={searchResults} searchQuery={query}>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>
+        {/* <Text style={[styles.headerTitle, { color: theme.text }]}>
           Your Library
-        </Text>
+        </Text> */}
         <View style={{ flex: 1 }}>
           {userMediaQuery.isLoading ? (
             <Text style={{ color: theme.secondaryText }}>Loading…</Text>
@@ -108,7 +108,6 @@ const LibraryScreen = () => {
               tabs={tabs}
               selectedKey={activeTab}
               onChange={(key: string) => setActiveTab(key)}
-              style={{ marginTop: 8 }}
               pages={[
                 <View key="all" style={{ flex: 1, paddingTop: 24, gap: 16 }}>
                   <CollectionCard mediaItems={allItems} title="Big list" />

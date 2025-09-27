@@ -121,7 +121,6 @@ const TabPager = ({
   const { width: windowWidth } = useWindowDimensions();
 
   // Layout constants for tab bar spacing and indicator calculations
-  const TAB_BAR_HORIZONTAL_PADDING = 16;
   const TAB_BAR_GAP = 24;
 
   const selectedIndex = useMemo(
@@ -161,7 +160,7 @@ const TabPager = ({
   // Dynamic measurement system calculates tab positions and widths for responsive indicator
   const { tabWidths, tabOffsets } = useMeasureFlatListTabsLayout({
     tabsLength: tabs.length,
-    sidePadding: TAB_BAR_HORIZONTAL_PADDING,
+    sidePadding: 0,
     gap: TAB_BAR_GAP,
   });
 
@@ -289,7 +288,6 @@ const TabPager = ({
           renderItem={renderTabItem}
           horizontal
           contentContainerStyle={{
-            paddingHorizontal: TAB_BAR_HORIZONTAL_PADDING,
             gap: TAB_BAR_GAP,
           }}
           showsHorizontalScrollIndicator={false}
@@ -350,7 +348,7 @@ const styles = StyleSheet.create({
     paddingBottom: 2,
   },
   tab: {
-    paddingVertical: 12,
+    paddingBottom: 12,
   },
   indicator: {
     position: "absolute",

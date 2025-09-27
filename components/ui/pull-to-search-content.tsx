@@ -150,7 +150,7 @@ export const PullToSearchContent: FC<PullToSearchContentProps> = ({
             styles.scrollView,
             {
               paddingBottom: insets.bottom + 8,
-              paddingTop: grossHeight + 32,
+              paddingTop: grossHeight + 20,
             },
           ]}
           scrollEventThrottle={16}
