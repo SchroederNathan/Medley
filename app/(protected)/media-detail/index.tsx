@@ -66,7 +66,6 @@ const BackdropImage: React.FC<BackdropImageProps> = ({ imageUri }) => {
         style={{
           width: BACKDROP_WIDTH,
           height: BACKDROP_HEIGHT,
-          backgroundColor: "red",
         }}
       />
       {/* Linear gradient overlay */}
