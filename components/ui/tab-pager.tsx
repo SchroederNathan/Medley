@@ -5,6 +5,9 @@ import {
   StyleSheet,
   View,
   ViewStyle,
+  Text,
+  FlatList,
+  useWindowDimensions,
 } from "react-native";
 import Animated, {
   Easing,
@@ -12,9 +15,86 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
+  interpolate,
+  useAnimatedRef,
+  useDerivedValue,
+  scrollTo,
+  runOnUI,
+  SharedValue,
 } from "react-native-reanimated";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
+
+// tab indicator component
+type TabIndicatorProps = {
+  activeTabIndex: SharedValue<number>;
+  tabWidths: SharedValue<number[]>;
+  tabOffsets: SharedValue<number[]>;
+  tabBarOffsetX: SharedValue<number>;
+};
+
+const TabIndicator: React.FC<TabIndicatorProps> = ({
+  activeTabIndex,
+  tabWidths,
+  tabOffsets,
+  tabBarOffsetX,
+}) => {
+  const { theme } = useContext(ThemeContext);
+
+  const rIndicatorStyle = useAnimatedStyle(() => {
+    const left = interpolate(
+      activeTabIndex.value,
+      Object.keys(tabOffsets.value).map(Number),
+      tabOffsets.value
+    );
+
+    const width = interpolate(
+      activeTabIndex.value,
+      Object.keys(tabWidths.value).map(Number),
+      tabWidths.value
+    );
+
+    return {
+      left,
+      width,
+      transform: [
+        {
+          translateX: -tabBarOffsetX.value,
+        },
+      ],
+    };
+  });
+
+  return (
+    <Animated.View
+      style={[
+        styles.indicator,
+        { backgroundColor: theme.text },
+        rIndicatorStyle,
+      ]}
+    />
+  );
+};
+
+// Hook for measuring tab layouts
+const useMeasureFlatListTabsLayout = ({ tabsLength, sidePadding, gap }: {
+  tabsLength: number;
+  sidePadding: number;
+  gap: number;
+}) => {
+  const tabWidths = useSharedValue<number[]>(new Array(tabsLength).fill(0));
+
+  const tabOffsets = useDerivedValue(() => {
+    return tabWidths.value.reduce<number[]>((acc, _width, index) => {
+      const previousX = index === 0 ? sidePadding : acc[index - 1];
+      const previousWidth = index === 0 ? 0 : tabWidths.value[index - 1];
+      acc[index] = previousX + previousWidth + (index === 0 ? 0 : gap);
+      return acc;
+    }, []);
+  });
+
+  return { tabWidths, tabOffsets };
+};
 
 type TabItem = {
   key: string;
@@ -29,7 +109,7 @@ type TabPagerProps = {
   pages: React.ReactNode[];
 };
 
-// Reanimated v4-friendly animated underline tab pager with swipeable content
+// animated tab pager with smooth indicator
 const TabPager = ({
   tabs,
   selectedKey,
@@ -38,10 +118,11 @@ const TabPager = ({
   pages,
 }: TabPagerProps) => {
   const { theme } = useContext(ThemeContext);
+  const { width: windowWidth } = useWindowDimensions();
 
-  // Layout measurements per tab for underline width/position animation
-  const tabLayouts = useRef<{ x: number; width: number }[]>([]);
-  const containerPaddingHorizontal = 0;
+  // Layout constants for tab bar spacing and indicator calculations
+  const TAB_BAR_HORIZONTAL_PADDING = 16;
+  const TAB_BAR_GAP = 24;
 
   const selectedIndex = useMemo(
     () =>
@@ -52,196 +133,175 @@ const TabPager = ({
     [tabs, selectedKey]
   );
 
-  // Shared values for underline and scroll state
-  const underlineX = useSharedValue(0);
-  const underlineWidth = useSharedValue(0);
-  const tabXs = useSharedValue<number[]>([]);
-  const tabWs = useSharedValue<number[]>([]);
-  const pageWidth = useSharedValue(0);
-  const scrollX = useSharedValue(0);
-  const [measuredWidth, setMeasuredWidth] = React.useState(0);
-  const scrollRef = useRef<any>(null);
+  // Animated ref enables programmatic scrolling for tab centering
+  const listAnimatedRef = useAnimatedRef<FlatList>();
 
-  // Shared values for tab opacity animation
-  const tabOpacities = tabs.map(() => useSharedValue(0.5));
+  // Tracks horizontal scroll position for indicator transform compensation
+  const tabBarOffsetX = useSharedValue(0);
 
-  // Function to animate tab opacities
-  const animateTabOpacities = (selectedIndex: number) => {
-    tabOpacities.forEach((opacity, index) => {
-      const targetOpacity = index === selectedIndex ? 1 : 0.5;
-      opacity.value = withTiming(targetOpacity, {
-        duration: 300,
-        easing: Easing.out(Easing.cubic),
-      });
-    });
-  };
+  // Shared values coordinate smooth tab transitions during user press
+  const pressStartIndex = useSharedValue<number>(0);
+  const pressEndIndex = useSharedValue<number | null>(null);
 
-  // Initialize tab opacities
+  // Create a shared value for the current tab index (fractional during swipes)
+  const indexDecimal = useSharedValue(selectedIndex);
+
+  // Update indexDecimal when selectedKey changes
   React.useEffect(() => {
-    tabOpacities.forEach((opacity, index) => {
-      opacity.value = index === selectedIndex ? 1 : 0.5;
-    });
-  }, []); // Only run once on mount
-
-  // Create animated styles for tab text opacity
-  const tabTextStyles = tabOpacities.map((opacity) =>
-    useAnimatedStyle(() => ({
-      opacity: opacity.value,
-    }))
-  );
-
-  const animateUnderlineTo = (index: number) => {
-    // For tap navigation, we update the fallback position but rely on scroll-based positioning
-    const layout = tabLayouts.current[index];
-    if (!layout) return;
-    const targetX = layout.x + containerPaddingHorizontal;
-    underlineX.value = targetX;
-    underlineWidth.value = layout.width;
-  };
-
-  React.useEffect(() => {
-    // Initialize position once we have measurements
-    if (tabLayouts.current[selectedIndex]) {
-      const layout = tabLayouts.current[selectedIndex];
-      const adjustedX = layout.x + containerPaddingHorizontal;
-      underlineX.value = adjustedX;
-      underlineWidth.value = layout.width;
-
-      // Also update the shared arrays for interpolation
-      const nextXs = [...(tabXs.value || [])];
-      const nextWs = [...(tabWs.value || [])];
-      nextXs[selectedIndex] = adjustedX;
-      nextWs[selectedIndex] = layout.width;
-      tabXs.value = nextXs;
-      tabWs.value = nextWs;
-    }
-
-    // Animate tab opacities
-    animateTabOpacities(selectedIndex);
+    indexDecimal.value = selectedIndex;
   }, [selectedIndex]);
 
-  // Drive underline by scroll position when possible; fallback to measured/index when arrays not ready
-  const underlineStyle = useAnimatedStyle(() => {
-    const xs = tabXs.value;
-    const ws = tabWs.value;
-    const pw = pageWidth.value;
-
-    // If we have all tab measurements, use scroll-based smooth positioning
-    if (xs.length === tabs.length && ws.length === tabs.length && pw > 0) {
-      // Calculate progress between pages (0 to tabs.length - 1)
-      const progress = scrollX.value / pw;
-      const clampedProgress = Math.max(0, Math.min(progress, tabs.length - 1));
-
-      // Find which segment we're in (between which two tabs)
-      const startIndex = Math.floor(clampedProgress);
-      const endIndex = Math.min(startIndex + 1, tabs.length - 1);
-
-      // Interpolate between the two tab positions
-      const segmentProgress = clampedProgress - startIndex;
-      const startX = xs[startIndex] || 0;
-      const endX = xs[endIndex] || 0;
-      const startW = ws[startIndex] || 0;
-      const endW = ws[endIndex] || 0;
-
-      const currentX = startX + (endX - startX) * segmentProgress;
-      const currentW = startW + (endW - startW) * segmentProgress;
-
-      return { transform: [{ translateX: currentX }], width: currentW };
-    }
-
-    // Fallback to manual positioning
-    return {
-      transform: [{ translateX: underlineX.value }],
-      width: underlineWidth.value,
-    };
+  // Worklet-optimized scroll handler tracks horizontal offset for indicator positioning
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      tabBarOffsetX.value = event.contentOffset.x;
+    },
   });
 
-  const onTabLayout = (index: number, e: LayoutChangeEvent) => {
-    const { x, width } = e.nativeEvent.layout;
-    tabLayouts.current[index] = { x, width };
-    // keep arrays for animated interpolation during scroll
-    const nextXs = [...(tabXs.value || [])];
-    const nextWs = [...(tabWs.value || [])];
-    nextXs[index] = x + containerPaddingHorizontal; // Include padding in stored positions
-    nextWs[index] = width;
-    tabXs.value = nextXs;
-    tabWs.value = nextWs;
-    // If this is the initially selected tab, sync position
-    if (index === selectedIndex && underlineWidth.value === 0) {
-      underlineX.value = x + containerPaddingHorizontal;
-      underlineWidth.value = width;
+  // Dynamic measurement system calculates tab positions and widths for responsive indicator
+  const { tabWidths, tabOffsets } = useMeasureFlatListTabsLayout({
+    tabsLength: tabs.length,
+    sidePadding: TAB_BAR_HORIZONTAL_PADDING,
+    gap: TAB_BAR_GAP,
+  });
+
+  // Smart tab centering algorithm with smooth interpolation
+  useDerivedValue(() => {
+    "worklet";
+    // Calculate center point of each tab for centering calculations
+    const tabsCenter = tabs.map(
+      (_, index) => tabOffsets.value[index] + tabWidths.value[index] / 2
+    );
+
+    // Find first tab that can be centered (has enough space on left)
+    const firstTabIndexCanBeCentered = tabs.findIndex(
+      (_, index) => tabsCenter[index] > windowWidth / 2
+    );
+
+    // Build output range: 0 for edge tabs, center-offset for others
+    const outputRange = tabsCenter.map((center, index) => {
+      if (index < firstTabIndexCanBeCentered) {
+        return 0;
+      }
+      return center - windowWidth / 2;
+    });
+
+    // Handle user-initiated tab press with smooth transition
+    if (pressEndIndex.value !== null) {
+      const startIndex = pressStartIndex.value;
+      const targetIndex = pressEndIndex.value;
+      const inputRange = [startIndex, targetIndex];
+      const output = [outputRange[startIndex], outputRange[targetIndex]];
+      const offsetX = interpolate(indexDecimal.value, inputRange, output);
+      scrollTo(listAnimatedRef, offsetX, 0, false);
+
+      // Reset press state when transition completes
+      if (indexDecimal.value === targetIndex) {
+        pressEndIndex.value = null;
+      }
+    } else {
+      // Normal scroll synchronization with tab view paging
+      const offsetX = interpolate(
+        indexDecimal.value,
+        Object.keys(tabs).map(Number),
+        outputRange
+      );
+      scrollTo(listAnimatedRef, offsetX, 0, false);
     }
-  };
+  });
+
+  // Page scroll handling
+  const [measuredWidth, setMeasuredWidth] = React.useState(0);
+  const scrollRef = useRef<any>(null);
 
   const onContainerLayout = (e: LayoutChangeEvent) => {
     const { width } = e.nativeEvent.layout;
     setMeasuredWidth(width);
-    pageWidth.value = width;
-    // ensure scroll aligns with selected index on first measure
     if (scrollRef.current) {
       scrollRef.current.scrollTo({ x: selectedIndex * width, animated: false });
     }
   };
 
-  const scrollHandler = useAnimatedScrollHandler({
+  const pageScrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
-      scrollX.value = event.contentOffset.x;
+      const x = event.contentOffset.x;
+      if (measuredWidth > 0) {
+        const progress = x / measuredWidth;
+        indexDecimal.value = progress;
+      }
     },
   });
 
+  // Tab item renderer with press handling and layout measurement
+  const renderTabItem = ({ item, index }: { item: TabItem; index: number }) => {
+    const onPress = () => {
+      // Update shared values on UI thread for smooth transition coordination
+      runOnUI(() => {
+        "worklet";
+        pressEndIndex.value = index;
+        pressStartIndex.value = indexDecimal.value;
+      })();
+      onChange(item.key, index);
+      if (measuredWidth && scrollRef.current) {
+        scrollRef.current.scrollTo({
+          x: index * measuredWidth,
+          animated: true,
+        });
+      }
+    };
+
+    return (
+      <Pressable
+        key={item.key}
+        onPress={onPress}
+        style={styles.tab}
+        onLayout={(event) => {
+          const { width } = event.nativeEvent.layout;
+          tabWidths.modify((value) => {
+            "worklet";
+            value[index] = width;
+            return value;
+          });
+        }}
+      >
+        <Text
+          style={{
+            color: theme.text,
+            fontFamily: fontFamily.plusJakarta.medium,
+            fontSize: 16,
+          }}
+        >
+          {item.title}
+        </Text>
+      </Pressable>
+    );
+  };
+
   return (
     <View style={[styles.container, style]} onLayout={onContainerLayout}>
-      {/* Header section with tabs and borders */}
+      {/* Header section with tabs and indicator */}
       <View style={styles.header}>
-        <View style={styles.row}>
-          {tabs.map((tab, index) => {
-            return (
-              <Pressable
-                key={tab.key}
-                onPress={() => {
-                  animateUnderlineTo(index);
-                  onChange(tab.key, index);
-                  if (measuredWidth && scrollRef.current) {
-                    scrollRef.current.scrollTo({
-                      x: index * measuredWidth,
-                      animated: true,
-                    });
-                  }
-                }}
-                onLayout={(e) => onTabLayout(index, e)}
-                style={styles.tab}
-              >
-                <Animated.Text
-                  style={[
-                    {
-                      color: theme.text,
-                      fontFamily: fontFamily.plusJakarta.medium,
-                      fontSize: 16,
-                    },
-                    tabTextStyles[index],
-                  ]}
-                >
-                  {tab.title}
-                </Animated.Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        {/* Base bottom border placed under labels */}
-        <View
-          pointerEvents="none"
-          // style={[styles.bottomBorder, { borderColor: theme.border }]}
+        {/* Reanimated.FlatList enables worklet-optimized scroll handling */}
+        <Animated.FlatList
+          ref={listAnimatedRef}
+          data={tabs}
+          keyExtractor={(item) => item.key}
+          renderItem={renderTabItem}
+          horizontal
+          contentContainerStyle={{
+            paddingHorizontal: TAB_BAR_HORIZONTAL_PADDING,
+            gap: TAB_BAR_GAP,
+          }}
+          showsHorizontalScrollIndicator={false}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
         />
-
-        {/* Animated selected underline under labels */}
-        <Animated.View
-          pointerEvents="none"
-          style={[
-            styles.underline,
-            { backgroundColor: theme.text },
-            underlineStyle,
-          ]}
+        {/* Positioned below tabs for proper layering */}
+        <TabIndicator
+          activeTabIndex={indexDecimal}
+          tabWidths={tabWidths}
+          tabOffsets={tabOffsets}
+          tabBarOffsetX={tabBarOffsetX}
         />
       </View>
 
@@ -251,7 +311,7 @@ const TabPager = ({
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        onScroll={scrollHandler}
+        onScroll={pageScrollHandler}
         scrollEventThrottle={16}
         onMomentumScrollEnd={(e) => {
           const x = e.nativeEvent.contentOffset.x;
@@ -259,7 +319,6 @@ const TabPager = ({
           const key = tabs[index]?.key;
           if (key && key !== selectedKey) {
             onChange(key, index);
-            animateTabOpacities(index);
           }
         }}
         contentContainerStyle={{
@@ -285,32 +344,20 @@ export default TabPager;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // backgroundColor: "red",
-
   },
   header: {
     position: "relative",
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 24,
+    paddingBottom: 2,
   },
   tab: {
     paddingVertical: 12,
   },
-  bottomBorder: {
+  indicator: {
     position: "absolute",
-    left: -20,
-    right: -20,
+    height: 2.5,
     bottom: 0,
-    borderBottomWidth: 1,
-  },
-  underline: {
-    position: "absolute",
-    height: 2,
-    bottom: 0, // sits at the same vertical spot as the bottom border
     left: 0,
+    borderRadius: 2.5,
   },
   pages: {
     flex: 1,
