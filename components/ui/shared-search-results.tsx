@@ -142,11 +142,11 @@ export const SharedSearchResults: FC<SharedSearchResultsProps> = ({
     return (
       <FlashList
         data={flatResults}
-        style={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 8 }}
+        style={{ paddingHorizontal: 20 }}
         renderItem={renderFlatResult}
         keyExtractor={(item) => item.id}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-        contentContainerStyle={[styles.flatContainer, { paddingTop: grossHeight + 20 }]}
+        contentContainerStyle={[styles.flatContainer, { paddingTop: grossHeight + 20, paddingBottom: insets.bottom + 8 }]}
         showsVerticalScrollIndicator={false}
       />
     );

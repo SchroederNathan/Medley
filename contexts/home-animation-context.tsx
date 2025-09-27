@@ -54,7 +54,10 @@ export const HomeAnimationProvider: FC<PropsWithChildren> = ({ children }) => {
   const onGoToCommands = useCallback(() => {
     screenView.value = "commands";
     blurIntensity.value = withTiming(100);
-    inputRef.current?.focus();
+    // Delay focus to ensure animation has settled
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
   }, []);
 
   // Returning to favorites drops blur and defocuses input

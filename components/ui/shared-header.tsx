@@ -1,6 +1,6 @@
 import { SlidersHorizontal } from "lucide-react-native";
 import React, { FC, useContext } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Keyboard, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   withTiming,
@@ -111,6 +111,7 @@ export const SharedHeader: FC<SharedHeaderProps> = ({
             <Pressable
               onPress={() => {
                 onSearchClear && onSearchClear();
+                Keyboard.dismiss(); // Explicitly dismiss keyboard
                 onGoToFavorites();
               }}
               style={styles.cancelPressable}
@@ -168,7 +169,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   rightButton: {
-    width: 65,
+    width: 88,
     alignItems: "center",
     justifyContent: "center",
   },

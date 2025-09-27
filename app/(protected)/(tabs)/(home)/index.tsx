@@ -27,6 +27,7 @@ import { useSharedSearch } from "../../../../hooks/use-shared-search";
 import { useRecommendations } from "../../../../hooks/use-recommendations";
 import { useUserProfile } from "../../../../hooks/use-user-profile";
 import { fontFamily } from "../../../../lib/fonts";
+import ProfileButton from "../../../../components/ui/profile-button";
 
 const IndexScreen = () => {
   const { theme } = useContext(ThemeContext);
@@ -59,22 +60,6 @@ const IndexScreen = () => {
     if (hour < 17) return "Good afternoon";
     return "Good evening";
   };
-
-  // Create profile button component
-  const profileButton = (
-    <TouchableOpacity
-      style={[
-        styles.profileButton,
-        {
-          backgroundColor: theme.buttonBackground,
-          borderColor: theme.buttonBorder,
-        },
-      ]}
-      onPress={() => router.push("/(profile)")}
-    >
-      <UserRound size={24} color={theme.text} />
-    </TouchableOpacity>
-  );
 
   const handleFilterPress = () => {
     // Add filter functionality here - could open a modal, show filter options, etc.
@@ -161,7 +146,7 @@ const IndexScreen = () => {
 
       {/* Shared header with pull-to-search functionality */}
       <SharedHeader
-        rightButton={profileButton}
+        rightButton={<ProfileButton />}
         showFilterButton={true}
         onFilterPress={handleFilterPress}
         searchValue={query}
@@ -197,16 +182,6 @@ const styles = StyleSheet.create({
     width: "150%",
     height: "100%",
     zIndex: 0,
-  },
-  profileButton: {
-    height: 52,
-    width: 52,
-    borderWidth: 1,
-    aspectRatio: 1,
-    borderRadius: 26,
-    
-    justifyContent: "center",
-    alignItems: "center",
   },
   sectionTitle: {
     fontSize: 20,

@@ -4,7 +4,10 @@ import { X as ClearIcon, Search as SearchIcon } from "lucide-react-native";
 import React, { FC, useContext, useEffect, useRef } from "react";
 import { StyleSheet, TextInput, TouchableOpacity } from "react-native";
 import Animated, {
+  runOnJS,
+  useAnimatedReaction,
   useAnimatedStyle,
+  useSharedValue,
   withSpring,
   withTiming,
 } from "react-native-reanimated";
@@ -34,22 +37,38 @@ export const AnimatedSearchBar: FC<AnimatedSearchBarProps> = ({
   const { screenView, offsetY, isListDragging, inputRef, onGoToCommands } =
     useHomeAnimation();
   const { theme } = useContext(ThemeContext);
-  const hasTriggeredHaptic = useRef(false);
+  const isHapticTriggered = useSharedValue(false);
 
-  // Trigger haptic feedback when search bar starts scaling
-  const shouldScale =
-    isListDragging.value &&
-    offsetY.value < 0 &&
-    offsetY.value < TRIGGER_DRAG_DISTANCE;
+  // Raycast-style haptic feedback: trigger once when crossing trigger threshold during pull
+  const handleHaptics = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    isHapticTriggered.value = true;
+  };
 
-  useEffect(() => {
-    if (shouldScale && !hasTriggeredHaptic.current) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      hasTriggeredHaptic.current = true;
-    } else if (!shouldScale) {
-      hasTriggeredHaptic.current = false;
+  // Reset haptic trigger when dragging stops
+  useAnimatedReaction(
+    () => isListDragging.value,
+    (dragging) => {
+      if (!dragging) {
+        isHapticTriggered.value = false;
+      }
     }
-  }, [shouldScale]);
+  );
+
+  // Trigger haptic when pulling past trigger distance
+  useAnimatedReaction(
+    () => offsetY.value,
+    (currentOffset) => {
+      if (
+        isListDragging.value &&
+        currentOffset < 0 &&
+        currentOffset < TRIGGER_DRAG_DISTANCE &&
+        !isHapticTriggered.value
+      ) {
+        runOnJS(handleHaptics)();
+      }
+    }
+  );
 
   // Search width animates between two target widths based on view
   // Spring config gives quick but non-bouncy settle matching Raycast feel
@@ -143,11 +162,11 @@ export const AnimatedSearchBar: FC<AnimatedSearchBarProps> = ({
 const styles = StyleSheet.create({
   container: {
     justifyContent: "center",
-    marginRight: -3,
+    marginRight: 0,
     zIndex: 101, // Higher than search results but part of header
   },
   touchableContent: {
-    width: "100%",
+    width: "98%",
     height: SEARCHBAR_HEIGHT,
   },
   blurView: {
