@@ -1,8 +1,15 @@
 import React, { FC, useContext } from "react";
 import { Pressable, StyleSheet } from "react-native";
 import { Filter } from "lucide-react-native";
-import Animated, { useAnimatedStyle, withDelay, withTiming } from "react-native-reanimated";
-import { EDIT_HOME_CONTAINER_WIDTH, useHomeAnimation } from "../../contexts/home-animation-context";
+import Animated, {
+  useAnimatedStyle,
+  withDelay,
+  withTiming,
+} from "react-native-reanimated";
+import {
+  EDIT_HOME_CONTAINER_WIDTH,
+  useHomeAnimation,
+} from "../../contexts/home-animation-context";
 import { ThemeContext } from "../../contexts/theme-context";
 
 type FilterButtonProps = {

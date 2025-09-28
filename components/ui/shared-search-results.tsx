@@ -146,7 +146,10 @@ export const SharedSearchResults: FC<SharedSearchResultsProps> = ({
         renderItem={renderFlatResult}
         keyExtractor={(item) => item.id}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-        contentContainerStyle={[styles.flatContainer, { paddingTop: grossHeight + 20, paddingBottom: insets.bottom + 8 }]}
+        contentContainerStyle={[
+          styles.flatContainer,
+          { paddingTop: grossHeight + 20, paddingBottom: insets.bottom + 8 },
+        ]}
         showsVerticalScrollIndicator={false}
       />
     );

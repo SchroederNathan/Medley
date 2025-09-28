@@ -104,7 +104,7 @@ export const PullToSearchContent: FC<PullToSearchContentProps> = ({
           offsetYValue,
           [0, FULL_DRAG_DISTANCE],
           [0, 100],
-          Extrapolation.CLAMP
+          Extrapolation.CLAMP,
         );
       }
     },
@@ -134,7 +134,7 @@ export const PullToSearchContent: FC<PullToSearchContentProps> = ({
               offsetY.value,
               [FULL_DRAG_DISTANCE * 0.2, FULL_DRAG_DISTANCE],
               [0, 1],
-              Extrapolation.CLAMP
+              Extrapolation.CLAMP,
             ),
       transform: [{ translateY: -offsetY.value }],
       pointerEvents: screenView.value === "commands" ? "auto" : "none",
@@ -162,38 +162,38 @@ export const PullToSearchContent: FC<PullToSearchContentProps> = ({
         </Animated.ScrollView>
       </Animated.View>
 
-        {/* Search results overlay */}
-        <Animated.View style={[styles.searchResults, rSearchResultsStyle]}>
-          <SharedSearchResults
-            searchResults={[]}
-            flatResults={searchResults}
-            searchQuery={searchQuery}
-            isLoading={isSearchLoading}
-            isError={isSearchError}
-          />
-        </Animated.View>
+      {/* Search results overlay */}
+      <Animated.View style={[styles.searchResults, rSearchResultsStyle]}>
+        <SharedSearchResults
+          searchResults={[]}
+          flatResults={searchResults}
+          searchQuery={searchQuery}
+          isLoading={isSearchLoading}
+          isError={isSearchError}
+        />
+      </Animated.View>
 
-        {/* Top gradient for main content */}
-        <Animated.View
-          style={[
-            rMainTopGradientStyle,
-            StyleSheet.absoluteFillObject,
-            { height: grossHeight, zIndex: 0 },
-          ]}
-        >
-          <TopGradient />
-        </Animated.View>
+      {/* Top gradient for main content */}
+      <Animated.View
+        style={[
+          rMainTopGradientStyle,
+          StyleSheet.absoluteFillObject,
+          { height: grossHeight, zIndex: 0 },
+        ]}
+      >
+        <TopGradient />
+      </Animated.View>
 
-        {/* Top gradient for search results - positioned between FlashList and header */}
-        <Animated.View
-          style={[
-            rSearchTopGradientStyle,
-            StyleSheet.absoluteFillObject,
-            { height: grossHeight, zIndex: 50 },
-          ]}
-        >
-          <TopGradient />
-        </Animated.View>
+      {/* Top gradient for search results - positioned between FlashList and header */}
+      <Animated.View
+        style={[
+          rSearchTopGradientStyle,
+          StyleSheet.absoluteFillObject,
+          { height: grossHeight, zIndex: 50 },
+        ]}
+      >
+        <TopGradient />
+      </Animated.View>
     </View>
   );
 };

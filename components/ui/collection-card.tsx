@@ -1,6 +1,12 @@
 import { ChevronRight } from "lucide-react-native";
 import React, { useContext } from "react";
-import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Dimensions,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
 import { Media } from "../../types/media";
@@ -79,7 +85,6 @@ const CollectionCard = ({
       style={[
         styles.container,
         {
-
           //   borderColor: theme.buttonBorder,
           //   backgroundColor: theme.buttonBackground,
         },

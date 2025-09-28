@@ -41,7 +41,7 @@ const IndexScreen = () => {
     handleSearchChange,
     handleSearchClear,
   } = useSharedSearch();
-  
+
   const recommendedGames = useRecommendations({
     kind: "type",
     mediaType: "game",

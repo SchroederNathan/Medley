@@ -39,16 +39,16 @@ const LibraryScreen = () => {
   const movieItems = React.useMemo(
     () =>
       allItems.filter(
-        (m: any) => (m.media_type || "").toLowerCase() === "movie"
+        (m: any) => (m.media_type || "").toLowerCase() === "movie",
       ),
-    [allItems]
+    [allItems],
   );
   const gameItems = React.useMemo(
     () =>
       allItems.filter(
-        (m: any) => (m.media_type || "").toLowerCase() === "game"
+        (m: any) => (m.media_type || "").toLowerCase() === "game",
       ),
-    [allItems]
+    [allItems],
   );
 
   const handleFilterPress = () => {

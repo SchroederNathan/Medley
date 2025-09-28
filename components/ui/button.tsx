@@ -1,17 +1,12 @@
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import React, { useContext } from "react";
-import {
-  StyleSheet,
-  Text,
-  ViewStyle,
-} from "react-native";
+import { StyleSheet, Text, ViewStyle, Pressable } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
-import { Pressable } from "react-native";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
 

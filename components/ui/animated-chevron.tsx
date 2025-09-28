@@ -2,8 +2,15 @@ import React from "react";
 import { View } from "react-native";
 import { ChevronDown } from "lucide-react-native";
 import { useHeaderHeight } from "../../hooks/use-header-height";
-import Animated, { Extrapolation, interpolate, useAnimatedStyle } from "react-native-reanimated";
-import { TRIGGER_DRAG_DISTANCE, useHomeAnimation } from "../../contexts/home-animation-context";
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+} from "react-native-reanimated";
+import {
+  TRIGGER_DRAG_DISTANCE,
+  useHomeAnimation,
+} from "../../contexts/home-animation-context";
 
 export const AnimatedChevron = () => {
   const { grossHeight } = useHeaderHeight();
@@ -17,10 +24,15 @@ export const AnimatedChevron = () => {
         offsetY.value,
         [0, TRIGGER_DRAG_DISTANCE],
         [0, Math.abs(TRIGGER_DRAG_DISTANCE)],
-        Extrapolation.CLAMP
+        Extrapolation.CLAMP,
       ),
       // Clamp to avoid overshooting when pulled beyond trigger distance
-      opacity: interpolate(offsetY.value, [0, TRIGGER_DRAG_DISTANCE], [0, 1], Extrapolation.CLAMP),
+      opacity: interpolate(
+        offsetY.value,
+        [0, TRIGGER_DRAG_DISTANCE],
+        [0, 1],
+        Extrapolation.CLAMP,
+      ),
     };
   });
 

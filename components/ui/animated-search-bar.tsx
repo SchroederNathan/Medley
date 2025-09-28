@@ -52,7 +52,7 @@ export const AnimatedSearchBar: FC<AnimatedSearchBarProps> = ({
       if (!dragging) {
         isHapticTriggered.value = false;
       }
-    }
+    },
   );
 
   // Trigger haptic when pulling past trigger distance
@@ -67,7 +67,7 @@ export const AnimatedSearchBar: FC<AnimatedSearchBarProps> = ({
       ) {
         runOnJS(handleHaptics)();
       }
-    }
+    },
   );
 
   // Search width animates between two target widths based on view
@@ -89,7 +89,7 @@ export const AnimatedSearchBar: FC<AnimatedSearchBarProps> = ({
       width: withSpring(
         screenView.value === "favorites"
           ? SEARCHBAR_FAVORITES_WIDTH
-          : SEARCHBAR_COMMANDS_WIDTH
+          : SEARCHBAR_COMMANDS_WIDTH,
       ),
       transform: [{ scale: withTiming(1) }],
       // While dragging center the origin to avoid noticeable skew

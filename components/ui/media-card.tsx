@@ -46,10 +46,10 @@ const MediaCard = ({
     pulse.value = withRepeat(
       withSequence(
         withTiming(1, { duration: 800, easing: Easing.inOut(Easing.ease) }),
-        withTiming(0.4, { duration: 800, easing: Easing.inOut(Easing.ease) })
+        withTiming(0.4, { duration: 800, easing: Easing.inOut(Easing.ease) }),
       ),
       -1,
-      false
+      false,
     );
     return () => {
       cancelAnimation(pulse);
