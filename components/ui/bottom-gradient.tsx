@@ -1,16 +1,13 @@
 import { LinearGradient } from "expo-linear-gradient";
-import React, { FC, useContext } from "react";
+import React, { FC } from "react";
 import { StyleSheet } from "react-native";
-import { ThemeContext } from "../../contexts/theme-context";
 
 export const BottomGradient: FC = () => {
-  const { theme } = useContext(ThemeContext);
-
   // Use gradient that creates a smooth fade from transparent to solid background
   // for the tab bar area, providing a modern layered effect
   return (
     <LinearGradient
-      style={[StyleSheet.absoluteFillObject, { height: 100, marginTop: -20, }]}
+      style={[StyleSheet.absoluteFillObject, { height: 100, marginTop: -20 }]}
       colors={[
         "rgba(10, 10, 10, 0)",
         "rgba(10, 10, 10, 0.6)",

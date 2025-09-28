@@ -23,6 +23,7 @@ import { PullToSearchContent } from "../../../../components/ui/pull-to-search-co
 import { AnimatedBlur } from "../../../../components/ui/animated-blur";
 import { AnimatedChevron } from "../../../../components/ui/animated-chevron";
 import { ThemeContext } from "../../../../contexts/theme-context";
+import HomeCarousel from "../../../../components/ui/home-carousel";
 import { useSharedSearch } from "../../../../hooks/use-shared-search";
 import { useRecommendations } from "../../../../hooks/use-recommendations";
 import { useUserProfile } from "../../../../hooks/use-user-profile";
@@ -104,12 +105,14 @@ const IndexScreen = () => {
         />
       </Svg>
 
-      <PullToSearchContent 
+      <PullToSearchContent
         searchResults={searchResults}
         searchQuery={query}
         isSearchLoading={searchLoading}
         isSearchError={searchError}
       >
+        {/* Featured carousel at the top */}
+        <HomeCarousel media={recommendedMovies.data ?? []} />
 
         {/* Main content - always show recommendations */}
         <ScrollView
