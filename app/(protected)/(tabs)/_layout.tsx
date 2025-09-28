@@ -1,10 +1,23 @@
-import { Tabs, TabList, TabTrigger, TabSlot, TabTriggerSlotProps } from "expo-router/ui";
-import { Home, Library, UserRound } from "lucide-react-native";
+import { Image } from "expo-image";
+import {
+  TabList,
+  Tabs,
+  TabSlot,
+  TabTrigger,
+  TabTriggerSlotProps,
+} from "expo-router/ui";
+import { Home, Library, Search, UserRound } from "lucide-react-native";
 import React, { useContext } from "react";
-import { StyleSheet, View, Pressable } from "react-native";
+import {
+  Pressable,
+  StyleSheet,
+  TouchableOpacity,
+  TouchableOpacityProps,
+  View,
+} from "react-native";
+import { BottomGradient } from "../../../components/ui/bottom-gradient";
 import { HomeAnimationProvider } from "../../../contexts/home-animation-context";
 import { ThemeContext } from "../../../contexts/theme-context";
-import { BottomGradient } from "../../../components/ui/bottom-gradient";
 
 type TabButtonProps = TabTriggerSlotProps & {
   icon: React.ReactNode;
@@ -16,15 +29,25 @@ const TabButton: React.FC<TabButtonProps> = ({ icon, isFocused, ...props }) => {
   return (
     <Pressable {...props} style={styles.tabTrigger}>
       {React.cloneElement(icon as React.ReactElement<any>, {
-        color: isFocused ? theme.text : theme.secondaryText
+        color: isFocused ? theme.text : theme.secondaryText,
       })}
     </Pressable>
   );
 };
 
-const TabsLayout = () => {
-  const { theme } = useContext(ThemeContext);
+const ImageTabButton: React.FC<TouchableOpacityProps> = ({ ...props }) => {
+  return (
+    <TouchableOpacity {...props} style={styles.tabTrigger}>
+      <Image
+        source={require("../../../assets/images/tab-button.png")}
+        style={styles.image}
+        contentFit="cover"
+      />
+    </TouchableOpacity>
+  );
+};
 
+const TabsLayout = () => {
   return (
     <HomeAnimationProvider>
       <Tabs>
@@ -35,6 +58,12 @@ const TabsLayout = () => {
             <TabTrigger name="home" href="/(home)" asChild>
               <TabButton icon={<Home size={24} />} />
             </TabTrigger>
+            <TabTrigger name="search" href="/(search)" asChild>
+              <TabButton icon={<Search size={24} />} />
+            </TabTrigger>
+            <TabTrigger name="discover" href="/(discover)" asChild>
+              <ImageTabButton />
+            </TabTrigger>
             <TabTrigger name="library" href="/(library)" asChild>
               <TabButton icon={<Library size={24} />} />
             </TabTrigger>
@@ -43,9 +72,10 @@ const TabsLayout = () => {
             </TabTrigger>
           </View>
         </View>
-        <TabList style={{ display: 'none' }}>
+        <TabList style={{ display: "none" }}>
           <TabTrigger name="home" href="/(home)" />
           <TabTrigger name="library" href="/(library)" />
+          <TabTrigger name="search" href="/(search)" />
           <TabTrigger name="profile" href="/(profile)" />
         </TabList>
       </Tabs>
@@ -70,6 +100,10 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+  },
+  image: {
+    width: 52,
+    height: 52,
   },
 });
 
