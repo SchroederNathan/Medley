@@ -5,6 +5,7 @@ import {
   DimensionValue,
   StyleSheet,
   TouchableOpacity,
+  View,
   ViewStyle,
 } from "react-native";
 import Animated, {
@@ -14,6 +15,7 @@ import Animated, {
   useSharedValue,
   withRepeat,
   withSequence,
+  withSpring,
   withTiming,
 } from "react-native-reanimated";
 import { ThemeContext } from "../../contexts/theme-context";
@@ -36,9 +38,14 @@ const MediaCard = ({
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const pulse = useSharedValue(0.6);
+  const scale = useSharedValue(1);
 
   const skeletonStyle = useAnimatedStyle(() => ({
     opacity: pulse.value,
+  }));
+
+  const scaleStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
   }));
 
   useEffect(() => {
@@ -55,20 +62,8 @@ const MediaCard = ({
       cancelAnimation(pulse);
     };
   }, [isLoading]);
-  return (
-    <TouchableOpacity
-      onPress={() => isTouchable && router.push(`/media-detail?id=${media.id}`)}
-      activeOpacity={isTouchable ? 0.5 : 1}
-      style={[
-        styles.container,
-        {
-          height: height,
-          width: width,
-          backgroundColor: theme.buttonBackground,
-        },
-        style,
-      ]}
-    >
+  const cardContent = (
+    <>
       {isLoading && (
         <Animated.View
           pointerEvents="none"
@@ -89,7 +84,53 @@ const MediaCard = ({
         }}
         transition={300}
       />
-    </TouchableOpacity>
+    </>
+  );
+
+  if (isTouchable) {
+    return (
+      <Animated.View
+        style={[
+          styles.container,
+          {
+            height: height,
+            width: width,
+            backgroundColor: theme.buttonBackground,
+          },
+          scaleStyle,
+          style,
+        ]}
+      >
+        <TouchableOpacity
+          onPress={() => router.push(`/media-detail?id=${media.id}`)}
+          onPressIn={() => {
+            scale.value = withSpring(0.95);
+          }}
+          onPressOut={() => {
+            scale.value = withSpring(1);
+          }}
+          style={styles.touchableContent}
+        >
+          {cardContent}
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  }
+
+  return (
+    <View
+      style={[
+        styles.container,
+        {
+          height: height,
+          width: width,
+          backgroundColor: theme.buttonBackground,
+        },
+        style,
+      ]}
+    >
+      {cardContent}
+    </View>
   );
 };
 
@@ -102,6 +143,10 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   image: {
+    width: "100%",
+    height: "100%",
+  },
+  touchableContent: {
     width: "100%",
     height: "100%",
   },

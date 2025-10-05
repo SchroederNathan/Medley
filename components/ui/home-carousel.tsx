@@ -4,6 +4,7 @@ import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import React, {
   useCallback,
   useContext,
@@ -29,6 +30,7 @@ import Animated, {
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
+  withSpring,
   withTiming,
   type SharedValue,
 } from "react-native-reanimated";
@@ -93,7 +95,7 @@ const CarouselDot: React.FC<CarouselDotProps> = ({
         DOT_CONTAINER_WIDTH * 6,
       ],
       [0.3, 0.7, 1, 1, 1, 0.7, 0.3],
-      Extrapolation.CLAMP,
+      Extrapolation.CLAMP
     );
 
     return {
@@ -118,6 +120,58 @@ const CarouselDot: React.FC<CarouselDotProps> = ({
 const AnimatedPressable = Animated.createAnimatedComponent(TouchableOpacity);
 const AnimatedImage = Animated.createAnimatedComponent(Image);
 
+interface CarouselItemProps {
+  item: Media;
+  onPress: () => void;
+}
+
+const CarouselItem: React.FC<CarouselItemProps> = ({ item, onPress }) => {
+  // Shared value for scale animation
+  const scale = useSharedValue(1);
+
+  // Animated style for the scale transformation
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: scale.value }],
+    };
+  });
+
+  return (
+    <Animated.View style={[styles.carouselItem, animatedStyle]}>
+      <TouchableOpacity
+        style={styles.carouselItemTouchable}
+        onPress={onPress}
+        onPressIn={() => {
+          scale.value = withSpring(0.95);
+        }}
+        onPressOut={() => {
+          scale.value = withSpring(1);
+        }}
+      >
+        <LinearGradient
+          style={[styles.bottomGradient, { height: 100 }]}
+          colors={[
+            "rgba(10, 10, 10, 0)",
+            "rgba(10, 10, 10, 0.6)",
+            "rgba(10, 10, 10, 0.9)",
+          ]}
+          locations={[0, 0.4, 0.9]}
+        />
+        <Image
+          source={{ uri: item.backdrop_url }}
+          style={styles.image}
+          contentFit="cover"
+        />
+        <View style={styles.overlay}>
+          <Text style={styles.title} numberOfLines={2}>
+            {item.title}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
+
 const HomeCarousel: React.FC<HomeCarouselProps> = ({ media }) => {
   const { theme } = useContext(ThemeContext);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -132,6 +186,7 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({ media }) => {
   const refIndex = useRef(0);
   const topPadding = useSafeAreaInsets().top;
   const { grossHeight } = useHeaderHeight();
+  const router = useRouter();
 
   // Animation handled by key-based remounting with entering/exiting animations
 
@@ -249,33 +304,18 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({ media }) => {
     return {
       backgroundColor: withTiming(
         isDotsPressed ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0)",
-        { duration: 150 },
+        { duration: 150 }
       ),
     };
   });
 
   const renderItem = ({ item }: { item: Media }) => (
-    <View style={styles.carouselItem}>
-      <LinearGradient
-        style={[styles.bottomGradient, { height: 100 }]}
-        colors={[
-          "rgba(10, 10, 10, 0)",
-          "rgba(10, 10, 10, 0.6)",
-          "rgba(10, 10, 10, 0.9)",
-        ]}
-        locations={[0, 0.4, 0.9]}
-      />
-      <Image
-        source={{ uri: item.backdrop_url }}
-        style={styles.image}
-        contentFit="cover"
-      />
-      <View style={styles.overlay}>
-        <Text style={styles.title} numberOfLines={2}>
-          {item.title}
-        </Text>
-      </View>
-    </View>
+    <CarouselItem
+      item={item}
+      onPress={() => {
+        router.push(`/media-detail?id=${item.id}`);
+      }}
+    />
   );
 
   if (media.length === 0) return null;
@@ -357,7 +397,7 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({ media }) => {
             setCurrentIndex(Math.min(Math.max(index, 0), media.length - 1));
           }}
           snapToOffsets={media.map(
-            (_, index) => index * (ITEM_WIDTH + ITEM_SPACING),
+            (_, index) => index * (ITEM_WIDTH + ITEM_SPACING)
           )}
           decelerationRate="fast"
           contentContainerStyle={styles.carouselContainer}
@@ -435,6 +475,10 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderRadius: 8, // Add rounded corners for card appearance
     backgroundColor: "rgba(0,0,0,0.1)", // Subtle background
+  },
+  carouselItemTouchable: {
+    width: "100%",
+    height: "100%",
   },
   image: {
     width: "100%",
