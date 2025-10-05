@@ -1,18 +1,17 @@
 import React, { useContext } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import {
+import Svg, {
   Defs,
   FeBlend,
   FeFlood,
   FeGaussianBlur,
   Filter,
   Path,
-  Svg,
 } from "react-native-svg";
-import { fontFamily } from "../../../../lib/fonts";
 import { ThemeContext } from "../../../../contexts/theme-context";
+import { fontFamily } from "../../../../lib/fonts";
 
-const SocialScreen = () => {
+const MatchScreen = () => {
   const { theme } = useContext(ThemeContext);
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -51,12 +50,20 @@ const SocialScreen = () => {
           filter="url(#filter0_f_2_34)"
         />
       </Svg>
-      <Text style={[styles.title, { color: theme.text }]}>Social</Text>
+      <Text style={[styles.title, { color: theme.text }]}>Match</Text>
     </View>
   );
 };
 
+export default MatchScreen;
+
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   spotlightSvg: {
     position: "absolute",
     top: -200,
@@ -65,16 +72,8 @@ const styles = StyleSheet.create({
     height: "100%",
     zIndex: 0,
   },
-  container: {
-    flex: 1,
-    paddingHorizontal: 20,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   title: {
     fontSize: 24,
     fontFamily: fontFamily.plusJakarta.bold,
   },
 });
-
-export default SocialScreen;

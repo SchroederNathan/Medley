@@ -14,7 +14,6 @@ import {
 } from "lucide-react-native";
 import React, { useContext } from "react";
 import {
-  Pressable,
   StyleSheet,
   TouchableOpacity,
   TouchableOpacityProps,
@@ -28,15 +27,15 @@ type TabButtonProps = TabTriggerSlotProps & {
   icon: React.ReactNode;
 };
 
-const TabButton: React.FC<TabButtonProps> = ({ icon, isFocused, ...props }) => {
+const TabButton: React.FC<TabButtonProps> = ({ icon, isFocused, onPress }) => {
   const { theme } = useContext(ThemeContext);
 
   return (
-    <Pressable {...props} style={styles.tabTrigger}>
+    <TouchableOpacity onPress={onPress || undefined} style={styles.tabTrigger}>
       {React.cloneElement(icon as React.ReactElement<any>, {
         color: isFocused ? theme.text : theme.secondaryText,
       })}
-    </Pressable>
+    </TouchableOpacity>
   );
 };
 
@@ -68,7 +67,7 @@ const TabsLayout = () => {
             <TabTrigger name="social" href="/(social)" asChild>
               <TabButton icon={<UsersRound size={24} />} />
             </TabTrigger>
-            <TabTrigger name="discover" href="/(discover)" asChild>
+            <TabTrigger name="match" href="/(match)" asChild>
               <ImageTabButton />
             </TabTrigger>
             <TabTrigger name="library" href="/(library)" asChild>
@@ -81,8 +80,9 @@ const TabsLayout = () => {
         </View>
         <TabList style={{ display: "none" }}>
           <TabTrigger name="home" href="/(home)" />
+          <TabTrigger name="social" href="/(social)" />
+          <TabTrigger name="match" href="/(match)" />
           <TabTrigger name="library" href="/(library)" />
-          <TabTrigger name="search" href="/(search)" />
           <TabTrigger name="profile" href="/(profile)" />
         </TabList>
       </Tabs>
