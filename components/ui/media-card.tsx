@@ -78,6 +78,7 @@ const MediaCard = ({
         source={{ uri: media.poster_url }}
         style={styles.image}
         contentFit="cover"
+        cachePolicy="memory-disk"
         onLoadEnd={() => {
           setIsLoading(false);
           pulse.value = 0;

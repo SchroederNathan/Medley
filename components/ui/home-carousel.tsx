@@ -158,6 +158,7 @@ const CarouselItem: React.FC<CarouselItemProps> = ({ item, onPress }) => {
           locations={[0, 0.4, 0.9]}
         />
         <Image
+          cachePolicy="memory-disk"
           source={{ uri: item.backdrop_url }}
           style={styles.image}
           contentFit="cover"
@@ -337,6 +338,7 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({ media }) => {
       >
         {/* Single AnimatedImage that remounts for smooth transitions */}
         <AnimatedImage
+          cachePolicy="memory-disk"
           key={`bg-${currentIndex}`}
           entering={FadeIn.duration(500)}
           exiting={FadeOut.duration(500)}
@@ -347,6 +349,7 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({ media }) => {
         {/* Preload adjacent images (invisible but cached) */}
         {currentIndex > 0 && (
           <Image
+            cachePolicy="memory-disk"
             source={{ uri: media[currentIndex - 1]?.backdrop_url }}
             style={[styles.backgroundImage, { opacity: 0 }]}
             contentFit="cover"
@@ -354,6 +357,7 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({ media }) => {
         )}
         {currentIndex < media.length - 1 && (
           <Image
+            cachePolicy="memory-disk"
             source={{ uri: media[currentIndex + 1]?.backdrop_url }}
             style={[styles.backgroundImage, { opacity: 0 }]}
             contentFit="cover"

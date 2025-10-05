@@ -43,6 +43,9 @@
       "eas": {
         "projectId": "f9b4bb48-9ccf-4ba5-a2f9-9afe99770ee4"
       }
+    },
+    "experiments": {
+      "reactCompiler": true
     }
   }
 }
