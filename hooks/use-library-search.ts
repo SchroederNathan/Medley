@@ -26,3 +26,4 @@ export const useLibrarySearch = (searchQuery: string) => {
     handleSearchClear: () => "",
   };
 };
+

@@ -4,7 +4,13 @@ import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   Dimensions,
   Platform,
@@ -87,7 +93,7 @@ const CarouselDot: React.FC<CarouselDotProps> = ({
         DOT_CONTAINER_WIDTH * 6,
       ],
       [0.3, 0.7, 1, 1, 1, 0.7, 0.3],
-      Extrapolation.CLAMP
+      Extrapolation.CLAMP,
     );
 
     return {
@@ -116,8 +122,10 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({ media }) => {
   const { theme } = useContext(ThemeContext);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDotsPressed, setIsDotsPressed] = useState(false);
+  const [isAutoAdvancing, setIsAutoAdvancing] = useState(false);
   const carouselRef = useRef<any>(null);
   const dotsListRef = useRef<any>(null);
+  const autoAdvanceRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const listOffsetX = useSharedValue(0);
   const translateXStep = media.length > 10 ? 12 : 15;
   const prevTranslateX = useSharedValue(0);
@@ -134,6 +142,9 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({ media }) => {
   });
 
   const handleImageIndexChange = (action: "increase" | "decrease") => {
+    // Reset auto-advancing when user manually interacts
+    setIsAutoAdvancing(false);
+
     const index = action === "increase" ? currentIndex + 1 : currentIndex - 1;
 
     if (index < 0 || index >= media.length) return;
@@ -149,6 +160,24 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({ media }) => {
       offset: index * (ITEM_WIDTH + ITEM_SPACING),
     });
   };
+
+  const autoAdvance = useCallback(() => {
+    setIsAutoAdvancing(true);
+    setCurrentIndex((prevIndex) => {
+      const nextIndex = prevIndex + 1;
+      const newIndex = nextIndex >= media.length ? 0 : nextIndex;
+
+      carouselRef.current?.scrollToOffset({
+        animated: true,
+        offset: newIndex * (ITEM_WIDTH + ITEM_SPACING),
+      });
+
+      // Reset auto-advancing flag after animation completes
+      setTimeout(() => setIsAutoAdvancing(false), 300);
+
+      return newIndex;
+    });
+  }, [media.length]);
 
   const handleFinalize = () => {
     if (!isDotsPressed) return;
@@ -203,11 +232,24 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({ media }) => {
     }
   }, [currentIndex, media.length]);
 
+  // Auto-advance carousel every 2 seconds
+  useEffect(() => {
+    if (media.length <= 1) return; // No need to auto-advance with 1 or 0 items
+
+    autoAdvanceRef.current = setInterval(autoAdvance, 8000);
+
+    return () => {
+      if (autoAdvanceRef.current) {
+        clearInterval(autoAdvanceRef.current);
+      }
+    };
+  }, [autoAdvance, media.length]);
+
   const rContainerStyle = useAnimatedStyle(() => {
     return {
       backgroundColor: withTiming(
         isDotsPressed ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0)",
-        { duration: 150 }
+        { duration: 150 },
       ),
     };
   });
@@ -293,6 +335,9 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({ media }) => {
           showsHorizontalScrollIndicator={false}
           pagingEnabled={false}
           onScroll={(event) => {
+            // Don't update currentIndex during auto-advance to prevent flickering
+            if (isAutoAdvancing) return;
+
             const x = event.nativeEvent.contentOffset.x;
             // Determine active index when the LEFT EDGE of an item crosses the screen center
             // leftEdge(index) = SIDE_SPACING + index * (ITEM_WIDTH + ITEM_SPACING)
@@ -304,12 +349,15 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({ media }) => {
           }}
           scrollEventThrottle={16}
           onMomentumScrollEnd={(event) => {
+            // Don't update currentIndex during auto-advance to prevent flickering
+            if (isAutoAdvancing) return;
+
             const offsetX = event.nativeEvent.contentOffset.x;
             const index = Math.round(offsetX / (ITEM_WIDTH + ITEM_SPACING));
             setCurrentIndex(Math.min(Math.max(index, 0), media.length - 1));
           }}
           snapToOffsets={media.map(
-            (_, index) => index * (ITEM_WIDTH + ITEM_SPACING)
+            (_, index) => index * (ITEM_WIDTH + ITEM_SPACING),
           )}
           decelerationRate="fast"
           contentContainerStyle={styles.carouselContainer}
