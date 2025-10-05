@@ -1,5 +1,6 @@
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   Dimensions,
@@ -22,11 +23,8 @@ import Animated, {
   type SharedValue,
 } from "react-native-reanimated";
 import { ThemeContext } from "../../contexts/theme-context";
-import { useHeaderHeight } from "../../hooks/use-header-height";
 import { fontFamily } from "../../lib/fonts";
 import { Media } from "../../types/media";
-import { BottomGradient } from "./bottom-gradient";
-import { LinearGradient } from "expo-linear-gradient";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const ITEM_WIDTH = SCREEN_WIDTH;
@@ -173,8 +171,6 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({ media }) => {
   // When user scrolls beyond 2 dots ahead, shift dots list to maintain visibility
   useEffect(() => {
     if (media.length <= 5) return; // No scrolling needed for small lists
-
-    const targetIndex = media.length > 5 ? currentIndex + 2 : currentIndex;
 
     // When user scrolls beyond 2 dots ahead, shift dots list to maintain visibility
     if (currentIndex - refIndex.current > 2) {

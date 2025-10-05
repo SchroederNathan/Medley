@@ -20,7 +20,9 @@ import Animated, {
   SharedValue,
   useAnimatedScrollHandler,
   useAnimatedStyle,
+  useDerivedValue,
   useSharedValue,
+  withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../../../components/ui/button";
@@ -138,6 +140,7 @@ const ParallaxBackdropImage: React.FC<ParallaxBackdropImageProps> = ({
 };
 
 const POSTER_PADDING = 72;
+const HEADER_HEIGHT = 44; // Standard header height
 
 const MediaDetailScreen = () => {
   const { theme } = useContext(ThemeContext);
@@ -149,6 +152,36 @@ const MediaDetailScreen = () => {
 
   // Shared scroll position drives parallax transformations
   const scrollY = useSharedValue(0);
+
+  // Dynamic height tracking for header animation trigger point
+  const titleYPosition = useSharedValue(BACKDROP_HEIGHT - POSTER_PADDING + 80);
+
+  // Scroll-based transition boundaries - when title reaches top of screen
+  const rInputRange = useDerivedValue(() => {
+    // Header transition starts when scrolling begins
+    const start = titleYPosition.value * 0.1;
+    // Header transition completes when title would be hidden behind header
+    const end = titleYPosition.value - topPadding - HEADER_HEIGHT;
+    return [start, end];
+  });
+
+  // Header title visibility - appears when original title scrolls past
+  const rHeaderTitleStyle = useAnimatedStyle(() => {
+    return {
+      opacity: withTiming(scrollY.value > rInputRange.value[1] ? 1 : 0, {
+        duration: 200,
+      }),
+    };
+  });
+
+  // Header background visibility - appears slightly before title
+  const rHeaderBackgroundStyle = useAnimatedStyle(() => {
+    return {
+      opacity: withTiming(scrollY.value > rInputRange.value[1] * 0.95 ? 1 : 0, {
+        duration: 200,
+      }),
+    };
+  });
 
   // Worklet-optimized scroll handler for 60fps parallax animations
   const scrollHandler = useAnimatedScrollHandler({
@@ -236,23 +269,54 @@ const MediaDetailScreen = () => {
       {/* Parallax Backdrop */}
       <ParallaxBackdropImage scrollY={scrollY} imageUri={media.backdrop_url} />
 
-      {/* Back Button Overlay */}
+      {/* Animated Header Background */}
+      <Animated.View
+        style={[
+          styles.headerBackground,
+          {
+            top: 0,
+            paddingTop: topPadding,
+            backgroundColor: theme.background,
+            borderBottomColor: theme.buttonBorder,
+          },
+          rHeaderBackgroundStyle,
+        ]}
+        pointerEvents="none"
+      >
+        {/* Header Title - fades in when scrolling */}
+        <Animated.View style={[styles.headerTitleContainer, rHeaderTitleStyle]}>
+          <Text
+            style={[styles.headerTitle, { color: theme.text }]}
+            numberOfLines={1}
+          >
+            {media.title}
+          </Text>
+        </Animated.View>
+      </Animated.View>
+
+      {/* Back Button Overlay - stays above header */}
       <TouchableOpacity
         onPress={() => router.back()}
         style={[
           styles.backButton,
           {
-            top: topPadding + 12,
-            backgroundColor: theme.buttonBackground,
-            borderColor: theme.buttonBorder,
+            top: topPadding,
             position: "absolute",
-            zIndex: 10,
+            zIndex: 20,
           },
         ]}
         accessibilityRole="button"
         accessibilityLabel="Go back"
       >
         <ChevronLeft size={20} color={theme.text} />
+        <View
+          style={{
+            ...StyleSheet.absoluteFillObject,
+            backgroundColor: "rgba(10, 10, 10, 0.7)",
+            borderRadius: 20,
+            zIndex: -1,
+          }}
+        />
       </TouchableOpacity>
 
       <Animated.ScrollView
@@ -429,6 +493,25 @@ const styles = StyleSheet.create({
     top: 0,
   },
 
+  // Animated header
+  headerBackground: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    borderBottomWidth: 1,
+  },
+  headerTitleContainer: {
+    height: HEADER_HEIGHT,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 60, // Space for back button
+  },
+  headerTitle: {
+    fontSize: 17,
+    fontFamily: fontFamily.plusJakarta.semiBold,
+  },
+
   // Back button
   backButton: {
     position: "absolute",
@@ -438,7 +521,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 1,
   },
 
   // Poster row

@@ -1,7 +1,7 @@
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import { X as ClearIcon, Search as SearchIcon } from "lucide-react-native";
-import React, { FC, useContext, useEffect, useRef } from "react";
+import React, { FC, useContext } from "react";
 import { StyleSheet, TextInput, TouchableOpacity } from "react-native";
 import Animated, {
   runOnJS,

@@ -7,10 +7,10 @@ export const BottomGradient: FC = () => {
   // for the tab bar area, providing a modern layered effect
   return (
     <LinearGradient
-      style={[StyleSheet.absoluteFillObject, { height: 100, marginTop: -20 }]}
+      style={[StyleSheet.absoluteFillObject, { marginTop: -10 }]}
       colors={[
         "rgba(10, 10, 10, 0)",
-        "rgba(10, 10, 10, 0.6)",
+        "rgba(10, 10, 10, 0.7)",
         "rgba(10, 10, 10, 1)",
       ]}
       locations={[0, 0.4, 0.9]}

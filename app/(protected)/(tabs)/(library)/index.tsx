@@ -16,7 +16,7 @@ import { PullToSearchContent } from "../../../../components/ui/pull-to-search-co
 import { SharedHeader } from "../../../../components/ui/shared-header";
 import TabPager from "../../../../components/ui/tab-pager";
 import { ThemeContext } from "../../../../contexts/theme-context";
-import { useSharedSearch } from "../../../../hooks/use-shared-search";
+import { useLibrarySearch } from "../../../../hooks/use-library-search";
 import { useUserMedia } from "../../../../hooks/use-user-media";
 import { fontFamily } from "../../../../lib/fonts";
 
@@ -24,10 +24,18 @@ const LibraryScreen = () => {
   const { theme } = useContext(ThemeContext);
   const userMediaQuery = useUserMedia();
   const [activeTab, setActiveTab] = React.useState("all");
+  const [query, setQuery] = React.useState("");
 
-  // Use shared search functionality
-  const { query, searchResults, handleSearchChange, handleSearchClear } =
-    useSharedSearch();
+  // Use library-specific search functionality
+  const { searchResults, isLoading, isError } = useLibrarySearch(query);
+
+  const handleSearchChange = (text: string) => {
+    setQuery(text);
+  };
+
+  const handleSearchClear = () => {
+    setQuery("");
+  };
 
   const tabs = [
     { key: "all", title: "All lists" },
@@ -94,7 +102,12 @@ const LibraryScreen = () => {
         />
       </Svg>
 
-      <PullToSearchContent searchResults={searchResults} searchQuery={query}>
+      <PullToSearchContent
+        searchResults={searchResults}
+        searchQuery={query}
+        isSearchLoading={isLoading}
+        isSearchError={isError}
+      >
         {/* <Text style={[styles.headerTitle, { color: theme.text }]}>
           Your Library
         </Text> */}

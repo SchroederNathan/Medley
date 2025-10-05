@@ -6,7 +6,12 @@ import {
   TabTrigger,
   TabTriggerSlotProps,
 } from "expo-router/ui";
-import { Home, Library, Search, UserRound } from "lucide-react-native";
+import {
+  CircleUserRound,
+  Home,
+  Library,
+  UsersRound,
+} from "lucide-react-native";
 import React, { useContext } from "react";
 import {
   Pressable,
@@ -37,12 +42,14 @@ const TabButton: React.FC<TabButtonProps> = ({ icon, isFocused, ...props }) => {
 
 const ImageTabButton: React.FC<TouchableOpacityProps> = ({ ...props }) => {
   return (
-    <TouchableOpacity {...props} style={styles.tabTrigger}>
-      <Image
-        source={require("../../../assets/images/tab-button.png")}
-        style={styles.image}
-        contentFit="cover"
-      />
+    <TouchableOpacity {...props} style={[styles.tabTrigger]}>
+      <View style={styles.imageContainer}>
+        <Image
+          source={require("../../../assets/images/tab-button.png")}
+          style={[styles.image]}
+          contentFit="cover"
+        />
+      </View>
     </TouchableOpacity>
   );
 };
@@ -58,8 +65,8 @@ const TabsLayout = () => {
             <TabTrigger name="home" href="/(home)" asChild>
               <TabButton icon={<Home size={24} />} />
             </TabTrigger>
-            <TabTrigger name="search" href="/(search)" asChild>
-              <TabButton icon={<Search size={24} />} />
+            <TabTrigger name="social" href="/(social)" asChild>
+              <TabButton icon={<UsersRound size={24} />} />
             </TabTrigger>
             <TabTrigger name="discover" href="/(discover)" asChild>
               <ImageTabButton />
@@ -68,7 +75,7 @@ const TabsLayout = () => {
               <TabButton icon={<Library size={24} />} />
             </TabTrigger>
             <TabTrigger name="profile" href="/(profile)" asChild>
-              <TabButton icon={<UserRound size={24} />} />
+              <TabButton icon={<CircleUserRound size={24} />} />
             </TabTrigger>
           </View>
         </View>
@@ -100,6 +107,10 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+  },
+  imageContainer: {
+    boxShadow: "0px 0px 20px 10px rgba(0, 0, 0, 0.3)",
+    borderRadius: 100,
   },
   image: {
     width: 52,

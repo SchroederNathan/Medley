@@ -1,18 +1,9 @@
-import { ChevronRight } from "lucide-react-native";
 import React, { useContext } from "react";
-import {
-  Dimensions,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
 import { Media } from "../../types/media";
 import MediaCard from "./media-card";
-
-const { width: ScreenWidth } = Dimensions.get("window");
 
 const CollectionMediaGrid = ({ mediaItems }: { mediaItems: Media[] }) => {
   const { theme } = useContext(ThemeContext);

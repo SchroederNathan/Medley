@@ -1,14 +1,5 @@
-import { router } from "expo-router";
-import { UserRound } from "lucide-react-native";
 import React, { useContext } from "react";
-import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import Svg, {
   Defs,
   FeBlend,
@@ -17,22 +8,20 @@ import Svg, {
   Filter,
   Path,
 } from "react-native-svg";
-import Carousel from "../../../../components/ui/carousel";
-import { SharedHeader } from "../../../../components/ui/shared-header";
-import { PullToSearchContent } from "../../../../components/ui/pull-to-search-content";
 import { AnimatedBlur } from "../../../../components/ui/animated-blur";
 import { AnimatedChevron } from "../../../../components/ui/animated-chevron";
-import { ThemeContext } from "../../../../contexts/theme-context";
+import Carousel from "../../../../components/ui/carousel";
 import HomeCarousel from "../../../../components/ui/home-carousel";
-import { useSharedSearch } from "../../../../hooks/use-shared-search";
-import { useRecommendations } from "../../../../hooks/use-recommendations";
-import { useUserProfile } from "../../../../hooks/use-user-profile";
-import { fontFamily } from "../../../../lib/fonts";
 import ProfileButton from "../../../../components/ui/profile-button";
+import { PullToSearchContent } from "../../../../components/ui/pull-to-search-content";
+import { SharedHeader } from "../../../../components/ui/shared-header";
+import { ThemeContext } from "../../../../contexts/theme-context";
+import { useRecommendations } from "../../../../hooks/use-recommendations";
+import { useSharedSearch } from "../../../../hooks/use-shared-search";
+import { fontFamily } from "../../../../lib/fonts";
 
 const IndexScreen = () => {
   const { theme } = useContext(ThemeContext);
-  const userProfile = useUserProfile();
   const {
     query,
     searchResults,
@@ -55,12 +44,12 @@ const IndexScreen = () => {
     mediaType: "tv_show",
   });
 
-  const getTimeBasedGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 17) return "Good afternoon";
-    return "Good evening";
-  };
+  // const getTimeBasedGreeting = () => {
+  //   const hour = new Date().getHours();
+  //   if (hour < 12) return "Good morning";
+  //   if (hour < 17) return "Good afternoon";
+  //   return "Good evening";
+  // };
 
   const handleFilterPress = () => {
     // Add filter functionality here - could open a modal, show filter options, etc.

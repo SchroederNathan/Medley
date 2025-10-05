@@ -1,11 +1,11 @@
+import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
 import React, {
-  useContext,
-  useEffect,
   forwardRef,
-  useImperativeHandle,
   useCallback,
+  useContext,
+  useImperativeHandle,
 } from "react";
 import {
   KeyboardAvoidingView,
@@ -16,6 +16,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Animated, {
+  Easing,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from "react-native-reanimated";
 import Svg, {
   Defs,
   FeBlend,
@@ -24,15 +32,6 @@ import Svg, {
   Filter,
   Path,
 } from "react-native-svg";
-import { useFocusEffect } from "@react-navigation/native";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withDelay,
-  Easing,
-  runOnJS,
-} from "react-native-reanimated";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
 

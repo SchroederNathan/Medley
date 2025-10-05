@@ -1,26 +1,24 @@
 import React, { useContext, useMemo, useRef } from "react";
 import {
+  FlatList,
   LayoutChangeEvent,
   Pressable,
   StyleSheet,
+  Text,
+  useWindowDimensions,
   View,
   ViewStyle,
-  Text,
-  FlatList,
-  useWindowDimensions,
 } from "react-native";
 import Animated, {
-  Easing,
+  interpolate,
+  runOnUI,
+  scrollTo,
+  SharedValue,
+  useAnimatedRef,
   useAnimatedScrollHandler,
   useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-  interpolate,
-  useAnimatedRef,
   useDerivedValue,
-  scrollTo,
-  runOnUI,
-  SharedValue,
+  useSharedValue,
 } from "react-native-reanimated";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";

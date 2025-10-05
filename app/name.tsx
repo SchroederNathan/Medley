@@ -20,12 +20,10 @@ import AuthScreenLayout, {
 import Button from "../components/ui/button";
 import Input from "../components/ui/input";
 import { AuthContext } from "../contexts/auth-context";
-import { ThemeContext } from "../contexts/theme-context";
 import { fontFamily } from "../lib/fonts";
 
 export default function NameScreen() {
   const authContext = useContext(AuthContext);
-  const { theme } = useContext(ThemeContext);
   const layoutRef = useRef<AuthScreenLayoutHandle>(null);
   const [firstName, setFirstName] = useState<string>("");
   const [error, setError] = useState<string>("");

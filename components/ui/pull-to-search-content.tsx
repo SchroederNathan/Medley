@@ -1,13 +1,5 @@
-import React, { FC, useContext } from "react";
-import {
-  View,
-  StyleSheet,
-  FlatList,
-  Keyboard,
-  TouchableWithoutFeedback,
-} from "react-native";
-import { useHeaderHeight } from "../../hooks/use-header-height";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import React, { FC } from "react";
+import { StyleSheet, View } from "react-native";
 import Animated, {
   Extrapolation,
   interpolate,
@@ -16,12 +8,13 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
 } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   FULL_DRAG_DISTANCE,
   TRIGGER_DRAG_DISTANCE,
   useHomeAnimation,
 } from "../../contexts/home-animation-context";
-import { ThemeContext } from "../../contexts/theme-context";
+import { useHeaderHeight } from "../../hooks/use-header-height";
 import { SharedSearchResults } from "./shared-search-results";
 import { TopGradient } from "./top-gradient";
 
@@ -43,27 +36,9 @@ export const PullToSearchContent: FC<PullToSearchContentProps> = ({
 }) => {
   const insets = useSafeAreaInsets();
   const { grossHeight } = useHeaderHeight();
-  const { theme } = useContext(ThemeContext);
 
-  const {
-    screenView,
-    offsetY,
-    isListDragging,
-    blurIntensity,
-    onGoToCommands,
-    inputRef,
-    onGoToFavorites,
-  } = useHomeAnimation();
-
-  // Handle dismissing keyboard and returning to favorites when tapping outside search
-  // Only works when search is already open (commands mode), not during initial pull-down
-  const handleDismiss = () => {
-    Keyboard.dismiss();
-    if (screenView.value === "commands" && !isListDragging.value) {
-      inputRef.current?.blur();
-      onGoToFavorites();
-    }
-  };
+  const { screenView, offsetY, isListDragging, blurIntensity, onGoToCommands } =
+    useHomeAnimation();
 
   // Top gradient animation for main content (shows behind header)
   const rMainTopGradientStyle = useAnimatedStyle(() => {
