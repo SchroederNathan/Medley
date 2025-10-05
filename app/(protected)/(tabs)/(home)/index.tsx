@@ -19,6 +19,7 @@ import { ThemeContext } from "../../../../contexts/theme-context";
 import { useRecommendations } from "../../../../hooks/use-recommendations";
 import { useSharedSearch } from "../../../../hooks/use-shared-search";
 import { fontFamily } from "../../../../lib/fonts";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const IndexScreen = () => {
   const { theme } = useContext(ThemeContext);
@@ -30,7 +31,7 @@ const IndexScreen = () => {
     handleSearchChange,
     handleSearchClear,
   } = useSharedSearch();
-
+  const paddingBottom = useSafeAreaInsets().bottom + 72;
   const recommendedGames = useRecommendations({
     kind: "type",
     mediaType: "game",
@@ -106,8 +107,8 @@ const IndexScreen = () => {
         {/* Main content - always show recommendations */}
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 32 }}
-          style={{ paddingTop: 0 }}
+          contentContainerStyle={{ paddingBottom: paddingBottom }}
+          style={{ paddingTop: 0, overflow: "visible" }}
           nestedScrollEnabled
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"
