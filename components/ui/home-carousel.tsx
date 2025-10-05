@@ -1,10 +1,12 @@
+import MaskedView from "@react-native-masked-view/masked-view";
+import { FlashList } from "@shopify/flash-list";
+import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   Dimensions,
-  FlatList,
   Platform,
   StyleSheet,
   Text,
@@ -14,6 +16,8 @@ import {
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   Extrapolation,
+  FadeIn,
+  FadeOut,
   interpolate,
   runOnJS,
   useAnimatedScrollHandler,
@@ -22,13 +26,16 @@ import Animated, {
   withTiming,
   type SharedValue,
 } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemeContext } from "../../contexts/theme-context";
+import { useHeaderHeight } from "../../hooks/use-header-height";
 import { fontFamily } from "../../lib/fonts";
 import { Media } from "../../types/media";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const ITEM_WIDTH = SCREEN_WIDTH;
-const ITEM_SPACING = 0;
+const ITEM_WIDTH = SCREEN_WIDTH * 0.9; // 90% of screen width for cards
+const ITEM_SPACING = 16; // Spacing between cards
+const SIDE_SPACING = (SCREEN_WIDTH - ITEM_WIDTH) / 2; // Space on each side to center the card
 const DOT_SIZE = 6;
 const DOT_GAP = 4;
 const DOT_CONTAINER_WIDTH = DOT_SIZE + DOT_GAP;
@@ -80,7 +87,7 @@ const CarouselDot: React.FC<CarouselDotProps> = ({
         DOT_CONTAINER_WIDTH * 6,
       ],
       [0.3, 0.7, 1, 1, 1, 0.7, 0.3],
-      Extrapolation.CLAMP,
+      Extrapolation.CLAMP
     );
 
     return {
@@ -103,17 +110,22 @@ const CarouselDot: React.FC<CarouselDotProps> = ({
 };
 
 const AnimatedPressable = Animated.createAnimatedComponent(TouchableOpacity);
+const AnimatedImage = Animated.createAnimatedComponent(Image);
 
 const HomeCarousel: React.FC<HomeCarouselProps> = ({ media }) => {
   const { theme } = useContext(ThemeContext);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDotsPressed, setIsDotsPressed] = useState(false);
-  const carouselRef = useRef<FlatList>(null);
-  const dotsListRef = useRef<FlatList>(null);
+  const carouselRef = useRef<any>(null);
+  const dotsListRef = useRef<any>(null);
   const listOffsetX = useSharedValue(0);
   const translateXStep = media.length > 10 ? 12 : 15;
   const prevTranslateX = useSharedValue(0);
   const refIndex = useRef(0);
+  const topPadding = useSafeAreaInsets().top;
+  const { grossHeight } = useHeaderHeight();
+
+  // Animation handled by key-based remounting with entering/exiting animations
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -132,9 +144,9 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({ media }) => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
 
-    carouselRef.current?.scrollToIndex({
+    carouselRef.current?.scrollToOffset({
       animated: false,
-      index,
+      offset: index * (ITEM_WIDTH + ITEM_SPACING),
     });
   };
 
@@ -195,7 +207,7 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({ media }) => {
     return {
       backgroundColor: withTiming(
         isDotsPressed ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0)",
-        { duration: 150 },
+        { duration: 150 }
       ),
     };
   });
@@ -228,23 +240,81 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({ media }) => {
 
   return (
     <View style={[styles.container]}>
-      <FlatList
-        ref={carouselRef}
-        data={media}
-        renderItem={renderItem}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        pagingEnabled
-        onMomentumScrollEnd={(event) => {
-          const index = Math.round(
-            event.nativeEvent.contentOffset.x / (ITEM_WIDTH + ITEM_SPACING),
-          );
-          setCurrentIndex(index);
-        }}
-        snapToInterval={ITEM_WIDTH + ITEM_SPACING}
-        decelerationRate="fast"
-        contentContainerStyle={styles.carouselContainer}
-      />
+      <MaskedView
+        style={[
+          styles.backgroundContainer,
+          { top: -topPadding - grossHeight, bottom: 40 },
+        ]}
+        maskElement={
+          <LinearGradient
+            locations={[0, 0.7, 1]} // Start opaque, fade in middle, fully transparent at bottom
+            colors={["black", "black", "transparent"]}
+            style={StyleSheet.absoluteFill}
+          />
+        }
+      >
+        {/* Single AnimatedImage that remounts for smooth transitions */}
+        <AnimatedImage
+          key={`bg-${currentIndex}`}
+          entering={FadeIn.duration(500)}
+          exiting={FadeOut.duration(500)}
+          source={{ uri: media[currentIndex]?.backdrop_url }}
+          style={styles.backgroundImage}
+          contentFit="cover"
+        />
+        {/* Preload adjacent images (invisible but cached) */}
+        {currentIndex > 0 && (
+          <Image
+            source={{ uri: media[currentIndex - 1]?.backdrop_url }}
+            style={[styles.backgroundImage, { opacity: 0 }]}
+            contentFit="cover"
+          />
+        )}
+        {currentIndex < media.length - 1 && (
+          <Image
+            source={{ uri: media[currentIndex + 1]?.backdrop_url }}
+            style={[styles.backgroundImage, { opacity: 0 }]}
+            contentFit="cover"
+          />
+        )}
+        <BlurView
+          style={styles.blurOverlay}
+          intensity={100} // Adjust blur intensity (0-100)
+          tint="dark" // Optional: "light", "dark", or "default"
+        />
+      </MaskedView>
+      <View style={{ height: 200 }}>
+        <FlashList
+          ref={carouselRef}
+          data={media}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          pagingEnabled={false}
+          onScroll={(event) => {
+            const x = event.nativeEvent.contentOffset.x;
+            // Determine active index when the LEFT EDGE of an item crosses the screen center
+            // leftEdge(index) = SIDE_SPACING + index * (ITEM_WIDTH + ITEM_SPACING)
+            const centerX = x + SCREEN_WIDTH / 2;
+            const step = ITEM_WIDTH + ITEM_SPACING;
+            const index = Math.floor((centerX - SIDE_SPACING) / step);
+            const clamped = Math.max(0, Math.min(media.length - 1, index));
+            if (clamped !== currentIndex) setCurrentIndex(clamped);
+          }}
+          scrollEventThrottle={16}
+          onMomentumScrollEnd={(event) => {
+            const offsetX = event.nativeEvent.contentOffset.x;
+            const index = Math.round(offsetX / (ITEM_WIDTH + ITEM_SPACING));
+            setCurrentIndex(Math.min(Math.max(index, 0), media.length - 1));
+          }}
+          snapToOffsets={media.map(
+            (_, index) => index * (ITEM_WIDTH + ITEM_SPACING)
+          )}
+          decelerationRate="fast"
+          contentContainerStyle={styles.carouselContainer}
+        />
+      </View>
       {media.length > 1 && (
         <View style={styles.paginationContainer}>
           <GestureDetector gesture={gesture}>
@@ -286,6 +356,11 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({ media }) => {
                   showsHorizontalScrollIndicator={false}
                   onScroll={scrollHandler}
                   scrollEventThrottle={16}
+                  getItemLayout={(_, index) => ({
+                    length: DOT_CONTAINER_WIDTH,
+                    offset: DOT_CONTAINER_WIDTH * index,
+                    index,
+                  })}
                 />
               </View>
             </AnimatedPressable>
@@ -301,12 +376,17 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     marginHorizontal: -20,
   },
-  carouselContainer: {},
+  carouselContainer: {
+    paddingHorizontal: SIDE_SPACING - ITEM_SPACING / 2,
+  },
   carouselItem: {
     width: ITEM_WIDTH,
-    height: 250,
+    height: 200,
+    marginHorizontal: ITEM_SPACING / 2, // Half spacing on each side
     position: "relative",
     overflow: "hidden",
+    borderRadius: 8, // Add rounded corners for card appearance
+    backgroundColor: "rgba(0,0,0,0.1)", // Subtle background
   },
   image: {
     width: "100%",
@@ -352,6 +432,26 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 10,
+  },
+  backgroundContainer: {
+    position: "absolute",
+    top: -20, // Extend beyond container for full blur effect
+    left: -20,
+    right: -20,
+    bottom: -20,
+    borderRadius: 16, // Match container radius
+  },
+  backgroundImage: {
+    width: "100%",
+    height: "100%",
+  },
+  blurOverlay: {
+    position: "absolute",
+    zIndex: 10,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
 });
 
