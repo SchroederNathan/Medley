@@ -8,6 +8,7 @@ import Svg, {
   Filter,
   Path,
 } from "react-native-svg";
+import AddCollection from "../../../../components/ui/add-collection";
 import { AnimatedBlur } from "../../../../components/ui/animated-blur";
 import { AnimatedChevron } from "../../../../components/ui/animated-chevron";
 import CollectionCard from "../../../../components/ui/collection-card";
@@ -38,25 +39,25 @@ const LibraryScreen = () => {
   };
 
   const tabs = [
-    { key: "all", title: "All lists" },
-    { key: "movies", title: "Movie lists" },
-    { key: "games", title: "Game lists" },
+    { key: "all", title: "All items" },
+    { key: "collections", title: "Collections" },
+    { key: "rankings", title: "Rankings" },
   ];
 
   const allItems = userMediaQuery.data ?? [];
   const movieItems = React.useMemo(
     () =>
       allItems.filter(
-        (m: any) => (m.media_type || "").toLowerCase() === "movie",
+        (m: any) => (m.media_type || "").toLowerCase() === "movie"
       ),
-    [allItems],
+    [allItems]
   );
   const gameItems = React.useMemo(
     () =>
       allItems.filter(
-        (m: any) => (m.media_type || "").toLowerCase() === "game",
+        (m: any) => (m.media_type || "").toLowerCase() === "game"
       ),
-    [allItems],
+    [allItems]
   );
 
   const handleFilterPress = () => {
@@ -119,10 +120,12 @@ const LibraryScreen = () => {
           ) : (
             <TabPager
               tabs={tabs}
+              style={{ marginHorizontal: -20 }}
               selectedKey={activeTab}
               onChange={(key: string) => setActiveTab(key)}
               pages={[
                 <View key="all" style={{ flex: 1, paddingTop: 24, gap: 16 }}>
+                  <AddCollection title="Add Collection" onPress={() => {}} />
                   <CollectionCard mediaItems={allItems} title="Big list" />
                   <CollectionCard
                     mediaItems={allItems}
@@ -137,9 +140,10 @@ const LibraryScreen = () => {
                     title="Awesome Movies"
                   />
                 </View>,
-                <View key="games" style={{ flex: 1, paddingTop: 24, gap: 16 }}>
-                  <CollectionCard mediaItems={gameItems} title="Game lists" />
-                </View>,
+                <View
+                  key="games"
+                  style={{ flex: 1, paddingTop: 24, gap: 16 }}
+                ></View>,
               ]}
             />
           )}

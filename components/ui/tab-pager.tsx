@@ -1,5 +1,6 @@
 import React, { useContext, useMemo, useRef } from "react";
 import {
+  Dimensions,
   FlatList,
   LayoutChangeEvent,
   Pressable,
@@ -23,6 +24,8 @@ import Animated, {
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
 
+const { width: ScreenWidth } = Dimensions.get("window");
+
 // tab indicator component
 type TabIndicatorProps = {
   activeTabIndex: SharedValue<number>;
@@ -43,13 +46,13 @@ const TabIndicator: React.FC<TabIndicatorProps> = ({
     const left = interpolate(
       activeTabIndex.value,
       Object.keys(tabOffsets.value).map(Number),
-      tabOffsets.value,
+      tabOffsets.value
     );
 
     const width = interpolate(
       activeTabIndex.value,
       Object.keys(tabWidths.value).map(Number),
-      tabWidths.value,
+      tabWidths.value
     );
 
     return {
@@ -129,9 +132,9 @@ const TabPager = ({
     () =>
       Math.max(
         0,
-        tabs.findIndex((t) => t.key === selectedKey),
+        tabs.findIndex((t) => t.key === selectedKey)
       ),
-    [tabs, selectedKey],
+    [tabs, selectedKey]
   );
 
   // Animated ref enables programmatic scrolling for tab centering
@@ -171,12 +174,12 @@ const TabPager = ({
     "worklet";
     // Calculate center point of each tab for centering calculations
     const tabsCenter = tabs.map(
-      (_, index) => tabOffsets.value[index] + tabWidths.value[index] / 2,
+      (_, index) => tabOffsets.value[index] + tabWidths.value[index] / 2
     );
 
     // Find first tab that can be centered (has enough space on left)
     const firstTabIndexCanBeCentered = tabs.findIndex(
-      (_, index) => tabsCenter[index] > windowWidth / 2,
+      (_, index) => tabsCenter[index] > windowWidth / 2
     );
 
     // Build output range: 0 for edge tabs, center-offset for others
@@ -205,7 +208,7 @@ const TabPager = ({
       const offsetX = interpolate(
         indexDecimal.value,
         Object.keys(tabs).map(Number),
-        outputRange,
+        outputRange
       );
       scrollTo(listAnimatedRef, offsetX, 0, false);
     }
@@ -216,10 +219,12 @@ const TabPager = ({
   const scrollRef = useRef<any>(null);
 
   const onContainerLayout = (e: LayoutChangeEvent) => {
-    const { width } = e.nativeEvent.layout;
-    setMeasuredWidth(width);
+    setMeasuredWidth(ScreenWidth);
     if (scrollRef.current) {
-      scrollRef.current.scrollTo({ x: selectedIndex * width, animated: false });
+      scrollRef.current.scrollTo({
+        x: selectedIndex * ScreenWidth,
+        animated: false,
+      });
     }
   };
 
@@ -323,14 +328,12 @@ const TabPager = ({
         }}
         contentContainerStyle={{
           width: measuredWidth * Math.max(1, tabs.length),
+          paddingHorizontal: 20,
         }}
         style={styles.pages}
       >
         {pages.map((node, i) => (
-          <View
-            key={tabs[i]?.key ?? String(i)}
-            style={{ width: measuredWidth, paddingHorizontal: 0 }}
-          >
+          <View key={tabs[i]?.key ?? String(i)} style={{ width: ScreenWidth }}>
             {node}
           </View>
         ))}
@@ -347,6 +350,7 @@ const styles = StyleSheet.create({
   },
   header: {
     position: "relative",
+    marginHorizontal: 20,
     paddingBottom: 2,
   },
   tab: {
@@ -361,5 +365,6 @@ const styles = StyleSheet.create({
   },
   pages: {
     flex: 1,
+    overflow: "visible",
   },
 });

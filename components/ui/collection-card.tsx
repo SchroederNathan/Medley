@@ -120,8 +120,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: "row",
-    height: 140, // Square-ish aspect ratio
-    width: 140,
+    height: 100, // Square-ish aspect ratio
+    width: 100,
     padding: 8,
     gap: 4,
   },
