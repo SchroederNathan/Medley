@@ -39,7 +39,7 @@ const LibraryScreen = () => {
   };
 
   const tabs = [
-    { key: "all", title: "All items" },
+    { key: "all", title: "All" },
     { key: "collections", title: "Collections" },
     { key: "rankings", title: "Rankings" },
   ];

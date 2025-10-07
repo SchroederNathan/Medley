@@ -3,9 +3,9 @@ import {
   Dimensions,
   FlatList,
   LayoutChangeEvent,
-  Pressable,
   StyleSheet,
   Text,
+  TouchableOpacity,
   useWindowDimensions,
   View,
   ViewStyle,
@@ -126,7 +126,7 @@ const TabPager = ({
   const { width: windowWidth } = useWindowDimensions();
 
   // Layout constants for tab bar spacing and indicator calculations
-  const TAB_BAR_GAP = 24;
+  const TAB_BAR_GAP = 32;
 
   const selectedIndex = useMemo(
     () =>
@@ -257,7 +257,7 @@ const TabPager = ({
     };
 
     return (
-      <Pressable
+      <TouchableOpacity
         key={item.key}
         onPress={onPress}
         style={styles.tab}
@@ -273,13 +273,14 @@ const TabPager = ({
         <Text
           style={{
             color: theme.text,
-            fontFamily: fontFamily.plusJakarta.medium,
-            fontSize: 16,
+            fontFamily: fontFamily.tanker.regular,
+            fontSize: 20,
+            letterSpacing: 0.3,
           }}
         >
           {item.title}
         </Text>
-      </Pressable>
+      </TouchableOpacity>
     );
   };
 
@@ -351,10 +352,9 @@ const styles = StyleSheet.create({
   header: {
     position: "relative",
     marginHorizontal: 20,
-    paddingBottom: 2,
   },
   tab: {
-    paddingBottom: 12,
+    paddingBottom: 8,
   },
   indicator: {
     position: "absolute",
