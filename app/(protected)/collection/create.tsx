@@ -1,11 +1,19 @@
+import { Image } from "expo-image";
+import { XIcon } from "lucide-react-native";
 import React, { useContext, useState } from "react";
 import {
   Keyboard,
+  ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import DraggableFlatList, {
+  RenderItemParams,
+  ScaleDecorator,
+} from "react-native-draggable-flatlist";
 import Animated, {
   runOnJS,
   useAnimatedStyle,
@@ -14,16 +22,30 @@ import Animated, {
 } from "react-native-reanimated";
 import Button from "../../../components/ui/button";
 import Input from "../../../components/ui/input";
+import MediaCard from "../../../components/ui/media-card";
 import Search from "../../../components/ui/search";
 import { ThemeContext } from "../../../contexts/theme-context";
+import { useCollectionSearch } from "../../../hooks/use-collection-search";
 import { fontFamily } from "../../../lib/fonts";
+import { Media } from "../../../types/media";
 
 const CreateCollection = () => {
   const { theme } = useContext(ThemeContext);
   const [collectionName, setCollectionName] = useState("");
   const [description, setDescription] = useState("");
   const [isEditingEntries, setIsEditingEntries] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+
+  const {
+    query: searchQuery,
+    searchResults,
+    selectedMedia,
+    isLoading: searchLoading,
+    isError: searchError,
+    handleSearchChange,
+    addMediaToCollection,
+    removeMediaFromCollection,
+    reorderMedia,
+  } = useCollectionSearch();
 
   // Animation values
   const contentOpacity = useSharedValue(1);
@@ -34,6 +56,65 @@ const CreateCollection = () => {
   const dismissKeyboard = () => {
     Keyboard.dismiss();
   };
+
+  const renderDraggableItem = ({
+    item,
+    drag,
+    isActive,
+  }: RenderItemParams<Media>) => (
+    <ScaleDecorator>
+      <TouchableOpacity
+        onLongPress={drag}
+        disabled={isActive}
+        activeOpacity={0.7}
+        style={[
+          styles.draggableItem,
+          {
+            backgroundColor: isActive
+              ? theme.buttonBackground
+              : theme.inputBackground,
+            borderColor: theme.inputBorder,
+          },
+        ]}
+      >
+        <Image
+          source={{ uri: item.poster_url }}
+          contentFit="cover"
+          style={styles.draggableImage}
+        />
+        <View style={styles.draggableContent}>
+          <Text
+            style={[
+              styles.draggableTitle,
+              {
+                color: theme.text,
+                fontFamily: fontFamily.plusJakarta.bold,
+              },
+            ]}
+          >
+            {item.title}
+          </Text>
+          <Text
+            style={[
+              styles.draggableYear,
+              {
+                color: theme.secondaryText,
+                fontFamily: fontFamily.plusJakarta.regular,
+              },
+            ]}
+          >
+            {item.year}
+          </Text>
+        </View>
+        <TouchableOpacity
+          onPress={() => removeMediaFromCollection(item.id)}
+          style={styles.removeButton}
+        >
+          <XIcon color={theme.text} />
+        </TouchableOpacity>
+      </TouchableOpacity>
+    </ScaleDecorator>
+  );
 
   const handleEditEntries = () => {
     if (!isEditingEntries) {
@@ -104,7 +185,34 @@ const CreateCollection = () => {
                 onPress={handleEditEntries}
                 variant="primary"
               />
-              <View style={styles.entriesList}></View>
+              <View style={styles.entriesList}>
+                {selectedMedia.length > 0 ? (
+                  <DraggableFlatList
+                    data={selectedMedia}
+                    onDragEnd={({ data }) => reorderMedia(data)}
+                    keyExtractor={(item) => item.id}
+                    renderItem={renderDraggableItem}
+                    style={styles.draggableList}
+                    ItemSeparatorComponent={() => (
+                      <View style={{ height: 8 }} />
+                    )}
+                    contentContainerStyle={styles.draggableListContent}
+                  />
+                ) : (
+                  <Text
+                    style={[
+                      styles.emptyStateText,
+                      {
+                        color: theme.secondaryText,
+                        fontFamily: fontFamily.plusJakarta.regular,
+                      },
+                    ]}
+                  >
+                    No media added yet. Tap &quot;Edit Entries&quot; to search
+                    and add media.
+                  </Text>
+                )}
+              </View>
               <Button
                 title="Create Collection"
                 onPress={() => {}}
@@ -119,10 +227,84 @@ const CreateCollection = () => {
             <Search
               placeholder="Search for media to add..."
               value={searchQuery}
-              onChangeText={setSearchQuery}
+              onChangeText={handleSearchChange}
               style={styles.searchInput}
             />
-            <View style={styles.searchContent}></View>
+            <View style={styles.searchContent}>
+              {searchLoading ? (
+                <Text
+                  style={[
+                    styles.searchEmptyText,
+                    {
+                      color: theme.secondaryText,
+                      fontFamily: fontFamily.plusJakarta.regular,
+                    },
+                  ]}
+                >
+                  Searching...
+                </Text>
+              ) : searchError ? (
+                <Text
+                  style={[
+                    styles.searchEmptyText,
+                    {
+                      color: theme.text,
+                      fontFamily: fontFamily.plusJakarta.medium,
+                    },
+                  ]}
+                >
+                  Failed to load search results
+                </Text>
+              ) : searchResults.length > 0 ? (
+                <ScrollView
+                  style={styles.searchResultsScrollView}
+                  contentContainerStyle={styles.searchResultsGrid}
+                  showsVerticalScrollIndicator={false}
+                >
+                  {searchResults.map((item) => (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={styles.searchResultItem}
+                      onPress={() => {
+                        addMediaToCollection(item);
+                        handleEditEntries(); // Close search and show collection
+                      }}
+                    >
+                      <MediaCard
+                        media={item}
+                        width={120}
+                        height={180}
+                        isTouchable={false}
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              ) : searchQuery ? (
+                <Text
+                  style={[
+                    styles.searchEmptyText,
+                    {
+                      color: theme.secondaryText,
+                      fontFamily: fontFamily.plusJakarta.regular,
+                    },
+                  ]}
+                >
+                  No results found for &quot;{searchQuery}&quot;
+                </Text>
+              ) : (
+                <Text
+                  style={[
+                    styles.searchEmptyText,
+                    {
+                      color: theme.secondaryText,
+                      fontFamily: fontFamily.plusJakarta.regular,
+                    },
+                  ]}
+                >
+                  Recommended media for your collection
+                </Text>
+              )}
+            </View>
             <Button
               title="Done"
               onPress={handleEditEntries}
@@ -198,5 +380,72 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
+  },
+  // Search result styles
+  searchResultsScrollView: {
+    flex: 1,
+    marginBottom: 72,
+  },
+  searchResultsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+
+    overflow: "hidden",
+    gap: 12,
+  },
+  searchResultItem: {
+    width: "31.2%",
+  },
+  searchEmptyText: {
+    fontSize: 16,
+    textAlign: "center",
+    paddingVertical: 40,
+  },
+  // Draggable list styles
+  draggableList: {
+    flex: 1,
+    overflow: "visible",
+  },
+  draggableListContent: {
+    paddingBottom: 32,
+  },
+  draggableItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    paddingRight: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 12,
+  },
+  draggableImage: {
+    width: 60,
+    height: 90,
+    borderRadius: 8,
+  },
+  draggableContent: {
+    flex: 1,
+    justifyContent: "center",
+    gap: 4,
+  },
+  draggableTitle: {
+    fontSize: 16,
+  },
+  draggableYear: {
+    fontSize: 14,
+  },
+  removeButton: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  removeButtonText: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  emptyStateText: {
+    fontSize: 16,
+    textAlign: "center",
+    paddingVertical: 40,
   },
 });
