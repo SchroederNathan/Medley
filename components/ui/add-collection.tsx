@@ -13,7 +13,7 @@ const AddCollection = ({
 }) => {
   const { theme } = useContext(ThemeContext);
   return (
-    <TouchableOpacity style={styles.container}>
+    <TouchableOpacity style={styles.container} onPress={onPress}>
       <View
         style={[
           styles.addBox,

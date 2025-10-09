@@ -8,28 +8,28 @@
 
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
-		1B37FADFA03C882F579589FF /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 0C88E5B59E01D1A44CB0ECB7 /* PrivacyInfo.xcprivacy */; };
+		34E46EFA04ADEF65372E0C55 /* libPods-MedleyTrackDiscover.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F4769B6CA17DEFE8C2F5CC59 /* libPods-MedleyTrackDiscover.a */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		ACDB831FCFD8B0BFC5D1C128 /* libPods-MedleyTrackDiscover.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 764FCC1463C432DF836DFE32 /* libPods-MedleyTrackDiscover.a */; };
+		A50BD702B03A87B897337727 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 8F7801F644176535AC7D2CD4 /* PrivacyInfo.xcprivacy */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
-		F32183739025F9B7DBE9E34C /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D160F270E59ECA095DBF382 /* ExpoModulesProvider.swift */; };
+		FD77D269CAAB6D716CE2F2A9 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C42AA5FBB3E02B5B76CAB19E /* ExpoModulesProvider.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		0C88E5B59E01D1A44CB0ECB7 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = MedleyTrackDiscover/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* MedleyTrackDiscover.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MedleyTrackDiscover.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = MedleyTrackDiscover/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = MedleyTrackDiscover/Info.plist; sourceTree = "<group>"; };
-		4D160F270E59ECA095DBF382 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-MedleyTrackDiscover/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		6E2E011E01CF68DB0C84B2B0 /* Pods-MedleyTrackDiscover.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MedleyTrackDiscover.release.xcconfig"; path = "Target Support Files/Pods-MedleyTrackDiscover/Pods-MedleyTrackDiscover.release.xcconfig"; sourceTree = "<group>"; };
-		764FCC1463C432DF836DFE32 /* libPods-MedleyTrackDiscover.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MedleyTrackDiscover.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		44C84FCDCF8CE53CC0BA3EF7 /* Pods-MedleyTrackDiscover.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MedleyTrackDiscover.release.xcconfig"; path = "Target Support Files/Pods-MedleyTrackDiscover/Pods-MedleyTrackDiscover.release.xcconfig"; sourceTree = "<group>"; };
+		8F7801F644176535AC7D2CD4 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = MedleyTrackDiscover/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		9DE16254B3F57960F4F6ED10 /* Pods-MedleyTrackDiscover.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MedleyTrackDiscover.debug.xcconfig"; path = "Target Support Files/Pods-MedleyTrackDiscover/Pods-MedleyTrackDiscover.debug.xcconfig"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = MedleyTrackDiscover/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		BBBBD88E26A32F842D0CCD1B /* Pods-MedleyTrackDiscover.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MedleyTrackDiscover.debug.xcconfig"; path = "Target Support Files/Pods-MedleyTrackDiscover/Pods-MedleyTrackDiscover.debug.xcconfig"; sourceTree = "<group>"; };
+		C42AA5FBB3E02B5B76CAB19E /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-MedleyTrackDiscover/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = MedleyTrackDiscover/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* MedleyTrackDiscover-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "MedleyTrackDiscover-Bridging-Header.h"; path = "MedleyTrackDiscover/MedleyTrackDiscover-Bridging-Header.h"; sourceTree = "<group>"; };
+		F4769B6CA17DEFE8C2F5CC59 /* libPods-MedleyTrackDiscover.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MedleyTrackDiscover.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,7 +37,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				ACDB831FCFD8B0BFC5D1C128 /* libPods-MedleyTrackDiscover.a in Frameworks */,
+				34E46EFA04ADEF65372E0C55 /* libPods-MedleyTrackDiscover.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -53,7 +53,7 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				0C88E5B59E01D1A44CB0ECB7 /* PrivacyInfo.xcprivacy */,
+				8F7801F644176535AC7D2CD4 /* PrivacyInfo.xcprivacy */,
 			);
 			name = MedleyTrackDiscover;
 			sourceTree = "<group>";
@@ -62,27 +62,27 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				764FCC1463C432DF836DFE32 /* libPods-MedleyTrackDiscover.a */,
+				F4769B6CA17DEFE8C2F5CC59 /* libPods-MedleyTrackDiscover.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		47AF2D1028DF9DEB2E5DE55D /* Pods */ = {
+		5855E2C044031DF138F4511E /* ExpoModulesProviders */ = {
 			isa = PBXGroup;
 			children = (
-				BBBBD88E26A32F842D0CCD1B /* Pods-MedleyTrackDiscover.debug.xcconfig */,
-				6E2E011E01CF68DB0C84B2B0 /* Pods-MedleyTrackDiscover.release.xcconfig */,
+				C3A217B30B3C39E9BD5DD9AB /* MedleyTrackDiscover */,
+			);
+			name = ExpoModulesProviders;
+			sourceTree = "<group>";
+		};
+		78074FCE16A135D26415A4F2 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				9DE16254B3F57960F4F6ED10 /* Pods-MedleyTrackDiscover.debug.xcconfig */,
+				44C84FCDCF8CE53CC0BA3EF7 /* Pods-MedleyTrackDiscover.release.xcconfig */,
 			);
 			name = Pods;
 			path = Pods;
-			sourceTree = "<group>";
-		};
-		58040F70A424092C9B82926A /* ExpoModulesProviders */ = {
-			isa = PBXGroup;
-			children = (
-				CD458E95B0594B618AE9B87F /* MedleyTrackDiscover */,
-			);
-			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -99,8 +99,8 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				47AF2D1028DF9DEB2E5DE55D /* Pods */,
-				58040F70A424092C9B82926A /* ExpoModulesProviders */,
+				78074FCE16A135D26415A4F2 /* Pods */,
+				5855E2C044031DF138F4511E /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -124,10 +124,10 @@
 			path = MedleyTrackDiscover/Supporting;
 			sourceTree = "<group>";
 		};
-		CD458E95B0594B618AE9B87F /* MedleyTrackDiscover */ = {
+		C3A217B30B3C39E9BD5DD9AB /* MedleyTrackDiscover */ = {
 			isa = PBXGroup;
 			children = (
-				4D160F270E59ECA095DBF382 /* ExpoModulesProvider.swift */,
+				C42AA5FBB3E02B5B76CAB19E /* ExpoModulesProvider.swift */,
 			);
 			name = MedleyTrackDiscover;
 			sourceTree = "<group>";
@@ -140,13 +140,13 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "MedleyTrackDiscover" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				0AF92F036C682046826E3F50 /* [Expo] Configure project */,
+				1A29B98D648E7347938F98FD /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				F47ED6B8358217EDD24B10EE /* [CP] Embed Pods Frameworks */,
+				686FADB1E7FEEB15037D31BF /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -166,8 +166,8 @@
 				LastUpgradeCheck = 1130;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
-						DevelopmentTeam = PH3XBLZS8A;
 						LastSwiftMigration = 1250;
+						DevelopmentTeam = "PH3XBLZS8A";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -198,7 +198,7 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				1B37FADFA03C882F579589FF /* PrivacyInfo.xcprivacy in Resources */,
+				A50BD702B03A87B897337727 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -244,7 +244,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		0AF92F036C682046826E3F50 /* [Expo] Configure project */ = {
+		1A29B98D648E7347938F98FD /* [Expo] Configure project */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -267,6 +267,28 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-MedleyTrackDiscover/expo-configure-project.sh\"\n";
+		};
+		686FADB1E7FEEB15037D31BF /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-MedleyTrackDiscover/Pods-MedleyTrackDiscover-frameworks.sh",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/React-Core-prebuilt/React.framework/React",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ReactNativeDependencies/ReactNativeDependencies.framework/ReactNativeDependencies",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/React.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ReactNativeDependencies.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-MedleyTrackDiscover/Pods-MedleyTrackDiscover-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
 		};
 		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -306,28 +328,6 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-MedleyTrackDiscover/Pods-MedleyTrackDiscover-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		F47ED6B8358217EDD24B10EE /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-MedleyTrackDiscover/Pods-MedleyTrackDiscover-frameworks.sh",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/React-Core-prebuilt/React.framework/React",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ReactNativeDependencies/ReactNativeDependencies.framework/ReactNativeDependencies",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/React.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ReactNativeDependencies.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-MedleyTrackDiscover/Pods-MedleyTrackDiscover-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -336,7 +336,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				F32183739025F9B7DBE9E34C /* ExpoModulesProvider.swift in Sources */,
+				FD77D269CAAB6D716CE2F2A9 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -345,15 +345,12 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = BBBBD88E26A32F842D0CCD1B /* Pods-MedleyTrackDiscover.debug.xcconfig */;
+			baseConfigurationReference = 9DE16254B3F57960F4F6ED10 /* Pods-MedleyTrackDiscover.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = MedleyTrackDiscover/MedleyTrackDiscover.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = PH3XBLZS8A;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -379,20 +376,20 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
+				DEVELOPMENT_TEAM = "PH3XBLZS8A";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 			};
 			name = Debug;
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 6E2E011E01CF68DB0C84B2B0 /* Pods-MedleyTrackDiscover.release.xcconfig */;
+			baseConfigurationReference = 44C84FCDCF8CE53CC0BA3EF7 /* Pods-MedleyTrackDiscover.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = MedleyTrackDiscover/MedleyTrackDiscover.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = PH3XBLZS8A;
 				INFOPLIST_FILE = MedleyTrackDiscover/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -412,6 +409,9 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
+				DEVELOPMENT_TEAM = "PH3XBLZS8A";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 			};
 			name = Release;
 		};

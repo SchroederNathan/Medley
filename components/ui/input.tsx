@@ -1,6 +1,7 @@
 import { BlurView } from "expo-blur";
-import React, { useContext } from "react";
+import React, { useContext, useRef } from "react";
 import {
+  Pressable,
   StyleProp,
   StyleSheet,
   TextInput,
@@ -28,9 +29,16 @@ const Input = ({
   ...otherProps
 }: InputProps) => {
   const { theme } = useContext(ThemeContext);
+  const textInputRef = useRef<TextInput>(null);
+
+  const handlePress = () => {
+    textInputRef.current?.focus();
+  };
+
   return (
-    <View
+    <Pressable
       style={[styles.inputContainer, { borderColor: theme.inputBorder }, style]}
+      onPress={handlePress}
     >
       <BlurView
         intensity={20}
@@ -38,17 +46,17 @@ const Input = ({
         style={[styles.blurView, { backgroundColor: theme.inputBackground }]}
       >
         <TextInput
+          ref={textInputRef}
           style={[styles.inputText, { color: theme.inputText }]}
           placeholder={placeholder}
           placeholderTextColor={theme.inputPlaceholderText}
           value={value}
           onChangeText={onChangeText}
           secureTextEntry={secureTextEntry}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           {...otherProps}
         />
       </BlurView>
-    </View>
+    </Pressable>
   );
 };
 

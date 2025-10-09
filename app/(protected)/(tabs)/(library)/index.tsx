@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import React, { useContext } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Svg, {
@@ -26,6 +27,7 @@ const LibraryScreen = () => {
   const userMediaQuery = useUserMedia();
   const [activeTab, setActiveTab] = React.useState("all");
   const [query, setQuery] = React.useState("");
+  const router = useRouter();
 
   // Use library-specific search functionality
   const { searchResults, isLoading, isError } = useLibrarySearch(query);
@@ -124,8 +126,14 @@ const LibraryScreen = () => {
               selectedKey={activeTab}
               onChange={(key: string) => setActiveTab(key)}
               pages={[
+                // All tab
                 <View key="all" style={{ flex: 1, paddingTop: 24, gap: 16 }}>
-                  <AddCollection title="Add Collection" onPress={() => {}} />
+                  <AddCollection
+                    title="Add Collection"
+                    onPress={() => {
+                      router.push("/collection/create");
+                    }}
+                  />
                   <CollectionCard mediaItems={allItems} title="Big list" />
                   <CollectionCard
                     mediaItems={allItems}
@@ -133,17 +141,26 @@ const LibraryScreen = () => {
                   />
                   <CollectionCard mediaItems={allItems} title="All items" />
                 </View>,
-                <View key="movies" style={{ flex: 1, paddingTop: 24, gap: 16 }}>
+                // Collections tab
+                <View
+                  key="collections"
+                  style={{ flex: 1, paddingTop: 24, gap: 16 }}
+                >
                   <CollectionCard mediaItems={movieItems} title="Movie list" />
                   <CollectionCard
                     mediaItems={movieItems}
                     title="Awesome Movies"
                   />
                 </View>,
+                // Rankings tab
                 <View
-                  key="games"
+                  key="rankings"
                   style={{ flex: 1, paddingTop: 24, gap: 16 }}
-                ></View>,
+                >
+                  <Text style={{ color: theme.secondaryText }}>
+                    Rankings coming soon...
+                  </Text>
+                </View>,
               ]}
             />
           )}

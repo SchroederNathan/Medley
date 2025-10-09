@@ -1,17 +1,18 @@
 import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import React, { useContext } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { AuthProvider } from "../contexts/auth-context";
-import { ThemeContext, ThemeProvider } from "../contexts/theme-context";
 import { QueryProvider } from "../components/providers/query-provider";
+import { AuthContext, AuthProvider } from "../contexts/auth-context";
+import { ThemeContext, ThemeProvider } from "../contexts/theme-context";
 import { useAppFonts } from "../lib/fonts";
 
 const RootLayout = () => {
   const { fontsLoaded, fontError } = useAppFonts();
 
   // Don't render anything while fonts are loading or if there's an error
-  // The splash screen will remain visible until fonts are loaded
+  // The splash screen will remain visible until fonts are loaded and auth is ready
   if (!fontsLoaded && !fontError) {
     return null;
   }
@@ -24,11 +25,19 @@ const RootLayout = () => {
 };
 
 const AppContainer = () => {
+  return (
+    <QueryProvider>
+      <AuthProviderWithSplash />
+    </QueryProvider>
+  );
+};
+
+const AuthProviderWithSplash = () => {
   const { theme } = useContext(ThemeContext);
 
   return (
-    <QueryProvider>
-      <AuthProvider>
+    <AuthProvider>
+      <SplashController>
         <GestureHandlerRootView>
           <StatusBar style="auto" />
           <Stack
@@ -75,9 +84,22 @@ const AppContainer = () => {
             />
           </Stack>
         </GestureHandlerRootView>
-      </AuthProvider>
-    </QueryProvider>
+      </SplashController>
+    </AuthProvider>
   );
+};
+
+const SplashController = ({ children }: { children: React.ReactNode }) => {
+  const { isReady } = useContext(AuthContext);
+
+  React.useEffect(() => {
+    if (isReady) {
+      // Hide splash screen after both fonts and auth are ready
+      SplashScreen.hideAsync();
+    }
+  }, [isReady]);
+
+  return <>{children}</>;
 };
 
 export default RootLayout;

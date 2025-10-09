@@ -79,19 +79,11 @@ const Modal = ({
 
       if (shouldClose) {
         // Close modal with smooth spring animation
-        translateY.value = withSpring(SCREEN_HEIGHT, {
-          damping: 40,
-          stiffness: 200,
-          velocity: velocity,
-        });
+        translateY.value = withSpring(SCREEN_HEIGHT);
         runOnJS(onClose)();
       } else {
         // Snap back to open position with spring
-        translateY.value = withSpring(modalTop, {
-          damping: 50,
-          stiffness: 300,
-          velocity: velocity,
-        });
+        translateY.value = withSpring(modalTop);
       }
 
       // Haptic feedback
@@ -103,24 +95,13 @@ const Modal = ({
     if (visible) {
       setIsAnimating(true);
       // Animate in
-      translateY.value = withSpring(SCREEN_HEIGHT - MODAL_HEIGHT, {
-        damping: 50,
-        stiffness: 300,
-      });
+      translateY.value = withSpring(SCREEN_HEIGHT - MODAL_HEIGHT);
     } else {
       // Animate out with spring for natural "bouncing back down" feel
-      translateY.value = withSpring(
-        SCREEN_HEIGHT,
-        {
-          damping: 40,
-          stiffness: 200,
-          velocity: 2,
-        },
-        () => {
-          // Animation completed, hide modal after close animation
-          runOnJS(setIsAnimating)(false);
-        },
-      );
+      translateY.value = withSpring(SCREEN_HEIGHT, {}, () => {
+        // Animation completed, hide modal after close animation
+        runOnJS(setIsAnimating)(false);
+      });
     }
   }, [visible]);
 
@@ -129,7 +110,7 @@ const Modal = ({
       translateY.value,
       [SCREEN_HEIGHT - MODAL_HEIGHT, SCREEN_HEIGHT],
       [20, 8],
-      "clamp",
+      "clamp"
     );
 
     return {
@@ -146,7 +127,7 @@ const Modal = ({
       translateY.value,
       [SCREEN_HEIGHT, SCREEN_HEIGHT - MODAL_HEIGHT],
       [0, 0.5],
-      "clamp",
+      "clamp"
     );
 
     return {

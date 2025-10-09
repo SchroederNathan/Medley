@@ -1,13 +1,11 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { SplashScreen, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { createContext, PropsWithChildren, useEffect, useState } from "react";
 import { supabase } from "../lib/utils";
 import { queryClient } from "../lib/query-client";
 
 const authStorageKey = "authState";
 const userStorageKey = "userProfile";
-
-SplashScreen.preventAutoHideAsync();
 
 type User = {
   id?: string;
@@ -194,11 +192,6 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     initializeAuth();
   }, []);
 
-  useEffect(() => {
-    if (isReady) {
-      SplashScreen.hideAsync();
-    }
-  }, [isReady]);
 
   return (
     <AuthContext.Provider
