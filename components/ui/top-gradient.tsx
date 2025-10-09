@@ -8,7 +8,7 @@ interface TopGradientProps {
   height?: number;
 }
 
-export const TopGradient = ({ height = 4}: TopGradientProps) => {
+export const TopGradient = ({ height = 4 }: TopGradientProps) => {
   const { grossHeight } = useHeaderHeight();
 
   height = height || grossHeight;

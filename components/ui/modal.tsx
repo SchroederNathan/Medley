@@ -110,7 +110,7 @@ const Modal = ({
       translateY.value,
       [SCREEN_HEIGHT - MODAL_HEIGHT, SCREEN_HEIGHT],
       [20, 8],
-      "clamp"
+      "clamp",
     );
 
     return {
@@ -127,7 +127,7 @@ const Modal = ({
       translateY.value,
       [SCREEN_HEIGHT, SCREEN_HEIGHT - MODAL_HEIGHT],
       [0, 0.5],
-      "clamp"
+      "clamp",
     );
 
     return {

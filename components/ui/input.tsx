@@ -67,7 +67,7 @@ const Input = ({
     if (multiline) {
       const newHeight = Math.max(
         minHeight,
-        Math.min(maxHeight, event.nativeEvent.contentSize.height + 16)
+        Math.min(maxHeight, event.nativeEvent.contentSize.height + 16),
       );
       setContentHeight(newHeight);
     }

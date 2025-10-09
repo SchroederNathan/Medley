@@ -67,6 +67,7 @@ export const PullToSearchContent: FC<PullToSearchContentProps> = ({
   // Central scroll handler drives shared values used across components
   const scrollHandler = useAnimatedScrollHandler({
     onBeginDrag: () => {
+      // eslint-disable-next-line react-compiler/react-compiler
       isListDragging.value = true;
     },
     onScroll: (event) => {

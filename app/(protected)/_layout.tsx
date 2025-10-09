@@ -22,7 +22,16 @@ const ProtectedLayout = () => {
         name="media-detail/index"
         options={{ headerShown: false }}
       />
-      <Stack.Screen name="collection/create" options={{ headerShown: false, presentation: "formSheet", sheetGrabberVisible: true, sheetAllowedDetents: [0.5], contentStyle: { backgroundColor: 'transparent' } }} />
+      <Stack.Screen
+        name="collection/create"
+        options={{
+          headerShown: false,
+          presentation: "formSheet",
+          sheetGrabberVisible: true,
+          sheetAllowedDetents: "fitToContents",
+          contentStyle: { backgroundColor: "transparent" },
+        }}
+      />
 
       {/* <Stack.Screen
         name="collection/create"

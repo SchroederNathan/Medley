@@ -95,7 +95,7 @@ const CarouselDot: React.FC<CarouselDotProps> = ({
         DOT_CONTAINER_WIDTH * 6,
       ],
       [0.3, 0.7, 1, 1, 1, 0.7, 0.3],
-      Extrapolation.CLAMP
+      Extrapolation.CLAMP,
     );
 
     return {
@@ -305,7 +305,7 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({ media }) => {
     return {
       backgroundColor: withTiming(
         isDotsPressed ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0)",
-        { duration: 150 }
+        { duration: 150 },
       ),
     };
   });
@@ -401,7 +401,7 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({ media }) => {
             setCurrentIndex(Math.min(Math.max(index, 0), media.length - 1));
           }}
           snapToOffsets={media.map(
-            (_, index) => index * (ITEM_WIDTH + ITEM_SPACING)
+            (_, index) => index * (ITEM_WIDTH + ITEM_SPACING),
           )}
           decelerationRate="fast"
           contentContainerStyle={styles.carouselContainer}
