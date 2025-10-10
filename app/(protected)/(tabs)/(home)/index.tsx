@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, {
   Defs,
   FeBlend,
@@ -19,7 +20,6 @@ import { ThemeContext } from "../../../../contexts/theme-context";
 import { useRecommendations } from "../../../../hooks/use-recommendations";
 import { useSharedSearch } from "../../../../hooks/use-shared-search";
 import { fontFamily } from "../../../../lib/fonts";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const IndexScreen = () => {
   const { theme } = useContext(ThemeContext);

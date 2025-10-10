@@ -36,6 +36,14 @@
         {
           "launchMode": "most-recent"
         }
+      ],
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "react-native",
+          "organization": "schroeder-nathan"
+        }
       ]
     ],
     "extra": {

@@ -96,7 +96,7 @@ const DraggableItem = memo(
         </TouchableOpacity>
       </ScaleDecorator>
     );
-  }
+  },
 );
 DraggableItem.displayName = "DraggableItem";
 
@@ -135,7 +135,7 @@ const CreateCollection = () => {
     ({ item, drag, isActive }: RenderItemParams<Media>) => (
       <DraggableItem item={item} drag={drag} isActive={isActive} />
     ),
-    []
+    [],
   );
 
   const handleEditEntries = () => {
