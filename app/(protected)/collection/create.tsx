@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
-import { XIcon } from "lucide-react-native";
-import React, { useContext, useState } from "react";
+import { ArrowLeft, GripVertical, PlusCircle } from "lucide-react-native";
+import React, { memo, useCallback, useContext, useState } from "react";
 import {
   Keyboard,
   ScrollView,
@@ -20,6 +20,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../../../components/ui/button";
 import Input from "../../../components/ui/input";
 import MediaCard from "../../../components/ui/media-card";
@@ -29,11 +30,78 @@ import { useCollectionSearch } from "../../../hooks/use-collection-search";
 import { fontFamily } from "../../../lib/fonts";
 import { Media } from "../../../types/media";
 
+// Memoized draggable item component moved outside to prevent recreation
+const DraggableItem = memo(
+  ({
+    item,
+    drag,
+    isActive,
+  }: {
+    item: Media;
+    drag: () => void;
+    isActive: boolean;
+  }) => {
+    const { theme } = useContext(ThemeContext);
+    return (
+      <ScaleDecorator>
+        <TouchableOpacity
+          onLongPress={drag}
+          disabled={isActive}
+          activeOpacity={0.7}
+          style={[
+            styles.draggableItem,
+            {
+              backgroundColor: isActive
+                ? theme.buttonBackground
+                : theme.inputBackground,
+              borderColor: theme.inputBorder,
+            },
+          ]}
+        >
+          <Image
+            source={{ uri: item.poster_url }}
+            contentFit="cover"
+            style={styles.draggableImage}
+          />
+          <View style={styles.draggableContent}>
+            <Text
+              style={[
+                styles.draggableTitle,
+                {
+                  color: theme.text,
+                  fontFamily: fontFamily.plusJakarta.bold,
+                },
+              ]}
+            >
+              {item.title}
+            </Text>
+            <Text
+              style={[
+                styles.draggableYear,
+                {
+                  color: theme.secondaryText,
+                  fontFamily: fontFamily.plusJakarta.regular,
+                },
+              ]}
+            >
+              {item.year}
+            </Text>
+          </View>
+
+          <GripVertical color={theme.text} />
+        </TouchableOpacity>
+      </ScaleDecorator>
+    );
+  },
+);
+DraggableItem.displayName = "DraggableItem";
+
 const CreateCollection = () => {
   const { theme } = useContext(ThemeContext);
   const [collectionName, setCollectionName] = useState("");
   const [description, setDescription] = useState("");
   const [isEditingEntries, setIsEditingEntries] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const {
     query: searchQuery,
@@ -52,68 +120,18 @@ const CreateCollection = () => {
   const contentTranslateX = useSharedValue(0);
   const searchOpacity = useSharedValue(0);
   const searchTranslateX = useSharedValue(300);
+  const backArrowOpacity = useSharedValue(0);
+  const backArrowTranslateX = useSharedValue(-50);
 
   const dismissKeyboard = () => {
     Keyboard.dismiss();
   };
 
-  const renderDraggableItem = ({
-    item,
-    drag,
-    isActive,
-  }: RenderItemParams<Media>) => (
-    <ScaleDecorator>
-      <TouchableOpacity
-        onLongPress={drag}
-        disabled={isActive}
-        activeOpacity={0.7}
-        style={[
-          styles.draggableItem,
-          {
-            backgroundColor: isActive
-              ? theme.buttonBackground
-              : theme.inputBackground,
-            borderColor: theme.inputBorder,
-          },
-        ]}
-      >
-        <Image
-          source={{ uri: item.poster_url }}
-          contentFit="cover"
-          style={styles.draggableImage}
-        />
-        <View style={styles.draggableContent}>
-          <Text
-            style={[
-              styles.draggableTitle,
-              {
-                color: theme.text,
-                fontFamily: fontFamily.plusJakarta.bold,
-              },
-            ]}
-          >
-            {item.title}
-          </Text>
-          <Text
-            style={[
-              styles.draggableYear,
-              {
-                color: theme.secondaryText,
-                fontFamily: fontFamily.plusJakarta.regular,
-              },
-            ]}
-          >
-            {item.year}
-          </Text>
-        </View>
-        <TouchableOpacity
-          onPress={() => removeMediaFromCollection(item.id)}
-          style={styles.removeButton}
-        >
-          <XIcon color={theme.text} />
-        </TouchableOpacity>
-      </TouchableOpacity>
-    </ScaleDecorator>
+  const renderDraggableItem = useCallback(
+    ({ item, drag, isActive }: RenderItemParams<Media>) => (
+      <DraggableItem item={item} drag={drag} isActive={isActive} />
+    ),
+    [],
   );
 
   const handleEditEntries = () => {
@@ -123,13 +141,20 @@ const CreateCollection = () => {
       contentTranslateX.value = withTiming(-50, { duration: 300 });
 
       searchOpacity.value = withTiming(1, { duration: 300 });
-      searchTranslateX.value = withTiming(0, { duration: 300 }, () => {
+      searchTranslateX.value = withTiming(0, { duration: 300 });
+
+      backArrowTranslateX.value = withTiming(0, { duration: 300 });
+
+      backArrowOpacity.value = withTiming(1, { duration: 300 }, () => {
         runOnJS(setIsEditingEntries)(true);
       });
     } else {
       // Fade out search and fade in content
       searchOpacity.value = withTiming(0, { duration: 300 });
       searchTranslateX.value = withTiming(300, { duration: 300 });
+
+      backArrowOpacity.value = withTiming(0, { duration: 300 });
+      backArrowTranslateX.value = withTiming(-50, { duration: 300 });
 
       contentOpacity.value = withTiming(1, { duration: 300 });
       contentTranslateX.value = withTiming(0, { duration: 300 }, () => {
@@ -153,38 +178,69 @@ const CreateCollection = () => {
     };
   });
 
+  const backArrowAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: backArrowOpacity.value,
+      transform: [{ translateX: backArrowTranslateX.value }],
+    };
+  });
+
   return (
     <>
+      {/* Header */}
+      <View style={styles.header}>
+        <Animated.View style={[backArrowAnimatedStyle, styles.backArrowButton]}>
+          <TouchableOpacity
+            onPress={handleEditEntries}
+            style={styles.backArrowButtonTouchable}
+          >
+            <ArrowLeft size={24} color={theme.text} />
+          </TouchableOpacity>
+        </Animated.View>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>
+          New Collection
+        </Text>
+      </View>
+
       <TouchableWithoutFeedback onPress={dismissKeyboard}>
         <View style={styles.container}>
-          {/* Header */}
-          <View>
-            <Text style={[styles.headerTitle, { color: theme.text }]}>
-              New Collection
-            </Text>
-          </View>
-
           {/* Content */}
           <Animated.View style={[styles.content, contentAnimatedStyle]}>
-            <Input
-              placeholder="Collection Name"
-              value={collectionName}
-              onChangeText={setCollectionName}
-            />
-            <Input
-              placeholder="Description"
-              value={description}
-              onChangeText={setDescription}
-              multiline
-              minHeight={150}
-              maxHeight={200}
-            />
+            <View style={styles.inputContainer}>
+              <Input
+                placeholder="Collection Name"
+                value={collectionName}
+                onChangeText={setCollectionName}
+              />
+              <Input
+                placeholder="Description"
+                value={description}
+                onChangeText={setDescription}
+                multiline
+                minHeight={150}
+                maxHeight={200}
+              />
+            </View>
             <View style={styles.entriesContainer}>
-              <Button
+              {/* <Button
                 title="Edit Entries"
                 onPress={handleEditEntries}
                 variant="primary"
-              />
+              /> */}
+              <TouchableOpacity
+                style={styles.editEntriesHeaderButton}
+                onPress={handleEditEntries}
+              >
+                <Text
+                  style={[
+                    styles.editEntriesHeaderButtonText,
+                    { color: theme.text },
+                  ]}
+                >
+                  Edit Entries
+                </Text>
+                <PlusCircle size={24} color={theme.text} />
+              </TouchableOpacity>
               <View style={styles.entriesList}>
                 {selectedMedia.length > 0 ? (
                   <DraggableFlatList
@@ -223,7 +279,13 @@ const CreateCollection = () => {
           </Animated.View>
 
           {/* Search View */}
-          <Animated.View style={[styles.searchContainer, searchAnimatedStyle]}>
+          <Animated.View
+            style={[
+              styles.searchContainer,
+              searchAnimatedStyle,
+              { bottom: -insets.bottom },
+            ]}
+          >
             <Search
               placeholder="Search for media to add..."
               value={searchQuery}
@@ -258,7 +320,10 @@ const CreateCollection = () => {
               ) : searchResults.length > 0 ? (
                 <ScrollView
                   style={styles.searchResultsScrollView}
-                  contentContainerStyle={styles.searchResultsGrid}
+                  contentContainerStyle={[
+                    styles.searchResultsGrid,
+                    { paddingBottom: insets.bottom },
+                  ]}
                   showsVerticalScrollIndicator={false}
                 >
                   {searchResults.map((item) => (
@@ -305,12 +370,6 @@ const CreateCollection = () => {
                 </Text>
               )}
             </View>
-            <Button
-              title="Done"
-              onPress={handleEditEntries}
-              styles={styles.button}
-              variant="secondary"
-            />
           </Animated.View>
         </View>
       </TouchableWithoutFeedback>
@@ -325,16 +384,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    gap: 12,
     flex: 1,
     paddingHorizontal: 20,
   },
   searchContainer: {
     position: "absolute",
-    top: 72,
+    top: 0,
     left: 20,
     right: 20,
-    bottom: 0,
     gap: 12,
     flex: 1,
   },
@@ -358,14 +415,36 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.plusJakarta.regular,
     textAlign: "center",
   },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 24,
+  },
   headerTitle: {
     fontSize: 24,
     textAlign: "center",
-    paddingVertical: 24,
     fontFamily: fontFamily.tanker.regular,
+  },
+  backArrowButton: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 72,
+  },
+  backArrowButtonTouchable: {
+    width: "100%",
+    height: "100%",
+    paddingLeft: 20,
+    justifyContent: "center",
+    alignItems: "flex-start",
+
+    zIndex: 100,
   },
   inputContainer: {
     gap: 12,
+    zIndex: 1,
   },
   editEntriesButton: {},
   entriesContainer: {
@@ -384,23 +463,32 @@ const styles = StyleSheet.create({
   // Search result styles
   searchResultsScrollView: {
     flex: 1,
-    marginBottom: 72,
+    borderRadius: 4,
   },
   searchResultsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-
     overflow: "hidden",
     gap: 12,
   },
-  searchResultItem: {
-    width: "31.2%",
-  },
+  searchResultItem: {},
   searchEmptyText: {
     fontSize: 16,
     textAlign: "center",
     paddingVertical: 40,
+  },
+  editEntriesHeaderButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingTop: 24,
+    paddingBottom: 8,
+    zIndex: 1,
+  },
+  editEntriesHeaderButtonText: {
+    fontSize: 20,
+    fontFamily: fontFamily.plusJakarta.bold,
   },
   // Draggable list styles
   draggableList: {

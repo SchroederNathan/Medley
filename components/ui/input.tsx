@@ -172,7 +172,10 @@ const Input = ({
               style={[StyleSheet.absoluteFill]}
             >
               {/* Dark tint matches app theme; actual blur amount is handled externally when needed. */}
-              <BlurView tint="dark" style={StyleSheet.absoluteFill} />
+              <BlurView
+                tint="dark"
+                style={[StyleSheet.absoluteFill, { right: 32 }]}
+              />
             </MaskedView>
           </View>
         )}
