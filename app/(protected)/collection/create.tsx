@@ -1,5 +1,8 @@
+import MaskedView from "@react-native-masked-view/masked-view";
+import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
-import { ArrowLeft, GripVertical, PlusCircle } from "lucide-react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { ArrowLeft, GripVertical, Plus, Trophy } from "lucide-react-native";
 import React, { memo, useCallback, useContext, useState } from "react";
 import {
   Keyboard,
@@ -25,6 +28,7 @@ import Button from "../../../components/ui/button";
 import Input from "../../../components/ui/input";
 import MediaCard from "../../../components/ui/media-card";
 import Search from "../../../components/ui/search";
+import { Switch } from "../../../components/ui/switch";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { useCollectionSearch } from "../../../hooks/use-collection-search";
 import { fontFamily } from "../../../lib/fonts";
@@ -92,7 +96,7 @@ const DraggableItem = memo(
         </TouchableOpacity>
       </ScaleDecorator>
     );
-  },
+  }
 );
 DraggableItem.displayName = "DraggableItem";
 
@@ -100,6 +104,7 @@ const CreateCollection = () => {
   const { theme } = useContext(ThemeContext);
   const [collectionName, setCollectionName] = useState("");
   const [description, setDescription] = useState("");
+  const [isRanked, setIsRanked] = useState(false);
   const [isEditingEntries, setIsEditingEntries] = useState(false);
   const insets = useSafeAreaInsets();
 
@@ -111,7 +116,6 @@ const CreateCollection = () => {
     isError: searchError,
     handleSearchChange,
     addMediaToCollection,
-    removeMediaFromCollection,
     reorderMedia,
   } = useCollectionSearch();
 
@@ -131,7 +135,7 @@ const CreateCollection = () => {
     ({ item, drag, isActive }: RenderItemParams<Media>) => (
       <DraggableItem item={item} drag={drag} isActive={isActive} />
     ),
-    [],
+    []
   );
 
   const handleEditEntries = () => {
@@ -221,26 +225,46 @@ const CreateCollection = () => {
                 maxHeight={200}
               />
             </View>
+            {/* Ranked Switch */}
+            <View style={styles.rankedSwitchContainer}>
+              <View style={styles.rankedSwitchLabelContainer}>
+                <Trophy size={20} color={theme.text} />
+                <Text
+                  style={[
+                    styles.rankedSwitchLabel,
+                    {
+                      color: theme.text,
+                      fontFamily: fontFamily.plusJakarta.medium,
+                    },
+                  ]}
+                >
+                  Ranked
+                </Text>
+              </View>
+              <Switch value={isRanked} onValueChange={setIsRanked} />
+            </View>
             <View style={styles.entriesContainer}>
               {/* <Button
                 title="Edit Entries"
                 onPress={handleEditEntries}
                 variant="primary"
               /> */}
-              <TouchableOpacity
-                style={styles.editEntriesHeaderButton}
-                onPress={handleEditEntries}
-              >
-                <Text
-                  style={[
-                    styles.editEntriesHeaderButtonText,
-                    { color: theme.text },
-                  ]}
+              <View style={styles.editEntriesHeaderContainer}>
+                <TouchableOpacity
+                  style={styles.editEntriesHeaderButton}
+                  onPress={handleEditEntries}
                 >
-                  Edit Entries
-                </Text>
-                <PlusCircle size={24} color={theme.text} />
-              </TouchableOpacity>
+                  <Text
+                    style={[
+                      styles.editEntriesHeaderButtonText,
+                      { color: theme.text },
+                    ]}
+                  >
+                    Edit Entries
+                  </Text>
+                  <Plus size={24} color={theme.text} />
+                </TouchableOpacity>
+              </View>
               <View style={styles.entriesList}>
                 {selectedMedia.length > 0 ? (
                   <DraggableFlatList
@@ -253,6 +277,7 @@ const CreateCollection = () => {
                       <View style={{ height: 8 }} />
                     )}
                     contentContainerStyle={styles.draggableListContent}
+                    showsVerticalScrollIndicator={false}
                   />
                 ) : (
                   <Text
@@ -433,6 +458,11 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: 72,
   },
+  rankedSwitchLabelContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
   backArrowButtonTouchable: {
     width: "100%",
     height: "100%",
@@ -453,11 +483,20 @@ const styles = StyleSheet.create({
   entriesList: {
     marginBottom: 52,
   },
+  blurGradientContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 52,
+    zIndex: 0,
+    pointerEvents: "none",
+  },
 
   button: {
     position: "absolute",
-    bottom: 0,
     left: 0,
+    bottom: 0,
     right: 0,
   },
   // Search result styles
@@ -478,13 +517,17 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingVertical: 40,
   },
+  editEntriesHeaderContainer: {
+    position: "relative",
+    zIndex: 1,
+  },
   editEntriesHeaderButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingTop: 24,
     paddingBottom: 8,
-    zIndex: 1,
+    zIndex: 2,
   },
   editEntriesHeaderButtonText: {
     fontSize: 20,
@@ -493,7 +536,10 @@ const styles = StyleSheet.create({
   // Draggable list styles
   draggableList: {
     flex: 1,
-    overflow: "visible",
+    maxHeight: 360,
+    overflow: "hidden",
+    marginHorizontal: -20,
+    paddingHorizontal: 20,
   },
   draggableListContent: {
     paddingBottom: 32,
@@ -534,6 +580,17 @@ const styles = StyleSheet.create({
   emptyStateText: {
     fontSize: 16,
     textAlign: "center",
-    paddingVertical: 40,
+    paddingBottom: 72,
+    paddingTop: 52,
+  },
+  rankedSwitchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
+  rankedSwitchLabel: {
+    fontSize: 18,
   },
 });
