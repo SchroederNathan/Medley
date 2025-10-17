@@ -77,7 +77,7 @@ const CreateCollection = () => {
         />
       );
     },
-    [isRanked, renderCounter],
+    [isRanked, renderCounter]
   );
 
   const handleEditEntries = () => {
@@ -244,7 +244,13 @@ const CreateCollection = () => {
           </Animated.View>
 
           {/* Search View */}
-          <Animated.View style={[styles.searchContainer, searchAnimatedStyle]}>
+          <Animated.View
+            style={[
+              styles.searchContainer,
+              searchAnimatedStyle,
+              { bottom: -insets.bottom - 32 },
+            ]}
+          >
             <Search
               placeholder="Search for media to add..."
               value={searchQuery}
@@ -515,7 +521,9 @@ const styles = StyleSheet.create({
   },
   // Search screen draggable list styles
   searchDraggableList: {
-    flex: 1,
+    // flex: 1,
+    marginTop: -12,
+    paddingTop: 12,
     marginHorizontal: -20,
     paddingHorizontal: 20,
   },
