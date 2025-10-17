@@ -4,7 +4,7 @@ import { useColorScheme } from "react-native";
 import { themes } from "../constants/colors";
 
 export const ThemeContext = createContext({
-  theme: themes.light,
+  theme: themes.dark,
   themeMode: "system", // "system", "light", or "dark"
   toggleTheme: () => {},
   updateThemeMode: (mode: string) => {},
@@ -15,8 +15,8 @@ const THEME_STORAGE_KEY = "@app_theme";
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemColorScheme = useColorScheme();
   const [themeMode, setThemeMode] = useState("system");
-  const [theme, setTheme] = useState(() =>
-    themes[(systemColorScheme || "light") as keyof typeof themes]
+  const [theme, setTheme] = useState(
+    () => themes[(systemColorScheme || "light") as keyof typeof themes]
   );
 
   useEffect(() => {
@@ -28,7 +28,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (themeMode === "system" && systemColorScheme) {
       const newTheme = themes[systemColorScheme as keyof typeof themes];
       // Only update if the theme actually changed to prevent unnecessary re-renders
-      setTheme(currentTheme => currentTheme === newTheme ? currentTheme : newTheme);
+      setTheme((currentTheme) =>
+        currentTheme === newTheme ? currentTheme : newTheme
+      );
     }
   }, [systemColorScheme, themeMode]);
 
@@ -39,17 +41,25 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       if (savedThemeMode) {
         setThemeMode(savedThemeMode);
         if (savedThemeMode === "system") {
-          const selectedTheme = themes[(systemColorScheme || "light") as keyof typeof themes];
-          setTheme(currentTheme => currentTheme === selectedTheme ? currentTheme : selectedTheme);
+          const selectedTheme =
+            themes[(systemColorScheme || "light") as keyof typeof themes];
+          setTheme((currentTheme) =>
+            currentTheme === selectedTheme ? currentTheme : selectedTheme
+          );
         } else {
           const selectedTheme = themes[savedThemeMode as keyof typeof themes];
-          setTheme(currentTheme => currentTheme === selectedTheme ? currentTheme : selectedTheme);
+          setTheme((currentTheme) =>
+            currentTheme === selectedTheme ? currentTheme : selectedTheme
+          );
         }
       } else {
         // Default to system mode if no saved preference
         setThemeMode("system");
-        const defaultTheme = themes[(systemColorScheme || "light") as keyof typeof themes];
-        setTheme(currentTheme => currentTheme === defaultTheme ? currentTheme : defaultTheme);
+        const defaultTheme =
+          themes[(systemColorScheme || "light") as keyof typeof themes];
+        setTheme((currentTheme) =>
+          currentTheme === defaultTheme ? currentTheme : defaultTheme
+        );
       }
     } catch (error) {
       console.error("Failed to load theme:", error);
@@ -58,7 +68,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const toggleTheme = async () => {
     const newTheme = theme === themes.light ? themes.dark : themes.light;
-    setTheme(currentTheme => currentTheme === newTheme ? currentTheme : newTheme);
+    setTheme((currentTheme) =>
+      currentTheme === newTheme ? currentTheme : newTheme
+    );
     const newThemeMode = newTheme === themes.light ? "light" : "dark";
     setThemeMode(newThemeMode); // Override system mode when user manually toggles
     try {
@@ -71,11 +83,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const updateThemeMode = async (mode: string) => {
     setThemeMode(mode);
     if (mode === "system") {
-      const newTheme = themes[(systemColorScheme || "light") as keyof typeof themes];
-      setTheme(currentTheme => currentTheme === newTheme ? currentTheme : newTheme);
+      const newTheme =
+        themes[(systemColorScheme || "light") as keyof typeof themes];
+      setTheme((currentTheme) =>
+        currentTheme === newTheme ? currentTheme : newTheme
+      );
     } else {
       const newTheme = themes[mode as keyof typeof themes];
-      setTheme(currentTheme => currentTheme === newTheme ? currentTheme : newTheme);
+      setTheme((currentTheme) =>
+        currentTheme === newTheme ? currentTheme : newTheme
+      );
     }
     try {
       await AsyncStorage.setItem(THEME_STORAGE_KEY, mode);
@@ -85,7 +102,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, themeMode, toggleTheme, updateThemeMode }}>
+    <ThemeContext.Provider
+      value={{ theme, themeMode, toggleTheme, updateThemeMode }}
+    >
       {children}
     </ThemeContext.Provider>
   );

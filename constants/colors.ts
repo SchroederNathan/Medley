@@ -12,7 +12,6 @@ export const themes = {
 
     modalBackground: "rgba(255, 255, 255, 1)",
 
-
     buttonBackground: "rgba(28, 28, 28, 0.8)",
     buttonBorder: "rgba(64, 64, 64, 0.5)",
     secondaryButtonBackground: "#F5F5F5",
@@ -20,11 +19,18 @@ export const themes = {
 
     fabButtonBackground: "rgba(38, 38, 38, 0.7)",
 
-
     inputBackground: "rgba(28, 28, 28, 0.3)",
     inputPlaceholderText: "#737373",
     inputText: "#E5E5E5",
     inputBorder: "rgba(64, 64, 64, 0.3)",
+
+    // Ranking colors
+    gold: "#FFCB6B",
+    goldDark: "#B8860B",
+    silver: "#C0C0C0",
+    silverDark: "#808080",
+    bronze: "#CD7F32",
+    bronzeDark: "#8B4513",
   },
   dark: {
     background: "#0A0A0A",
@@ -49,5 +55,13 @@ export const themes = {
     inputPlaceholderText: "#737373",
     inputText: "#E5E5E5",
     inputBorder: "rgba(64, 64, 64, 0.3)",
+
+    // Ranking colors
+    gold: "#FFCB6B",
+    goldDark: "#4D3200",
+    silver: "#E8F7FF",
+    silverDark: "##293840",
+    bronze: "#FEBDA3",
+    bronzeDark: "#65240A",
   },
 };

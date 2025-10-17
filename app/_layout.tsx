@@ -7,10 +7,10 @@ import { QueryProvider } from "../components/providers/query-provider";
 import { AuthContext, AuthProvider } from "../contexts/auth-context";
 import { ThemeContext, ThemeProvider } from "../contexts/theme-context";
 import { useAppFonts } from "../lib/fonts";
-import * as Sentry from '@sentry/react-native';
+import * as Sentry from "@sentry/react-native";
 
 Sentry.init({
-  dsn: 'https://077c17121b5dbfc5cecd4ec763173e88@o4510162802049024.ingest.us.sentry.io/4510162816073728',
+  dsn: "https://077c17121b5dbfc5cecd4ec763173e88@o4510162802049024.ingest.us.sentry.io/4510162816073728",
 
   // Adds more context data to events (IP address, cookies, user, etc.)
   // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/

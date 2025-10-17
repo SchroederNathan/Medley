@@ -1,9 +1,5 @@
-import MaskedView from "@react-native-masked-view/masked-view";
-import { BlurView } from "expo-blur";
-import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
-import { ArrowLeft, GripVertical, Plus, Trophy } from "lucide-react-native";
-import React, { memo, useCallback, useContext, useState } from "react";
+import { ArrowLeft, Plus, Trophy } from "lucide-react-native";
+import React, { useCallback, useContext, useState } from "react";
 import {
   Keyboard,
   ScrollView,
@@ -15,7 +11,6 @@ import {
 } from "react-native";
 import DraggableFlatList, {
   RenderItemParams,
-  ScaleDecorator,
 } from "react-native-draggable-flatlist";
 import Animated, {
   runOnJS,
@@ -25,6 +20,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../../../components/ui/button";
+import CollectionItem from "../../../components/ui/collection-item";
 import Input from "../../../components/ui/input";
 import MediaCard from "../../../components/ui/media-card";
 import Search from "../../../components/ui/search";
@@ -34,78 +30,13 @@ import { useCollectionSearch } from "../../../hooks/use-collection-search";
 import { fontFamily } from "../../../lib/fonts";
 import { Media } from "../../../types/media";
 
-// Memoized draggable item component moved outside to prevent recreation
-const DraggableItem = memo(
-  ({
-    item,
-    drag,
-    isActive,
-  }: {
-    item: Media;
-    drag: () => void;
-    isActive: boolean;
-  }) => {
-    const { theme } = useContext(ThemeContext);
-    return (
-      <ScaleDecorator>
-        <TouchableOpacity
-          onLongPress={drag}
-          disabled={isActive}
-          activeOpacity={0.7}
-          style={[
-            styles.draggableItem,
-            {
-              backgroundColor: isActive
-                ? theme.buttonBackground
-                : theme.inputBackground,
-              borderColor: theme.inputBorder,
-            },
-          ]}
-        >
-          <Image
-            source={{ uri: item.poster_url }}
-            contentFit="cover"
-            style={styles.draggableImage}
-          />
-          <View style={styles.draggableContent}>
-            <Text
-              style={[
-                styles.draggableTitle,
-                {
-                  color: theme.text,
-                  fontFamily: fontFamily.plusJakarta.bold,
-                },
-              ]}
-            >
-              {item.title}
-            </Text>
-            <Text
-              style={[
-                styles.draggableYear,
-                {
-                  color: theme.secondaryText,
-                  fontFamily: fontFamily.plusJakarta.regular,
-                },
-              ]}
-            >
-              {item.year}
-            </Text>
-          </View>
-
-          <GripVertical color={theme.text} />
-        </TouchableOpacity>
-      </ScaleDecorator>
-    );
-  },
-);
-DraggableItem.displayName = "DraggableItem";
-
 const CreateCollection = () => {
   const { theme } = useContext(ThemeContext);
   const [collectionName, setCollectionName] = useState("");
   const [description, setDescription] = useState("");
   const [isRanked, setIsRanked] = useState(false);
   const [isEditingEntries, setIsEditingEntries] = useState(false);
+  const [renderCounter, setRenderCounter] = useState(0);
   const insets = useSafeAreaInsets();
 
   const {
@@ -132,10 +63,21 @@ const CreateCollection = () => {
   };
 
   const renderDraggableItem = useCallback(
-    ({ item, drag, isActive }: RenderItemParams<Media>) => (
-      <DraggableItem item={item} drag={drag} isActive={isActive} />
-    ),
-    [],
+    ({ item, drag, isActive, getIndex }: RenderItemParams<Media>) => {
+      const currentIndex = getIndex?.() ?? 0;
+      return (
+        <CollectionItem
+          key={`${item.id}-${currentIndex}-${renderCounter}`}
+          item={item}
+          index={currentIndex}
+          isRanked={isRanked}
+          isDraggable={true}
+          drag={drag}
+          isActive={isActive}
+        />
+      );
+    },
+    [isRanked, renderCounter],
   );
 
   const handleEditEntries = () => {
@@ -244,11 +186,6 @@ const CreateCollection = () => {
               <Switch value={isRanked} onValueChange={setIsRanked} />
             </View>
             <View style={styles.entriesContainer}>
-              {/* <Button
-                title="Edit Entries"
-                onPress={handleEditEntries}
-                variant="primary"
-              /> */}
               <View style={styles.editEntriesHeaderContainer}>
                 <TouchableOpacity
                   style={styles.editEntriesHeaderButton}
@@ -267,18 +204,21 @@ const CreateCollection = () => {
               </View>
               <View style={styles.entriesList}>
                 {selectedMedia.length > 0 ? (
-                  <DraggableFlatList
-                    data={selectedMedia}
-                    onDragEnd={({ data }) => reorderMedia(data)}
-                    keyExtractor={(item) => item.id}
-                    renderItem={renderDraggableItem}
+                  <ScrollView
                     style={styles.draggableList}
-                    ItemSeparatorComponent={() => (
-                      <View style={{ height: 8 }} />
-                    )}
                     contentContainerStyle={styles.draggableListContent}
                     showsVerticalScrollIndicator={false}
-                  />
+                  >
+                    {selectedMedia.map((item, index) => (
+                      <CollectionItem
+                        key={item.id}
+                        item={item}
+                        index={index}
+                        isRanked={isRanked}
+                        isDraggable={false}
+                      />
+                    ))}
+                  </ScrollView>
                 ) : (
                   <Text
                     style={[
@@ -304,13 +244,7 @@ const CreateCollection = () => {
           </Animated.View>
 
           {/* Search View */}
-          <Animated.View
-            style={[
-              styles.searchContainer,
-              searchAnimatedStyle,
-              { bottom: -insets.bottom },
-            ]}
-          >
+          <Animated.View style={[styles.searchContainer, searchAnimatedStyle]}>
             <Search
               placeholder="Search for media to add..."
               value={searchQuery}
@@ -318,81 +252,103 @@ const CreateCollection = () => {
               style={styles.searchInput}
             />
             <View style={styles.searchContent}>
-              {searchLoading ? (
-                <Text
-                  style={[
-                    styles.searchEmptyText,
-                    {
-                      color: theme.secondaryText,
-                      fontFamily: fontFamily.plusJakarta.regular,
-                    },
-                  ]}
-                >
-                  Searching...
-                </Text>
-              ) : searchError ? (
-                <Text
-                  style={[
-                    styles.searchEmptyText,
-                    {
-                      color: theme.text,
-                      fontFamily: fontFamily.plusJakarta.medium,
-                    },
-                  ]}
-                >
-                  Failed to load search results
-                </Text>
-              ) : searchResults.length > 0 ? (
-                <ScrollView
-                  style={styles.searchResultsScrollView}
+              {searchQuery ? (
+                // When there's a search query, show search results
+                searchLoading ? (
+                  <Text
+                    style={[
+                      styles.searchEmptyText,
+                      {
+                        color: theme.secondaryText,
+                        fontFamily: fontFamily.plusJakarta.regular,
+                      },
+                    ]}
+                  >
+                    Searching...
+                  </Text>
+                ) : searchError ? (
+                  <Text
+                    style={[
+                      styles.searchEmptyText,
+                      {
+                        color: theme.text,
+                        fontFamily: fontFamily.plusJakarta.medium,
+                      },
+                    ]}
+                  >
+                    Failed to load search results
+                  </Text>
+                ) : searchResults.length > 0 ? (
+                  <ScrollView
+                    style={styles.searchResultsScrollView}
+                    contentContainerStyle={[
+                      styles.searchResultsGrid,
+                      { paddingBottom: insets.bottom },
+                    ]}
+                    showsVerticalScrollIndicator={false}
+                  >
+                    {searchResults.map((item) => (
+                      <TouchableOpacity
+                        key={item.id}
+                        style={styles.searchResultItem}
+                        onPress={() => {
+                          addMediaToCollection(item);
+                          handleSearchChange(""); // Clear search to show draggable list
+                        }}
+                      >
+                        <MediaCard
+                          media={item}
+                          width={120}
+                          height={180}
+                          isTouchable={false}
+                        />
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                ) : (
+                  <Text
+                    style={[
+                      styles.searchEmptyText,
+                      {
+                        color: theme.secondaryText,
+                        fontFamily: fontFamily.plusJakarta.regular,
+                      },
+                    ]}
+                  >
+                    No results found for &quot;{searchQuery}&quot;
+                  </Text>
+                )
+              ) : (
+                // When there's no search query, show the draggable list (even if empty)
+                <DraggableFlatList
+                  data={selectedMedia}
+                  onDragEnd={({ data }) => {
+                    reorderMedia(data);
+                    setRenderCounter((prev) => prev + 1);
+                  }}
+                  keyExtractor={(item) => item.id}
+                  renderItem={renderDraggableItem}
+                  style={styles.searchDraggableList}
                   contentContainerStyle={[
-                    styles.searchResultsGrid,
-                    { paddingBottom: insets.bottom },
+                    styles.searchDraggableListContent,
+                    { paddingBottom: insets.bottom + 32 },
                   ]}
                   showsVerticalScrollIndicator={false}
-                >
-                  {searchResults.map((item) => (
-                    <TouchableOpacity
-                      key={item.id}
-                      style={styles.searchResultItem}
-                      onPress={() => {
-                        addMediaToCollection(item);
-                        handleEditEntries(); // Close search and show collection
-                      }}
+                  ListEmptyComponent={
+                    <Text
+                      style={[
+                        styles.searchEmptyText,
+                        {
+                          color: theme.secondaryText,
+                          fontFamily: fontFamily.plusJakarta.regular,
+                        },
+                      ]}
                     >
-                      <MediaCard
-                        media={item}
-                        width={120}
-                        height={180}
-                        isTouchable={false}
-                      />
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              ) : searchQuery ? (
-                <Text
-                  style={[
-                    styles.searchEmptyText,
-                    {
-                      color: theme.secondaryText,
-                      fontFamily: fontFamily.plusJakarta.regular,
-                    },
-                  ]}
-                >
-                  No results found for &quot;{searchQuery}&quot;
-                </Text>
-              ) : (
-                <Text
-                  style={[
-                    styles.searchEmptyText,
-                    {
-                      color: theme.secondaryText,
-                      fontFamily: fontFamily.plusJakarta.regular,
-                    },
-                  ]}
-                >
-                  Recommended media for your collection
-                </Text>
+                      No media added yet. Start typing to search for media to
+                      add.
+                    </Text>
+                  }
+                />
               )}
             </View>
           </Animated.View>
@@ -418,7 +374,6 @@ const styles = StyleSheet.create({
     left: 20,
     right: 20,
     gap: 12,
-    flex: 1,
   },
   searchInput: {},
   searchContent: {
@@ -517,6 +472,20 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingVertical: 40,
   },
+  // Media cards styles for main screen
+  mediaCardsScrollView: {
+    flex: 1,
+    height: 300,
+    borderRadius: 4,
+  },
+  mediaCardsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    overflow: "hidden",
+    gap: 12,
+  },
+  mediaCardItem: {},
   editEntriesHeaderContainer: {
     position: "relative",
     zIndex: 1,
@@ -544,19 +513,20 @@ const styles = StyleSheet.create({
   draggableListContent: {
     paddingBottom: 32,
   },
+  // Search screen draggable list styles
+  searchDraggableList: {
+    flex: 1,
+    marginHorizontal: -20,
+    paddingHorizontal: 20,
+  },
+  searchDraggableListContent: {
+    paddingBottom: 32,
+  },
   draggableItem: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 12,
-    paddingRight: 16,
     borderRadius: 16,
-    borderWidth: 1,
     gap: 12,
-  },
-  draggableImage: {
-    width: 60,
-    height: 90,
-    borderRadius: 8,
   },
   draggableContent: {
     flex: 1,
@@ -569,13 +539,23 @@ const styles = StyleSheet.create({
   draggableYear: {
     fontSize: 14,
   },
-  removeButton: {
-    justifyContent: "center",
-    alignItems: "center",
+  rankNumber: {
+    fontSize: 24,
+    fontWeight: "bold",
+    fontFamily: fontFamily.plusJakarta.bold,
   },
-  removeButtonText: {
+  rankNumberSmall: {
     fontSize: 18,
     fontWeight: "bold",
+    fontFamily: fontFamily.plusJakarta.bold,
+    minWidth: 24,
+    textAlign: "center",
+  },
+  rankContainer: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
   },
   emptyStateText: {
     fontSize: 16,
