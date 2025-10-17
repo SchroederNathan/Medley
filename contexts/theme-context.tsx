@@ -16,7 +16,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemColorScheme = useColorScheme();
   const [themeMode, setThemeMode] = useState("system");
   const [theme, setTheme] = useState(
-    () => themes[(systemColorScheme || "light") as keyof typeof themes]
+    () => themes[(systemColorScheme || "light") as keyof typeof themes],
   );
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const newTheme = themes[systemColorScheme as keyof typeof themes];
       // Only update if the theme actually changed to prevent unnecessary re-renders
       setTheme((currentTheme) =>
-        currentTheme === newTheme ? currentTheme : newTheme
+        currentTheme === newTheme ? currentTheme : newTheme,
       );
     }
   }, [systemColorScheme, themeMode]);
@@ -44,12 +44,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
           const selectedTheme =
             themes[(systemColorScheme || "light") as keyof typeof themes];
           setTheme((currentTheme) =>
-            currentTheme === selectedTheme ? currentTheme : selectedTheme
+            currentTheme === selectedTheme ? currentTheme : selectedTheme,
           );
         } else {
           const selectedTheme = themes[savedThemeMode as keyof typeof themes];
           setTheme((currentTheme) =>
-            currentTheme === selectedTheme ? currentTheme : selectedTheme
+            currentTheme === selectedTheme ? currentTheme : selectedTheme,
           );
         }
       } else {
@@ -58,7 +58,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         const defaultTheme =
           themes[(systemColorScheme || "light") as keyof typeof themes];
         setTheme((currentTheme) =>
-          currentTheme === defaultTheme ? currentTheme : defaultTheme
+          currentTheme === defaultTheme ? currentTheme : defaultTheme,
         );
       }
     } catch (error) {
@@ -69,7 +69,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const toggleTheme = async () => {
     const newTheme = theme === themes.light ? themes.dark : themes.light;
     setTheme((currentTheme) =>
-      currentTheme === newTheme ? currentTheme : newTheme
+      currentTheme === newTheme ? currentTheme : newTheme,
     );
     const newThemeMode = newTheme === themes.light ? "light" : "dark";
     setThemeMode(newThemeMode); // Override system mode when user manually toggles
@@ -86,12 +86,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const newTheme =
         themes[(systemColorScheme || "light") as keyof typeof themes];
       setTheme((currentTheme) =>
-        currentTheme === newTheme ? currentTheme : newTheme
+        currentTheme === newTheme ? currentTheme : newTheme,
       );
     } else {
       const newTheme = themes[mode as keyof typeof themes];
       setTheme((currentTheme) =>
-        currentTheme === newTheme ? currentTheme : newTheme
+        currentTheme === newTheme ? currentTheme : newTheme,
       );
     }
     try {

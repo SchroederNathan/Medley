@@ -77,7 +77,7 @@ const CreateCollection = () => {
         />
       );
     },
-    [isRanked, renderCounter]
+    [isRanked, renderCounter],
   );
 
   const handleEditEntries = () => {
