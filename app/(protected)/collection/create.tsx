@@ -148,9 +148,9 @@ const CreateCollection = () => {
         </Text>
       </View>
 
-      <TouchableWithoutFeedback onPress={dismissKeyboard}>
-        <View style={styles.container}>
-          {/* Content */}
+      <View style={styles.container}>
+        {/* Content */}
+        <TouchableWithoutFeedback onPress={dismissKeyboard}>
           <Animated.View style={[styles.content, contentAnimatedStyle]}>
             <View style={styles.inputContainer}>
               <Input
@@ -242,124 +242,125 @@ const CreateCollection = () => {
               />
             </View>
           </Animated.View>
+        </TouchableWithoutFeedback>
 
-          {/* Search View */}
-          <Animated.View
-            style={[
-              styles.searchContainer,
-              searchAnimatedStyle,
-              { bottom: -insets.bottom - 32 },
-            ]}
-          >
-            <Search
-              placeholder="Search for media to add..."
-              value={searchQuery}
-              onChangeText={handleSearchChange}
-              style={styles.searchInput}
-            />
-            <View style={styles.searchContent}>
-              {searchQuery ? (
-                // When there's a search query, show search results
-                searchLoading ? (
-                  <Text
-                    style={[
-                      styles.searchEmptyText,
-                      {
-                        color: theme.secondaryText,
-                        fontFamily: fontFamily.plusJakarta.regular,
-                      },
-                    ]}
-                  >
-                    Searching...
-                  </Text>
-                ) : searchError ? (
-                  <Text
-                    style={[
-                      styles.searchEmptyText,
-                      {
-                        color: theme.text,
-                        fontFamily: fontFamily.plusJakarta.medium,
-                      },
-                    ]}
-                  >
-                    Failed to load search results
-                  </Text>
-                ) : searchResults.length > 0 ? (
-                  <ScrollView
-                    style={styles.searchResultsScrollView}
-                    contentContainerStyle={[
-                      styles.searchResultsGrid,
-                      { paddingBottom: insets.bottom },
-                    ]}
-                    showsVerticalScrollIndicator={false}
-                  >
-                    {searchResults.map((item) => (
-                      <TouchableOpacity
-                        key={item.id}
-                        style={styles.searchResultItem}
-                        onPress={() => {
-                          addMediaToCollection(item);
-                          handleSearchChange(""); // Clear search to show draggable list
-                        }}
-                      >
-                        <MediaCard
-                          media={item}
-                          width={120}
-                          height={180}
-                          isTouchable={false}
-                        />
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                ) : (
-                  <Text
-                    style={[
-                      styles.searchEmptyText,
-                      {
-                        color: theme.secondaryText,
-                        fontFamily: fontFamily.plusJakarta.regular,
-                      },
-                    ]}
-                  >
-                    No results found for &quot;{searchQuery}&quot;
-                  </Text>
-                )
-              ) : (
-                // When there's no search query, show the draggable list (even if empty)
-                <DraggableFlatList
-                  data={selectedMedia}
-                  onDragEnd={({ data }) => {
-                    reorderMedia(data);
-                    setRenderCounter((prev) => prev + 1);
-                  }}
-                  keyExtractor={(item) => item.id}
-                  renderItem={renderDraggableItem}
-                  style={styles.searchDraggableList}
+        {/* Search View */}
+        <Animated.View
+          style={[
+            styles.searchContainer,
+            searchAnimatedStyle,
+            { bottom: -insets.bottom - 32 },
+          ]}
+        >
+          <Search
+            placeholder="Search for media to add..."
+            value={searchQuery}
+            onChangeText={handleSearchChange}
+            style={styles.searchInput}
+          />
+          <View style={styles.searchContent}>
+            {searchQuery ? (
+              // When there's a search query, show search results
+              searchLoading ? (
+                <Text
+                  style={[
+                    styles.searchEmptyText,
+                    {
+                      color: theme.secondaryText,
+                      fontFamily: fontFamily.plusJakarta.regular,
+                    },
+                  ]}
+                >
+                  Searching...
+                </Text>
+              ) : searchError ? (
+                <Text
+                  style={[
+                    styles.searchEmptyText,
+                    {
+                      color: theme.text,
+                      fontFamily: fontFamily.plusJakarta.medium,
+                    },
+                  ]}
+                >
+                  Failed to load search results
+                </Text>
+              ) : searchResults.length > 0 ? (
+                <ScrollView
+                  style={styles.searchResultsScrollView}
                   contentContainerStyle={[
-                    styles.searchDraggableListContent,
-                    { paddingBottom: insets.bottom + 32 },
+                    styles.searchResultsGrid,
+                    { paddingBottom: insets.bottom },
                   ]}
                   showsVerticalScrollIndicator={false}
-                  ListEmptyComponent={
-                    <Text
-                      style={[
-                        styles.searchEmptyText,
-                        {
-                          color: theme.secondaryText,
-                          fontFamily: fontFamily.plusJakarta.regular,
-                        },
-                      ]}
+                  keyboardShouldPersistTaps="handled"
+                >
+                  {searchResults.map((item) => (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={styles.searchResultItem}
+                      onPress={() => {
+                        addMediaToCollection(item);
+                        handleSearchChange(""); // Clear search to show draggable list
+                        dismissKeyboard(); // Dismiss keyboard after adding item
+                      }}
                     >
-                      No media added yet. Start typing to search for media to
-                      add.
-                    </Text>
-                  }
-                />
-              )}
-            </View>
-          </Animated.View>
-        </View>
-      </TouchableWithoutFeedback>
+                      <MediaCard
+                        media={item}
+                        width={120}
+                        height={180}
+                        isTouchable={false}
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              ) : (
+                <Text
+                  style={[
+                    styles.searchEmptyText,
+                    {
+                      color: theme.secondaryText,
+                      fontFamily: fontFamily.plusJakarta.regular,
+                    },
+                  ]}
+                >
+                  No results found for &quot;{searchQuery}&quot;
+                </Text>
+              )
+            ) : (
+              // When there's no search query, show the draggable list (even if empty)
+              <DraggableFlatList
+                data={selectedMedia}
+                onDragEnd={({ data }) => {
+                  reorderMedia(data);
+                  setRenderCounter((prev) => prev + 1);
+                }}
+                keyExtractor={(item) => item.id}
+                renderItem={renderDraggableItem}
+                style={styles.searchDraggableList}
+                contentContainerStyle={[
+                  styles.searchDraggableListContent,
+                  { paddingBottom: insets.bottom + 32 },
+                ]}
+                showsVerticalScrollIndicator={false}
+                ListEmptyComponent={
+                  <Text
+                    style={[
+                      styles.searchEmptyText,
+                      {
+                        color: theme.secondaryText,
+                        fontFamily: fontFamily.plusJakarta.regular,
+                      },
+                    ]}
+                  >
+                    No media added yet. Start typing to search for media to add.
+                  </Text>
+                }
+              />
+            )}
+          </View>
+        </Animated.View>
+      </View>
     </>
   );
 };

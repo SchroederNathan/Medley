@@ -117,6 +117,7 @@ export const SharedHeader: FC<SharedHeaderProps> = ({
               style={styles.cancelPressable}
             >
               <Text
+                numberOfLines={1}
                 style={[
                   styles.cancelText,
                   {

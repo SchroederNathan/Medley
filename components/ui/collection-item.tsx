@@ -1,6 +1,7 @@
 import { GripVertical } from "lucide-react-native";
 import React, { useContext } from "react";
-import { Image, Text, TouchableOpacity, View } from "react-native";
+import { Image } from "expo-image";
+import { Text, TouchableOpacity, View } from "react-native";
 import { ScaleDecorator } from "react-native-draggable-flatlist";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
@@ -35,6 +36,8 @@ const CollectionItem = ({
       case 1:
         return (
           <Image
+            cachePolicy="memory-disk"
+            transition={200}
             source={require("../../assets/badges/gold-badge.png")}
             style={{ width: 40, height: 40 }}
           />
@@ -42,6 +45,8 @@ const CollectionItem = ({
       case 2:
         return (
           <Image
+            cachePolicy="memory-disk"
+            transition={200}
             source={require("../../assets/badges/silver-badge.png")}
             style={{ width: 40, height: 40 }}
           />
@@ -49,6 +54,8 @@ const CollectionItem = ({
       case 3:
         return (
           <Image
+            cachePolicy="memory-disk"
+            transition={200}
             source={require("../../assets/badges/bronze-badge.png")}
             style={{ width: 40, height: 40 }}
           />
@@ -96,6 +103,8 @@ const CollectionItem = ({
       )}
 
       <Image
+        cachePolicy="memory-disk"
+        transition={200}
         source={{ uri: item.poster_url }}
         style={{
           width: 80,
