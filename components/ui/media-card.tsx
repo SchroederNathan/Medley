@@ -1,16 +1,12 @@
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import React, { useContext, useEffect, useState } from "react";
-import {
-  DimensionValue,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-  ViewStyle,
-} from "react-native";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import { DimensionValue, StyleSheet, View, ViewStyle } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   cancelAnimation,
   Easing,
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
@@ -18,8 +14,10 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
+import { useOverlay } from "../../contexts/overlay-context";
 import { ThemeContext } from "../../contexts/theme-context";
 import { Media } from "../../types/media";
+import * as Haptics from "expo-haptics";
 
 const MediaCard = ({
   media,
@@ -36,9 +34,12 @@ const MediaCard = ({
 }) => {
   const { theme } = useContext(ThemeContext);
   const router = useRouter();
+  const { showOverlay, hideOverlay } = useOverlay();
   const [isLoading, setIsLoading] = useState(true);
   const pulse = useSharedValue(0.6);
   const scale = useSharedValue(1);
+  const cardRef = useRef<View>(null);
+  const isLongPressed = useSharedValue(false);
 
   const skeletonStyle = useAnimatedStyle(() => ({
     opacity: pulse.value,
@@ -47,6 +48,79 @@ const MediaCard = ({
   const scaleStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
+
+  const handleShowOverlay = () => {
+    cardRef.current?.measureInWindow((x, y, cardWidth, cardHeight) => {
+      const cardClone = (
+        <View
+          style={{
+            position: "absolute",
+            top: y,
+            left: x,
+            width: cardWidth,
+            height: cardHeight,
+          }}
+        >
+          <View
+            style={[
+              styles.container,
+              {
+                width: cardWidth,
+                height: cardHeight,
+                backgroundColor: theme.buttonBackground,
+              },
+            ]}
+          >
+            {cardContent}
+          </View>
+        </View>
+      );
+      showOverlay(cardClone);
+    });
+  };
+
+  const longPressGesture = Gesture.LongPress()
+    .minDuration(500)
+    .onBegin(() => {
+      // Scale down on press
+      scale.value = withSpring(0.95);
+    })
+    .onStart(() => {
+      runOnJS(Haptics.selectionAsync)();
+      isLongPressed.value = true;
+      runOnJS(handleShowOverlay)();
+    })
+    .onEnd(() => {
+      // When user releases the long press, hide the overlay
+      runOnJS(hideOverlay)();
+      // Scale back up
+      scale.value = withSpring(1);
+    })
+    .onFinalize(() => {
+      isLongPressed.value = false;
+      // Ensure scale is reset
+      scale.value = withSpring(1);
+    });
+
+  const tapGesture = Gesture.Tap()
+    .maxDuration(500)
+    .onBegin(() => {
+      // Scale down on press
+      scale.value = withSpring(0.95);
+    })
+    .onEnd(() => {
+      // Scale back up
+      scale.value = withSpring(1);
+      if (!isLongPressed.value) {
+        runOnJS(router.push)(`/media-detail?id=${media.id}`);
+      }
+    })
+    .onFinalize(() => {
+      // Ensure scale is reset
+      scale.value = withSpring(1);
+    });
+
+  const composedGesture = Gesture.Exclusive(longPressGesture, tapGesture);
 
   useEffect(() => {
     if (!isLoading) return;
@@ -61,7 +135,7 @@ const MediaCard = ({
     return () => {
       cancelAnimation(pulse);
     };
-  }, [isLoading]);
+  }, [isLoading, pulse]);
   const cardContent = (
     <>
       {isLoading && (
@@ -90,31 +164,23 @@ const MediaCard = ({
 
   if (isTouchable) {
     return (
-      <Animated.View
-        style={[
-          styles.container,
-          {
-            height: height,
-            width: width,
-            backgroundColor: theme.buttonBackground,
-          },
-          scaleStyle,
-          style,
-        ]}
-      >
-        <TouchableOpacity
-          onPress={() => router.push(`/media-detail?id=${media.id}`)}
-          onPressIn={() => {
-            scale.value = withSpring(0.95);
-          }}
-          onPressOut={() => {
-            scale.value = withSpring(1);
-          }}
-          style={styles.touchableContent}
+      <GestureDetector gesture={composedGesture}>
+        <Animated.View
+          ref={cardRef}
+          style={[
+            styles.container,
+            {
+              height: height,
+              width: width,
+              backgroundColor: theme.buttonBackground,
+            },
+            scaleStyle,
+            style,
+          ]}
         >
           {cardContent}
-        </TouchableOpacity>
-      </Animated.View>
+        </Animated.View>
+      </GestureDetector>
     );
   }
 
