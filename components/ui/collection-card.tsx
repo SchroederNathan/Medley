@@ -65,9 +65,11 @@ const CollectionMediaGrid = ({ mediaItems }: { mediaItems: Media[] }) => {
 const CollectionCard = ({
   mediaItems,
   title,
+  ranked = false,
 }: {
   mediaItems: Media[];
   title: string;
+  ranked?: boolean;
 }) => {
   const { theme } = useContext(ThemeContext);
 

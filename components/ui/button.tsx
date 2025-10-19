@@ -16,6 +16,7 @@ interface ButtonProps {
   onPress: () => void;
   variant?: "primary" | "secondary";
   styles?: ViewStyle;
+  disabled?: boolean;
 }
 
 const Button = ({
@@ -24,6 +25,7 @@ const Button = ({
   onPress,
   variant = "primary",
   styles: additionalStyles,
+  disabled = false,
 }: ButtonProps) => {
   const { theme } = useContext(ThemeContext);
 
@@ -52,6 +54,7 @@ const Button = ({
         { borderColor: buttonBorder },
         animatedStyle,
         additionalStyles,
+        disabled && { opacity: 0.5 },
       ]}
     >
       <BlurView
@@ -62,13 +65,18 @@ const Button = ({
       />
       <Pressable
         onPressIn={() => {
-          scale.value = withSpring(0.95);
-          Haptics.selectionAsync();
+          if (!disabled) {
+            scale.value = withSpring(0.95);
+            Haptics.selectionAsync();
+          }
         }}
         onPressOut={() => {
-          scale.value = withSpring(1);
+          if (!disabled) {
+            scale.value = withSpring(1);
+          }
         }}
-        onPress={onPress}
+        onPress={disabled ? undefined : onPress}
+        disabled={disabled}
         style={styles.pressableContent}
       >
         {icon && icon}

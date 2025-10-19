@@ -1,6 +1,7 @@
 import { ArrowLeft, Plus, Trophy } from "lucide-react-native";
 import React, { useCallback, useContext, useState } from "react";
 import {
+  Alert,
   Keyboard,
   ScrollView,
   StyleSheet,
@@ -19,24 +20,30 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import Button from "../../../components/ui/button";
 import CollectionItem from "../../../components/ui/collection-item";
 import Input from "../../../components/ui/input";
 import MediaCard from "../../../components/ui/media-card";
 import Search from "../../../components/ui/search";
 import { Switch } from "../../../components/ui/switch";
+import { AuthContext } from "../../../contexts/auth-context";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { useCollectionSearch } from "../../../hooks/use-collection-search";
 import { fontFamily } from "../../../lib/fonts";
 import { Media } from "../../../types/media";
+import { CollectionService } from "../../../services/collectionService";
 
 const CreateCollection = () => {
   const { theme } = useContext(ThemeContext);
+  const { user } = useContext(AuthContext);
+  const router = useRouter();
   const [collectionName, setCollectionName] = useState("");
   const [description, setDescription] = useState("");
   const [isRanked, setIsRanked] = useState(false);
   const [isEditingEntries, setIsEditingEntries] = useState(false);
   const [renderCounter, setRenderCounter] = useState(0);
+  const [isCreating, setIsCreating] = useState(false);
   const insets = useSafeAreaInsets();
 
   const {
@@ -60,6 +67,51 @@ const CreateCollection = () => {
 
   const dismissKeyboard = () => {
     Keyboard.dismiss();
+  };
+
+  const handleCreateCollection = async () => {
+    // Validation
+    if (!collectionName.trim()) {
+      Alert.alert("Name Required", "Please enter a name for your collection.");
+      return;
+    }
+
+    if (selectedMedia.length === 0) {
+      Alert.alert(
+        "No Media Added",
+        "Please add at least one media item to your collection.",
+      );
+      return;
+    }
+
+    if (!user?.id) {
+      Alert.alert("Error", "You must be logged in to create a collection.");
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      const collection = await CollectionService.createCollection({
+        userId: user.id,
+        name: collectionName.trim(),
+        description: description.trim() || undefined,
+        ranked: isRanked,
+        items: selectedMedia,
+      });
+
+      // Success! Navigate to the collection detail page
+      router.push(`/collection/${collection.id}`);
+    } catch (error) {
+      console.error("Failed to create collection:", error);
+      Alert.alert(
+        "Error",
+        error instanceof Error
+          ? error.message
+          : "Failed to create collection. Please try again.",
+      );
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const renderDraggableItem = useCallback(
@@ -235,10 +287,11 @@ const CreateCollection = () => {
                 )}
               </View>
               <Button
-                title="Create Collection"
-                onPress={() => {}}
+                title={isCreating ? "Creating..." : "Create Collection"}
+                onPress={handleCreateCollection}
                 styles={styles.button}
                 variant="secondary"
+                disabled={isCreating}
               />
             </View>
           </Animated.View>

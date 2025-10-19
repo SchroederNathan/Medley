@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import React, { useContext } from "react";
+import React, { useContext, useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Svg, {
   Defs,
@@ -19,12 +19,12 @@ import { SharedHeader } from "../../../../components/ui/shared-header";
 import TabPager from "../../../../components/ui/tab-pager";
 import { ThemeContext } from "../../../../contexts/theme-context";
 import { useLibrarySearch } from "../../../../hooks/use-library-search";
-import { useUserMedia } from "../../../../hooks/use-user-media";
+import { useUserCollections } from "../../../../hooks/use-user-collections";
 import { fontFamily } from "../../../../lib/fonts";
 
 const LibraryScreen = () => {
   const { theme } = useContext(ThemeContext);
-  const userMediaQuery = useUserMedia();
+  const collectionsQuery = useUserCollections();
   const [activeTab, setActiveTab] = React.useState("all");
   const [query, setQuery] = React.useState("");
   const router = useRouter();
@@ -43,23 +43,23 @@ const LibraryScreen = () => {
   const tabs = [
     { key: "all", title: "All" },
     { key: "collections", title: "Collections" },
-    { key: "rankings", title: "Rankings" },
+    { key: "ranked", title: "Ranked" },
   ];
 
-  const allItems = userMediaQuery.data ?? [];
-  const movieItems = React.useMemo(
-    () =>
-      allItems.filter(
-        (m: any) => (m.media_type || "").toLowerCase() === "movie",
-      ),
-    [allItems],
+  const allCollections = useMemo(
+    () => collectionsQuery.data ?? [],
+    [collectionsQuery.data],
   );
-  const gameItems = React.useMemo(
-    () =>
-      allItems.filter(
-        (m: any) => (m.media_type || "").toLowerCase() === "game",
-      ),
-    [allItems],
+
+  // Filter collections by type
+  const unrankedCollections = useMemo(
+    () => allCollections.filter((c: any) => !c.ranked),
+    [allCollections],
+  );
+
+  const rankedCollections = useMemo(
+    () => allCollections.filter((c: any) => c.ranked),
+    [allCollections],
   );
 
   const handleFilterPress = () => {
@@ -115,10 +115,12 @@ const LibraryScreen = () => {
           Your Library
         </Text> */}
         <View style={{ flex: 1 }}>
-          {userMediaQuery.isLoading ? (
+          {collectionsQuery.isLoading ? (
             <Text style={{ color: theme.secondaryText }}>Loading…</Text>
-          ) : userMediaQuery.isError ? (
-            <Text style={{ color: theme.text }}>Failed to load library</Text>
+          ) : collectionsQuery.isError ? (
+            <Text style={{ color: theme.text }}>
+              Failed to load collections
+            </Text>
           ) : (
             <TabPager
               tabs={tabs}
@@ -126,7 +128,7 @@ const LibraryScreen = () => {
               selectedKey={activeTab}
               onChange={(key: string) => setActiveTab(key)}
               pages={[
-                // All tab
+                // All tab - shows both ranked and unranked
                 <View key="all" style={{ flex: 1, paddingTop: 24, gap: 16 }}>
                   <AddCollection
                     title="Add Collection"
@@ -134,32 +136,102 @@ const LibraryScreen = () => {
                       router.push("/collection/create");
                     }}
                   />
-                  <CollectionCard mediaItems={allItems} title="Big list" />
-                  <CollectionCard
-                    mediaItems={allItems}
-                    title="Cool Collection"
-                  />
-                  <CollectionCard mediaItems={allItems} title="All items" />
+                  {allCollections.length === 0 ? (
+                    <Text
+                      style={{
+                        color: theme.secondaryText,
+                        textAlign: "center",
+                        marginTop: 40,
+                        fontFamily: fontFamily.plusJakarta.regular,
+                      }}
+                    >
+                      No collections yet. Create your first one!
+                    </Text>
+                  ) : (
+                    allCollections.map((collection: any) => (
+                      <CollectionCard
+                        key={collection.id}
+                        mediaItems={
+                          collection.collection_items
+                            ?.sort((a: any, b: any) => a.position - b.position)
+                            .map((item: any) => item.media) ?? []
+                        }
+                        title={collection.name}
+                        ranked={collection.ranked}
+                      />
+                    ))
+                  )}
                 </View>,
-                // Collections tab
+                // Collections tab - unranked only
                 <View
                   key="collections"
                   style={{ flex: 1, paddingTop: 24, gap: 16 }}
                 >
-                  <CollectionCard mediaItems={movieItems} title="Movie list" />
-                  <CollectionCard
-                    mediaItems={movieItems}
-                    title="Awesome Movies"
+                  <AddCollection
+                    title="Add Collection"
+                    onPress={() => {
+                      router.push("/collection/create");
+                    }}
                   />
+                  {unrankedCollections.length === 0 ? (
+                    <Text
+                      style={{
+                        color: theme.secondaryText,
+                        textAlign: "center",
+                        marginTop: 40,
+                        fontFamily: fontFamily.plusJakarta.regular,
+                      }}
+                    >
+                      No unranked collections yet.
+                    </Text>
+                  ) : (
+                    unrankedCollections.map((collection: any) => (
+                      <CollectionCard
+                        key={collection.id}
+                        mediaItems={
+                          collection.collection_items
+                            ?.sort((a: any, b: any) => a.position - b.position)
+                            .map((item: any) => item.media) ?? []
+                        }
+                        title={collection.name}
+                        ranked={false}
+                      />
+                    ))
+                  )}
                 </View>,
-                // Rankings tab
-                <View
-                  key="rankings"
-                  style={{ flex: 1, paddingTop: 24, gap: 16 }}
-                >
-                  <Text style={{ color: theme.secondaryText }}>
-                    Rankings coming soon...
-                  </Text>
+                // Rankings tab - ranked only
+                <View key="ranked" style={{ flex: 1, paddingTop: 24, gap: 16 }}>
+                  <AddCollection
+                    title="Add Ranking"
+                    onPress={() => {
+                      router.push("/collection/create");
+                    }}
+                  />
+                  {rankedCollections.length === 0 ? (
+                    <Text
+                      style={{
+                        color: theme.secondaryText,
+                        textAlign: "center",
+                        marginTop: 40,
+                        fontFamily: fontFamily.plusJakarta.regular,
+                      }}
+                    >
+                      No ranked collections yet.
+                    </Text>
+                  ) : (
+                    rankedCollections.map((collection: any) => (
+                      <CollectionCard
+                        key={collection.id}
+                        mediaItems={
+                          collection.collection_items
+                            ?.sort((a: any, b: any) => a.position - b.position)
+                            .map((item: any) => item.media) ?? []
+                        }
+                        title={collection.name}
+                        ranked={true}
+                      />
+                    ))
+                  )}
                 </View>,
               ]}
             />
