@@ -54,8 +54,8 @@ const AuthProviderWithSplash = () => {
   return (
     <AuthProvider>
       <SplashController>
-        <OverlayProvider>
-          <GestureHandlerRootView>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <OverlayProvider>
             <StatusBar style="auto" />
             <Stack
               screenOptions={{
@@ -100,8 +100,8 @@ const AuthProviderWithSplash = () => {
                 }}
               />
             </Stack>
-          </GestureHandlerRootView>
-        </OverlayProvider>
+          </OverlayProvider>
+        </GestureHandlerRootView>
       </SplashController>
     </AuthProvider>
   );

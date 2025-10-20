@@ -1,7 +1,13 @@
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { DimensionValue, StyleSheet, View, ViewStyle } from "react-native";
+import {
+  DimensionValue,
+  Share,
+  StyleSheet,
+  View,
+  ViewStyle,
+} from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   cancelAnimation,
@@ -18,6 +24,7 @@ import { useOverlay } from "../../contexts/overlay-context";
 import { ThemeContext } from "../../contexts/theme-context";
 import { Media } from "../../types/media";
 import * as Haptics from "expo-haptics";
+import { RadialMenu } from "./radial-menu";
 
 const MediaCard = ({
   media,
@@ -40,6 +47,11 @@ const MediaCard = ({
   const scale = useSharedValue(1);
   const cardRef = useRef<View>(null);
   const isLongPressed = useSharedValue(false);
+  // Track finger for menu hover detection
+  const cursorX = useSharedValue(0);
+  const cursorY = useSharedValue(0);
+  const releaseSignal = useSharedValue(0);
+  const overlayOpen = useSharedValue(0);
 
   const skeletonStyle = useAnimatedStyle(() => ({
     opacity: pulse.value,
@@ -49,7 +61,7 @@ const MediaCard = ({
     transform: [{ scale: scale.value }],
   }));
 
-  const handleShowOverlay = () => {
+  const handleShowOverlay = (pressX: number, pressY: number) => {
     cardRef.current?.measureInWindow((x, y, cardWidth, cardHeight) => {
       const cardClone = (
         <View
@@ -75,31 +87,87 @@ const MediaCard = ({
           </View>
         </View>
       );
-      showOverlay(cardClone);
+      const content = (
+        <View style={[StyleSheet.absoluteFill, { zIndex: 10000 }]}>
+          {cardClone}
+          <RadialMenu
+            pressX={pressX}
+            pressY={pressY}
+            cursorX={cursorX}
+            cursorY={cursorY}
+            releaseSignal={releaseSignal}
+            onSelect={async (action) => {
+              if (action === "share") {
+                try {
+                  await Share.share({ message: media.title || "Share" });
+                } catch {}
+              } else if (action === "save") {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                // TODO: hook into real save once available
+              }
+              overlayOpen.value = 0;
+              hideOverlay();
+            }}
+            onCancel={() => {
+              overlayOpen.value = 0;
+              hideOverlay();
+            }}
+          />
+        </View>
+      );
+      showOverlay(content);
+      overlayOpen.value = 1;
     });
   };
 
   const longPressGesture = Gesture.LongPress()
     .minDuration(500)
+    .maxDistance(25)
     .onBegin(() => {
       // Scale down on press
       scale.value = withSpring(0.95);
     })
-    .onStart(() => {
+    .onStart((event) => {
       runOnJS(Haptics.selectionAsync)();
       isLongPressed.value = true;
-      runOnJS(handleShowOverlay)();
-    })
-    .onEnd(() => {
-      // When user releases the long press, hide the overlay
-      runOnJS(hideOverlay)();
-      // Scale back up
-      scale.value = withSpring(1);
+      const ax = (event as any).absoluteX ?? (event as any).x ?? 0;
+      const ay = (event as any).absoluteY ?? (event as any).y ?? 0;
+      cursorX.value = ax;
+      cursorY.value = ay;
+      runOnJS(handleShowOverlay)(ax, ay);
     })
     .onFinalize(() => {
       isLongPressed.value = false;
-      // Ensure scale is reset
+      // Scale back up
       scale.value = withSpring(1);
+    });
+
+  // Pan on the card to ensure we track the same finger as long-press
+  const panGesture = Gesture.Pan()
+    .manualActivation(true)
+    .minDistance(0)
+    .onTouchesDown((e, stateManager) => {
+      if (overlayOpen.value === 1) {
+        stateManager.activate();
+        cursorX.value = e.allTouches[0].absoluteX;
+        cursorY.value = e.allTouches[0].absoluteY;
+      }
+    })
+    .onTouchesMove((e, stateManager) => {
+      if (overlayOpen.value === 1) {
+        stateManager.activate();
+      }
+    })
+    .onChange((e) => {
+      if (overlayOpen.value === 1) {
+        cursorX.value = e.absoluteX;
+        cursorY.value = e.absoluteY;
+      }
+    })
+    .onEnd(() => {
+      if (overlayOpen.value === 1) {
+        releaseSignal.value = releaseSignal.value + 1;
+      }
     });
 
   const tapGesture = Gesture.Tap()
@@ -120,7 +188,10 @@ const MediaCard = ({
       scale.value = withSpring(1);
     });
 
-  const composedGesture = Gesture.Exclusive(longPressGesture, tapGesture);
+  const composedGesture = Gesture.Simultaneous(
+    Gesture.Exclusive(longPressGesture, tapGesture),
+    panGesture,
+  );
 
   useEffect(() => {
     if (!isLoading) return;

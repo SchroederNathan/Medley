@@ -1,6 +1,6 @@
 import { BlurView } from "expo-blur";
 import React, { createContext, useContext, useState } from "react";
-import { StyleSheet, TouchableOpacity } from "react-native";
+import { StyleSheet } from "react-native";
 import Animated, {
   useAnimatedProps,
   useAnimatedStyle,
@@ -86,19 +86,14 @@ export const OverlayProvider = ({
               styles.overlay,
               overlayStyle,
             ]}
+            pointerEvents="none"
           >
-            <TouchableOpacity
+            <AnimatedBlurView
+              tint="dark"
               style={StyleSheet.absoluteFill}
-              activeOpacity={1}
-              onPress={hideOverlay}
-            >
-              <AnimatedBlurView
-                tint="dark"
-                style={StyleSheet.absoluteFill}
-                animatedProps={blurAnimatedProps}
-                experimentalBlurMethod="dimezisBlurView"
-              />
-            </TouchableOpacity>
+              animatedProps={blurAnimatedProps}
+              experimentalBlurMethod="dimezisBlurView"
+            />
           </Animated.View>
           {/* Content rendered above the blur */}
           {overlayContent && (
@@ -108,7 +103,7 @@ export const OverlayProvider = ({
                 styles.contentOverlay,
                 contentStyle,
               ]}
-              pointerEvents="box-none"
+              pointerEvents="auto"
             >
               {overlayContent}
             </Animated.View>
