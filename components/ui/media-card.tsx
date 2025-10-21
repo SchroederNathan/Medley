@@ -103,7 +103,7 @@ const MediaCard = ({
                 } catch {}
               } else if (action === "save") {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                // TODO: hook into real save once available
+                router.push("/save-media");
               }
               overlayOpen.value = 0;
               hideOverlay();
