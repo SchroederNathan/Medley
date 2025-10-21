@@ -7,6 +7,7 @@ import { QueryProvider } from "../components/providers/query-provider";
 import { AuthContext, AuthProvider } from "../contexts/auth-context";
 import { OverlayProvider } from "../contexts/overlay-context";
 import { ThemeContext, ThemeProvider } from "../contexts/theme-context";
+import { ToastProvider } from "../contexts/toast-context";
 import { useAppFonts } from "../lib/fonts";
 import * as Sentry from "@sentry/react-native";
 
@@ -56,50 +57,52 @@ const AuthProviderWithSplash = () => {
       <SplashController>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <OverlayProvider>
-            <StatusBar style="auto" />
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                contentStyle: { backgroundColor: theme.background },
-              }}
-            >
-              <Stack.Screen
-                name="(protected)"
-                options={{
+            <ToastProvider>
+              <StatusBar style="auto" />
+              <Stack
+                screenOptions={{
                   headerShown: false,
+                  contentStyle: { backgroundColor: theme.background },
                 }}
-              />
-              <Stack.Screen
-                name="onboarding"
-                options={{
-                  animation: "none",
-                }}
-              />
-              <Stack.Screen
-                name="login"
-                options={{
-                  animation: "none",
-                }}
-              />
-              <Stack.Screen
-                name="name"
-                options={{
-                  animation: "none",
-                }}
-              />
-              <Stack.Screen
-                name="media-preferences"
-                options={{
-                  animation: "none",
-                }}
-              />
-              <Stack.Screen
-                name="signup"
-                options={{
-                  animation: "none",
-                }}
-              />
-            </Stack>
+              >
+                <Stack.Screen
+                  name="(protected)"
+                  options={{
+                    headerShown: false,
+                  }}
+                />
+                <Stack.Screen
+                  name="onboarding"
+                  options={{
+                    animation: "none",
+                  }}
+                />
+                <Stack.Screen
+                  name="login"
+                  options={{
+                    animation: "none",
+                  }}
+                />
+                <Stack.Screen
+                  name="name"
+                  options={{
+                    animation: "none",
+                  }}
+                />
+                <Stack.Screen
+                  name="media-preferences"
+                  options={{
+                    animation: "none",
+                  }}
+                />
+                <Stack.Screen
+                  name="signup"
+                  options={{
+                    animation: "none",
+                  }}
+                />
+              </Stack>
+            </ToastProvider>
           </OverlayProvider>
         </GestureHandlerRootView>
       </SplashController>

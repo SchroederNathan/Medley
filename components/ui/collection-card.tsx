@@ -66,23 +66,17 @@ const CollectionCard = ({
   mediaItems,
   title,
   ranked = false,
+  onPress,
 }: {
   mediaItems: Media[];
   title: string;
   ranked?: boolean;
+  onPress?: () => void;
 }) => {
   const { theme } = useContext(ThemeContext);
 
-  return (
-    <TouchableOpacity
-      style={[
-        styles.container,
-        {
-          //   borderColor: theme.buttonBorder,
-          //   backgroundColor: theme.buttonBackground,
-        },
-      ]}
-    >
+  const content = (
+    <>
       <CollectionMediaGrid mediaItems={mediaItems} />
       <View style={styles.rightContent}>
         <View style={styles.textContainer}>
@@ -93,7 +87,38 @@ const CollectionCard = ({
         </View>
         {/* <ChevronRight size={24} color={theme.secondaryText} /> */}
       </View>
-    </TouchableOpacity>
+    </>
+  );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity
+        onPress={onPress}
+        style={[
+          styles.container,
+          {
+            //   borderColor: theme.buttonBorder,
+            //   backgroundColor: theme.buttonBackground,
+          },
+        ]}
+      >
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
+  return (
+    <View
+      style={[
+        styles.container,
+        {
+          //   borderColor: theme.buttonBorder,
+          //   backgroundColor: theme.buttonBackground,
+        },
+      ]}
+    >
+      {content}
+    </View>
   );
 };
 

@@ -1,5 +1,5 @@
-import { supabase } from "../lib/utils";
 import { queryClient } from "../lib/query-client";
+import { supabase } from "../lib/utils";
 import { Media } from "../types/media";
 
 export interface CreateCollectionParams {
@@ -35,7 +35,9 @@ export class CollectionService {
       .single();
 
     if (collectionError) {
-      throw new Error(`Failed to create collection: ${collectionError.message}`);
+      throw new Error(
+        `Failed to create collection: ${collectionError.message}`,
+      );
     }
 
     // Step 2: Create collection items if there are any
@@ -69,13 +71,15 @@ export class CollectionService {
   static async getUserCollections(userId: string) {
     const { data, error } = await supabase
       .from("collections")
-      .select(`
+      .select(
+        `
         *,
         collection_items (
           *,
           media (*)
         )
-      `)
+      `,
+      )
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
 
@@ -89,13 +93,15 @@ export class CollectionService {
   static async getCollection(collectionId: string) {
     const { data, error } = await supabase
       .from("collections")
-      .select(`
+      .select(
+        `
         *,
         collection_items (
           *,
           media (*)
         )
-      `)
+      `,
+      )
       .eq("id", collectionId)
       .order("collection_items(position)", { ascending: true })
       .single();
@@ -113,7 +119,7 @@ export class CollectionService {
       name?: string;
       description?: string;
       ranked?: boolean;
-    }
+    },
   ) {
     const { data, error } = await supabase
       .from("collections")
@@ -144,5 +150,45 @@ export class CollectionService {
     // Invalidate queries
     queryClient.invalidateQueries({ queryKey: ["collections", userId] });
   }
-}
 
+  /**
+   * Adds media to a collection at the next available position
+   */
+  static async addMediaToCollection(collectionId: string, mediaId: string) {
+    // First, get the current max position for this collection
+    const { data: maxPositionData, error: positionError } = await supabase
+      .from("collection_items")
+      .select("position")
+      .eq("collection_id", collectionId)
+      .order("position", { ascending: false })
+      .limit(1);
+
+    if (positionError) {
+      throw new Error(`Failed to get max position: ${positionError.message}`);
+    }
+
+    const nextPosition = (maxPositionData?.[0]?.position || 0) + 1;
+
+    // Insert the new collection item
+    const { error: insertError } = await supabase
+      .from("collection_items")
+      .insert({
+        collection_id: collectionId,
+        media_id: mediaId,
+        position: nextPosition,
+      });
+
+    if (insertError) {
+      throw new Error(
+        `Failed to add media to collection: ${insertError.message}`,
+      );
+    }
+
+    // Invalidate relevant queries
+    queryClient.invalidateQueries({ queryKey: ["collection", collectionId] });
+    // Also invalidate user collections to update the save-media screen
+    queryClient.invalidateQueries({ queryKey: ["collections"] });
+
+    return { success: true };
+  }
+}

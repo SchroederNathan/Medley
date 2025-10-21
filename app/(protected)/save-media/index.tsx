@@ -1,14 +1,160 @@
-import React from "react";
-import { Text, View } from "react-native";
+import { FlashList } from "@shopify/flash-list";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import React, { useContext, useMemo, useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import AddCollection from "../../../components/ui/add-collection";
+import CollectionCard from "../../../components/ui/collection-card";
 import ModalHeader from "../../../components/ui/modal-header";
+import { ThemeContext } from "../../../contexts/theme-context";
+import { useToast } from "../../../contexts/toast-context";
+import { useUserCollections } from "../../../hooks/use-user-collections";
+import { fontFamily } from "../../../lib/fonts";
+import Search from "../../../components/ui/search";
+import { CollectionService } from "../../../services/collectionService";
+import * as Haptics from "expo-haptics";
 
 const SaveMedia = () => {
-  return (
-    <View>
-      <ModalHeader title="Save Media" />
-      <Text>SaveMedia</Text>
+  const { theme } = useContext(ThemeContext);
+  const collectionsQuery = useUserCollections();
+  const router = useRouter();
+  const { id: mediaId } = useLocalSearchParams();
+  const { showToast } = useToast();
+
+  const [addingToCollection, setAddingToCollection] = useState<string | null>(
+    null,
+  );
+
+  const allCollections = useMemo(
+    () => collectionsQuery.data ?? [],
+    [collectionsQuery.data],
+  );
+
+  const handleAddToCollection = async (collectionId: string) => {
+    if (!mediaId) {
+      return;
+    }
+
+    try {
+      setAddingToCollection(collectionId);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+      await CollectionService.addMediaToCollection(
+        collectionId,
+        mediaId as string,
+      );
+
+      // Get collection name for the toast
+      const collection = allCollections.find((c: any) => c.id === collectionId);
+      const collectionName = collection?.name || "collection";
+
+      // Show toast and navigate back
+      router.back();
+      setTimeout(() => {
+        showToast({
+          message: `Saved to ${collectionName}`,
+          actionText: "VIEW",
+          onActionPress: () => {
+            router.push(`/collection/${collectionId}`);
+          },
+        });
+      }, 100);
+    } catch (error) {
+      console.error("Failed to add media to collection:", error);
+      showToast({
+        message: "Failed to add media. Please try again.",
+      });
+    } finally {
+      setAddingToCollection(null);
+    }
+  };
+
+  const renderCollectionItem = ({ item }: { item: any }) => (
+    <View style={{ opacity: addingToCollection === item.id ? 0.6 : 1 }}>
+      <CollectionCard
+        mediaItems={
+          item.collection_items
+            ?.sort((a: any, b: any) => a.position - b.position)
+            .map((item: any) => item.media) ?? []
+        }
+        title={item.name}
+        ranked={item.ranked}
+        onPress={() => handleAddToCollection(item.id)}
+      />
+      {addingToCollection === item.id && <View style={styles.loadingOverlay} />}
     </View>
+  );
+
+  return (
+    <>
+      <ModalHeader title="Save Media" />
+      <View style={styles.content}>
+        {collectionsQuery.isLoading ? (
+          <Text style={{ color: theme.secondaryText }}>Loading…</Text>
+        ) : collectionsQuery.isError ? (
+          <Text style={{ color: theme.text }}>Failed to load collections</Text>
+        ) : (
+          <>
+            <Search placeholder="Search for collection" style={styles.search} />
+            <AddCollection
+              title="Create Collection"
+              onPress={() => {
+                router.push("/collection/create");
+              }}
+            />
+            {allCollections.length === 0 ? (
+              <Text
+                style={{
+                  color: theme.secondaryText,
+                  textAlign: "center",
+                  marginTop: 40,
+                  fontFamily: fontFamily.plusJakarta.regular,
+                }}
+              >
+                No collections yet. Create your first one!
+              </Text>
+            ) : (
+              <FlashList
+                data={allCollections}
+                renderItem={renderCollectionItem}
+                keyExtractor={(item) => item.id}
+                ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
+                contentContainerStyle={{ paddingTop: 16 }}
+                showsVerticalScrollIndicator={false}
+              />
+            )}
+          </>
+        )}
+      </View>
+    </>
   );
 };
 
 export default SaveMedia;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    padding: 20,
+  },
+  search: {
+    marginBottom: 16,
+  },
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 12,
+  },
+  loadingText: {
+    fontFamily: fontFamily.plusJakarta.medium,
+    fontSize: 14,
+  },
+});

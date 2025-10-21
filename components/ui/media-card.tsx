@@ -103,7 +103,7 @@ const MediaCard = ({
                 } catch {}
               } else if (action === "save") {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                router.push("/save-media");
+                router.push(`/save-media?id=${media.id}`);
               }
               overlayOpen.value = 0;
               hideOverlay();

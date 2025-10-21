@@ -10,10 +10,10 @@ export const BottomGradient: FC = () => {
       style={[StyleSheet.absoluteFillObject, { marginTop: -10 }]}
       colors={[
         "rgba(10, 10, 10, 0)",
-        "rgba(10, 10, 10, 0.7)",
+        "rgba(10, 10, 10, 0.75)",
         "rgba(10, 10, 10, 1)",
       ]}
-      locations={[0, 0.4, 0.9]}
+      locations={[0, 0.4, 1]}
     />
   );
 };
