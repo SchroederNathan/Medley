@@ -1,13 +1,15 @@
 import * as Haptics from "expo-haptics";
 import { Share2, Star } from "lucide-react-native";
-import React, { FC, useMemo } from "react";
+import React, { FC, useEffect, useMemo, useRef, useState } from "react";
 import { Dimensions, StyleSheet, View } from "react-native";
 import Animated, {
   runOnJS,
+  runOnUI,
   SharedValue,
   useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
+  withTiming,
 } from "react-native-reanimated";
 import { themes } from "../../constants/colors";
 
@@ -15,19 +17,73 @@ const BUTTON_RADIUS = 28; // 56px diameter
 const RADIUS = 96; // distance from press point to button center
 const ANGLE_SPREAD_DEG = 40; // spread between buttons around the base angle
 
+// Base icon size that scales dynamically
+const BASE_ICON_SIZE = 22;
+
 type ButtonItemProps = {
   button: { id: RadialAction; icon: any; pos: { x: number; y: number } };
   hoveredId: SharedValue<RadialAction | null>;
   isTracking: boolean;
+  pressX: number;
+  pressY: number;
+  animationProgress: SharedValue<number>;
+  proximityScale: SharedValue<number>;
 };
 
-const ButtonItem: FC<ButtonItemProps> = ({ button, hoveredId, isTracking }) => {
+const ButtonItem: FC<ButtonItemProps> = ({
+  button,
+  hoveredId,
+  isTracking,
+  pressX,
+  pressY,
+  animationProgress,
+  proximityScale,
+}) => {
+  const [iconSize, setIconSize] = useState(BASE_ICON_SIZE);
+
+  // Update icon size based on proximity and progress
+  useAnimatedReaction(
+    () => ({
+      progress: animationProgress.value,
+      proximity: proximityScale.value,
+    }),
+    ({ progress, proximity }) => {
+      const newSize = BASE_ICON_SIZE * proximity;
+      runOnJS(setIconSize)(newSize);
+    },
+  );
+
   const rStyle = useAnimatedStyle(() => {
     const isActive = hoveredId.value === button.id;
     return {
       backgroundColor: isActive
         ? themes.light.background
         : themes.dark.background,
+    };
+  });
+
+  const animatedButtonStyle = useAnimatedStyle(() => {
+    const progress = animationProgress.value;
+    const startX = pressX - BUTTON_RADIUS;
+    const startY = pressY - BUTTON_RADIUS;
+    const endX = button.pos.x - BUTTON_RADIUS;
+    const endY = button.pos.y - BUTTON_RADIUS;
+
+    const currentX = startX + (endX - startX) * progress;
+    const currentY = startY + (endY - startY) * progress;
+    const proximity = proximityScale.value;
+    const scale = progress * proximity; // Combined entrance + proximity scale
+    const opacity = progress;
+
+    // Use width/height instead of transform scale for crisp rendering
+    const containerSize = BUTTON_RADIUS * 2 * scale;
+
+    return {
+      left: currentX - (containerSize - BUTTON_RADIUS * 2) / 2, // Center the scaled container
+      top: currentY - (containerSize - BUTTON_RADIUS * 2) / 2,
+      width: containerSize,
+      height: containerSize,
+      opacity,
     };
   });
 
@@ -51,21 +107,14 @@ const ButtonItem: FC<ButtonItemProps> = ({ button, hoveredId, isTracking }) => {
 
   return (
     <Animated.View
-      style={[
-        styles.button,
-        rStyle,
-        {
-          left: button.pos.x - BUTTON_RADIUS,
-          top: button.pos.y - BUTTON_RADIUS,
-        },
-      ]}
+      style={[styles.button, rStyle, animatedButtonStyle]}
       pointerEvents={isTracking ? "auto" : "none"}
     >
       <Animated.View style={activeIconStyle}>
-        <Icon size={22} color="#000000" />
+        <Icon size={iconSize} color="#000000" />
       </Animated.View>
       <Animated.View style={inactiveIconStyle}>
-        <Icon size={22} color="#FFFFFF" />
+        <Icon size={iconSize} color="#FFFFFF" />
       </Animated.View>
     </Animated.View>
   );
@@ -130,7 +179,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({
       { id: "save" as const, icon: Star, pos: toXY(anglesDeg[0]) },
       { id: "share" as const, icon: Share2, pos: toXY(anglesDeg[1]) },
     ],
-    [anglesDeg[0], anglesDeg[1], pressX, pressY],
+    [anglesDeg, toXY, pressX, pressY],
   );
 
   // Centers used inside worklets (simple serializable objects only)
@@ -144,18 +193,56 @@ export const RadialMenu: FC<RadialMenuProps> = ({
 
   const hoveredId = useSharedValue<RadialAction | null>(null);
   const lastHapticId = useSharedValue<RadialAction | null>(null);
+  const animationProgress = useSharedValue(0);
+  const hasAnimatedIn = useRef(false);
+  const proximityScales = {
+    save: useSharedValue(1),
+    share: useSharedValue(1),
+  };
+
+  // Animate buttons in when component mounts
+  useEffect(() => {
+    if (!hasAnimatedIn.current) {
+      hasAnimatedIn.current = true;
+      runOnUI(() => {
+        animationProgress.value = withTiming(1, { duration: 300 });
+      })();
+    }
+  }, [animationProgress]);
 
   const checkButtonHover = (x: number, y: number) => {
     "worklet";
     let active: RadialAction | null = null;
+    let nearestId: RadialAction | null = null;
+    let nearestDist = Number.POSITIVE_INFINITY;
+    const maxProximityDistance = BUTTON_RADIUS * 2;
+
     for (const b of buttonCenters) {
       const dx = x - b.x;
       const dy = y - b.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist <= BUTTON_RADIUS * 1.2) {
-        active = b.id;
-        break;
+
+      // Track nearest for hover state
+      if (dist < nearestDist) {
+        nearestDist = dist;
+        nearestId = b.id;
       }
+
+      // Compute proximity scale between 1.0 and 1.4 (upscaling for emphasis)
+      const normalized = Math.max(
+        0,
+        Math.min(1, 1 - dist / maxProximityDistance),
+      );
+      const proximity = 1 + normalized * 0.4; // 1.0 to 1.4
+      if (b.id === "save") {
+        proximityScales.save.value = proximity;
+      } else {
+        proximityScales.share.value = proximity;
+      }
+    }
+
+    if (nearestId && nearestDist <= BUTTON_RADIUS * 1.4) {
+      active = nearestId;
     }
     if (hoveredId.value !== active) {
       hoveredId.value = active;
@@ -204,6 +291,12 @@ export const RadialMenu: FC<RadialMenuProps> = ({
           button={b}
           hoveredId={hoveredId}
           isTracking={isTracking}
+          pressX={pressX}
+          pressY={pressY}
+          animationProgress={animationProgress}
+          proximityScale={
+            b.id === "save" ? proximityScales.save : proximityScales.share
+          }
         />
       ))}
     </View>
@@ -214,9 +307,7 @@ const styles = StyleSheet.create({
   button: {
     position: "absolute",
     boxShadow: "0 0 12px 4px rgba(0, 0, 0, 0.1)",
-    width: BUTTON_RADIUS * 2,
-    height: BUTTON_RADIUS * 2,
-    borderRadius: BUTTON_RADIUS,
+    borderRadius: 100,
     alignItems: "center",
     justifyContent: "center",
   },
