@@ -363,11 +363,17 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({ media }) => {
             contentFit="cover"
           />
         )}
-        <BlurView
+        <Animated.View
+          key="blur-overlay"
           style={styles.blurOverlay}
-          intensity={100} // Adjust blur intensity (0-100)
-          tint="dark" // Optional: "light", "dark", or "default"
-        />
+          pointerEvents="none"
+        >
+          <BlurView
+            style={StyleSheet.absoluteFill}
+            intensity={100}
+            tint="dark"
+          />
+        </Animated.View>
       </MaskedView>
       <View style={{ height: 200 }}>
         <FlashList

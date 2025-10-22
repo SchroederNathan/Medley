@@ -9,6 +9,7 @@ import Animated, {
   useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
+  withSpring,
   withTiming,
 } from "react-native-reanimated";
 import { themes } from "../../constants/colors";
@@ -205,7 +206,9 @@ export const RadialMenu: FC<RadialMenuProps> = ({
     if (!hasAnimatedIn.current) {
       hasAnimatedIn.current = true;
       runOnUI(() => {
-        animationProgress.value = withTiming(1, { duration: 300 });
+        animationProgress.value = withSpring(1, {
+          damping: 80,
+        });
       })();
     }
   }, [animationProgress]);
