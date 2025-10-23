@@ -21,12 +21,12 @@ const SaveMedia = () => {
   const { showToast } = useToast();
 
   const [addingToCollection, setAddingToCollection] = useState<string | null>(
-    null,
+    null
   );
 
   const allCollections = useMemo(
     () => collectionsQuery.data ?? [],
-    [collectionsQuery.data],
+    [collectionsQuery.data]
   );
 
   const handleAddToCollection = async (collectionId: string) => {
@@ -40,7 +40,7 @@ const SaveMedia = () => {
 
       await CollectionService.addMediaToCollection(
         collectionId,
-        mediaId as string,
+        mediaId as string
       );
 
       // Get collection name for the toast
@@ -57,7 +57,7 @@ const SaveMedia = () => {
             router.push(`/collection/${collectionId}`);
           },
         });
-      }, 100);
+      }, 300);
     } catch (error) {
       console.error("Failed to add media to collection:", error);
       showToast({
@@ -76,11 +76,11 @@ const SaveMedia = () => {
             ?.sort((a: any, b: any) => a.position - b.position)
             .map((item: any) => item.media) ?? []
         }
+        isLoading={addingToCollection === item.id}
         title={item.name}
         ranked={item.ranked}
         onPress={() => handleAddToCollection(item.id)}
       />
-      {addingToCollection === item.id && <View style={styles.loadingOverlay} />}
     </View>
   );
 
@@ -89,9 +89,25 @@ const SaveMedia = () => {
       <ModalHeader title="Save Media" />
       <View style={styles.content}>
         {collectionsQuery.isLoading ? (
-          <Text style={{ color: theme.secondaryText }}>Loading…</Text>
+          <Text
+            style={{
+              color: theme.secondaryText,
+              textAlign: "center",
+              fontFamily: fontFamily.plusJakarta.regular,
+            }}
+          >
+            Loading…
+          </Text>
         ) : collectionsQuery.isError ? (
-          <Text style={{ color: theme.text }}>Failed to load collections</Text>
+          <Text
+            style={{
+              color: theme.text,
+              textAlign: "center",
+              fontFamily: fontFamily.plusJakarta.regular,
+            }}
+          >
+            Failed to load collections
+          </Text>
         ) : (
           <>
             <Search placeholder="Search for collection" style={styles.search} />
@@ -141,17 +157,6 @@ const styles = StyleSheet.create({
   },
   search: {
     marginBottom: 16,
-  },
-  loadingOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 12,
   },
   loadingText: {
     fontFamily: fontFamily.plusJakarta.medium,

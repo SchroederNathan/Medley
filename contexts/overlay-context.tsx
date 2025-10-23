@@ -1,6 +1,6 @@
 import { BlurView } from "expo-blur";
 import React, { createContext, useContext, useState } from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Animated, {
   useAnimatedProps,
   useAnimatedStyle,
@@ -93,6 +93,12 @@ export const OverlayProvider = ({
               style={StyleSheet.absoluteFill}
               animatedProps={blurAnimatedProps}
               experimentalBlurMethod="dimezisBlurView"
+            />
+            <View
+              style={[
+                StyleSheet.absoluteFill,
+                { backgroundColor: "rgba(0, 0, 0, 0.7)" },
+              ]}
             />
           </Animated.View>
           {/* Content rendered above the blur */}

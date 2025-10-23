@@ -1,6 +1,14 @@
 import * as Haptics from "expo-haptics";
-import { Share2, Star } from "lucide-react-native";
-import React, { FC, useEffect, useMemo, useRef, useState } from "react";
+import { Share2, Star, Bookmark } from "lucide-react-native";
+import React, {
+  FC,
+  useContext,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Dimensions, StyleSheet, View } from "react-native";
 import Animated, {
   runOnJS,
@@ -10,13 +18,12 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
-  withTiming,
 } from "react-native-reanimated";
-import { themes } from "../../constants/colors";
+import { ThemeContext } from "../../contexts/theme-context";
 
 const BUTTON_RADIUS = 28; // 56px diameter
 const RADIUS = 96; // distance from press point to button center
-const ANGLE_SPREAD_DEG = 40; // spread between buttons around the base angle
+const ANGLE_SPREAD_DEG = 40; // spread offset around the base angle
 
 // Base icon size that scales dynamically
 const BASE_ICON_SIZE = 22;
@@ -41,6 +48,7 @@ const ButtonItem: FC<ButtonItemProps> = ({
   proximityScale,
 }) => {
   const [iconSize, setIconSize] = useState(BASE_ICON_SIZE);
+  const { theme } = useContext(ThemeContext);
 
   // Update icon size based on proximity and progress
   useAnimatedReaction(
@@ -57,9 +65,7 @@ const ButtonItem: FC<ButtonItemProps> = ({
   const rStyle = useAnimatedStyle(() => {
     const isActive = hoveredId.value === button.id;
     return {
-      backgroundColor: isActive
-        ? themes.light.background
-        : themes.dark.background,
+      backgroundColor: isActive ? theme.secondaryButtonBackground : "#1C1C1C",
     };
   });
 
@@ -79,9 +85,22 @@ const ButtonItem: FC<ButtonItemProps> = ({
     // Use width/height instead of transform scale for crisp rendering
     const containerSize = BUTTON_RADIUS * 2 * scale;
 
+    // Nudge button slightly away from initial press when finger nears center
+    const vx = endX - startX;
+    const vy = endY - startY;
+    const vlen = Math.max(1, Math.sqrt(vx * vx + vy * vy));
+    const ux = vx / vlen;
+    const uy = vy / vlen;
+    const closeness = Math.max(0, Math.min(1, (proximity - 1) / 0.4));
+    const eased = closeness * closeness;
+    const offsetMax = 14;
+    const offset = offsetMax * eased * progress;
+    const adjX = currentX + ux * offset;
+    const adjY = currentY + uy * offset;
+
     return {
-      left: currentX - (containerSize - BUTTON_RADIUS * 2) / 2, // Center the scaled container
-      top: currentY - (containerSize - BUTTON_RADIUS * 2) / 2,
+      left: adjX - (containerSize - BUTTON_RADIUS * 2) / 2, 
+      top: adjY - (containerSize - BUTTON_RADIUS * 2) / 2,
       width: containerSize,
       height: containerSize,
       opacity,
@@ -121,7 +140,7 @@ const ButtonItem: FC<ButtonItemProps> = ({
   );
 };
 
-export type RadialAction = "save" | "share";
+export type RadialAction = "star" | "bookmark" | "share";
 
 type RadialMenuProps = {
   pressX: number;
@@ -144,50 +163,83 @@ export const RadialMenu: FC<RadialMenuProps> = ({
 }) => {
   const { width, height } = Dimensions.get("window");
 
-  // Determine base angle based on press quadrant; use angles compatible with RN coords
+  // Determine base angle from long-press point per thumb-position rules.
+  // User provides angles with 0° at top, increasing counterclockwise.
+  // Convert to RN coords used by toXY(): 0°=right, 90°=down, 180°=left, 270°=up.
   const baseAngleDeg = useMemo(() => {
     const cx = width / 2;
-    const cy = height / 2;
-    const inMiddle =
-      Math.abs(pressX - cx) < width * 0.2 &&
-      Math.abs(pressY - cy) < height * 0.2;
-    if (inMiddle) return 225; // up-left
-    const right = pressX > cx;
-    const bottom = pressY > cy;
-    if (right && bottom) return 225; // up-left
-    if (!right && !bottom) return 45; // down-right
-    if (right && !bottom) return 135; // down-left
-    return 315; // up-right
+    const x = pressX;
+    const y = pressY;
+
+    const isTopSixth = y < height / 4;
+    const isCenterBand = Math.abs(x - cx) < width * 0.1; // middle fifth ~ 20%
+
+    // Helper to angle-lerp in user space (0°=up, CCW+)
+    const lerpAngle = (a: number, b: number, t: number) => {
+      const delta = ((b - a + 540) % 360) - 180;
+      return (a + delta * t + 360) % 360;
+    };
+
+    // Center target: 0° (up) or 180° (down) in user space
+    const centerAngle = isTopSixth ? 180 : 0;
+
+    // Side far targets in user space
+    const leftFar = isTopSixth ? 230 : 310;
+    const rightFar = isTopSixth ? 120 : 60;
+
+    // Horizontal proximity to center (0 at center, 1 near edges)
+    const dxNorm = Math.min(1, Math.abs(x - cx) / (width / 2));
+
+    let userAngleDeg: number;
+    if (isCenterBand) {
+      userAngleDeg = centerAngle;
+    } else if (x < cx) {
+      userAngleDeg = lerpAngle(centerAngle, leftFar, dxNorm);
+    } else {
+      userAngleDeg = lerpAngle(centerAngle, rightFar, dxNorm);
+    }
+
+    // Map user's convention to RN toXY convention
+    // Mapping: A_rn = (270 - A_user) mod 360
+    const rnAngle = (270 - userAngleDeg + 360) % 360;
+    return rnAngle;
   }, [pressX, pressY, width, height]);
 
   const anglesDeg = useMemo(() => {
+    // Three buttons: left, center, right around the base angle
     return [
-      baseAngleDeg - ANGLE_SPREAD_DEG / 2,
-      baseAngleDeg + ANGLE_SPREAD_DEG / 2,
+      baseAngleDeg - ANGLE_SPREAD_DEG,
+      baseAngleDeg,
+      baseAngleDeg + ANGLE_SPREAD_DEG,
     ];
   }, [baseAngleDeg]);
 
-  const toXY = (deg: number) => {
-    const rad = (deg * Math.PI) / 180;
-    return {
-      x: pressX + RADIUS * Math.cos(rad),
-      y: pressY + RADIUS * Math.sin(rad),
-    };
-  };
+  const toXY = useCallback(
+    (deg: number) => {
+      const rad = (deg * Math.PI) / 180;
+      return {
+        x: pressX + RADIUS * Math.cos(rad),
+        y: pressY + RADIUS * Math.sin(rad),
+      };
+    },
+    [pressX, pressY],
+  );
 
   const buttons = useMemo(
     () => [
-      { id: "save" as const, icon: Star, pos: toXY(anglesDeg[0]) },
-      { id: "share" as const, icon: Share2, pos: toXY(anglesDeg[1]) },
+      { id: "star" as const, icon: Star, pos: toXY(anglesDeg[0]) },
+      { id: "bookmark" as const, icon: Bookmark, pos: toXY(anglesDeg[1]) },
+      { id: "share" as const, icon: Share2, pos: toXY(anglesDeg[2]) },
     ],
-    [anglesDeg, toXY, pressX, pressY],
+    [anglesDeg, toXY],
   );
 
   // Centers used inside worklets (simple serializable objects only)
   const buttonCenters = useMemo(
     () => [
-      { id: "save" as const, x: buttons[0].pos.x, y: buttons[0].pos.y },
-      { id: "share" as const, x: buttons[1].pos.x, y: buttons[1].pos.y },
+      { id: "star" as const, x: buttons[0].pos.x, y: buttons[0].pos.y },
+      { id: "bookmark" as const, x: buttons[1].pos.x, y: buttons[1].pos.y },
+      { id: "share" as const, x: buttons[2].pos.x, y: buttons[2].pos.y },
     ],
     [buttons],
   );
@@ -197,7 +249,8 @@ export const RadialMenu: FC<RadialMenuProps> = ({
   const animationProgress = useSharedValue(0);
   const hasAnimatedIn = useRef(false);
   const proximityScales = {
-    save: useSharedValue(1),
+    star: useSharedValue(1),
+    bookmark: useSharedValue(1),
     share: useSharedValue(1),
   };
 
@@ -237,8 +290,10 @@ export const RadialMenu: FC<RadialMenuProps> = ({
         Math.min(1, 1 - dist / maxProximityDistance),
       );
       const proximity = 1 + normalized * 0.4; // 1.0 to 1.4
-      if (b.id === "save") {
-        proximityScales.save.value = proximity;
+      if (b.id === "star") {
+        proximityScales.star.value = proximity;
+      } else if (b.id === "bookmark") {
+        proximityScales.bookmark.value = proximity;
       } else {
         proximityScales.share.value = proximity;
       }
@@ -298,7 +353,11 @@ export const RadialMenu: FC<RadialMenuProps> = ({
           pressY={pressY}
           animationProgress={animationProgress}
           proximityScale={
-            b.id === "save" ? proximityScales.save : proximityScales.share
+            b.id === "star"
+              ? proximityScales.star
+              : b.id === "bookmark"
+                ? proximityScales.bookmark
+                : proximityScales.share
           }
         />
       ))}

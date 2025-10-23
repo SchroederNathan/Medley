@@ -64,11 +64,13 @@ const CollectionMediaGrid = ({ mediaItems }: { mediaItems: Media[] }) => {
 
 const CollectionCard = ({
   mediaItems,
+  isLoading = false,
   title,
   ranked = false,
   onPress,
 }: {
   mediaItems: Media[];
+  isLoading?: boolean;
   title: string;
   ranked?: boolean;
   onPress?: () => void;
@@ -76,18 +78,22 @@ const CollectionCard = ({
   const { theme } = useContext(ThemeContext);
 
   const content = (
-    <>
+    <View
+      style={{
+        opacity: isLoading ? 0.6 : 1,
+        flexDirection: "row",
+        flex: 1,
+        gap: 16,
+      }}
+    >
       <CollectionMediaGrid mediaItems={mediaItems} />
       <View style={styles.rightContent}>
-        <View style={styles.textContainer}>
-          <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
-          <Text style={[styles.subtitle, { color: theme.secondaryText }]}>
-            {mediaItems.length} items
-          </Text>
-        </View>
-        {/* <ChevronRight size={24} color={theme.secondaryText} /> */}
+        <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
+        <Text style={[styles.subtitle, { color: theme.secondaryText }]}>
+          {mediaItems.length} items
+        </Text>
       </View>
-    </>
+    </View>
   );
 
   if (onPress) {
@@ -138,9 +144,9 @@ const styles = StyleSheet.create({
   rightContent: {
     flex: 1,
     gap: 4,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "flex-start",
   },
 
   mediaImages: {

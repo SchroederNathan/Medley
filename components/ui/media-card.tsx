@@ -167,9 +167,12 @@ const MediaCard = ({
                 try {
                   await Share.share({ message: media.title || "Share" });
                 } catch {}
-              } else if (action === "save") {
+              } else if (action === "bookmark") {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                 router.push(`/save-media?id=${media.id}`);
+              } else if (action === "star") {
+                // Temporarily empty behavior
+                console.log("Star tapped");
               }
               overlayOpen.value = 0;
               hideOverlay();
@@ -194,7 +197,7 @@ const MediaCard = ({
       scale.value = withSpring(0.95);
     })
     .onStart((event) => {
-      runOnJS(Haptics.selectionAsync)();
+      runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium);
       isLongPressed.value = true;
       const ax = (event as any).absoluteX ?? (event as any).x ?? 0;
       const ay = (event as any).absoluteY ?? (event as any).y ?? 0;
