@@ -174,7 +174,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({
     const isTopSixth = y < height / 4;
     const isCenterBand = Math.abs(x - cx) < width * 0.1; // middle fifth ~ 20%
 
-    // Helper to angle-lerp in user space (0°=up, CCW+)
+    // Helper to angle-lerp in user space (0°=up, CCW+i)
     const lerpAngle = (a: number, b: number, t: number) => {
       const delta = ((b - a + 540) % 360) - 180;
       return (a + delta * t + 360) % 360;

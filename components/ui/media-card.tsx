@@ -211,27 +211,19 @@ const MediaCard = ({
       scale.value = withSpring(1);
     });
 
-  // Pan on the card to ensure we track the same finger as long-press
+  // Pan gesture to track finger movement during and after long press
+  // Only activates after long press duration, so it doesn't interfere with scrolling
   const panGesture = Gesture.Pan()
-    .manualActivation(true)
-    .minDistance(0)
-    .onTouchesDown((e, stateManager) => {
-      if (overlayOpen.value === 1) {
-        stateManager.activate();
-        cursorX.value = e.allTouches[0].absoluteX;
-        cursorY.value = e.allTouches[0].absoluteY;
-      }
+    .maxPointers(1)
+    .activateAfterLongPress(500) // Match long press duration
+    .onBegin((e) => {
+      cursorX.value = e.absoluteX;
+      cursorY.value = e.absoluteY;
     })
-    .onTouchesMove((e, stateManager) => {
-      if (overlayOpen.value === 1) {
-        stateManager.activate();
-      }
-    })
-    .onChange((e) => {
-      if (overlayOpen.value === 1) {
-        cursorX.value = e.absoluteX;
-        cursorY.value = e.absoluteY;
-      }
+    .onUpdate((e) => {
+      // Track cursor for RadialMenu
+      cursorX.value = e.absoluteX;
+      cursorY.value = e.absoluteY;
     })
     .onEnd(() => {
       if (overlayOpen.value === 1) {
@@ -257,8 +249,9 @@ const MediaCard = ({
       scale.value = withSpring(1);
     });
 
+  // Simultaneous allows pan to track alongside tap/long-press without blocking
   const composedGesture = Gesture.Simultaneous(
-    Gesture.Exclusive(longPressGesture, tapGesture),
+    Gesture.Race(longPressGesture, tapGesture),
     panGesture,
   );
 
