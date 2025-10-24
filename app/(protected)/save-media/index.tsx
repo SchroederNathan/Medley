@@ -21,12 +21,12 @@ const SaveMedia = () => {
   const { showToast } = useToast();
 
   const [addingToCollection, setAddingToCollection] = useState<string | null>(
-    null
+    null,
   );
 
   const allCollections = useMemo(
     () => collectionsQuery.data ?? [],
-    [collectionsQuery.data]
+    [collectionsQuery.data],
   );
 
   const handleAddToCollection = async (collectionId: string) => {
@@ -40,7 +40,7 @@ const SaveMedia = () => {
 
       await CollectionService.addMediaToCollection(
         collectionId,
-        mediaId as string
+        mediaId as string,
       );
 
       // Get collection name for the toast

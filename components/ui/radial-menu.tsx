@@ -93,13 +93,13 @@ const ButtonItem: FC<ButtonItemProps> = ({
     const uy = vy / vlen;
     const closeness = Math.max(0, Math.min(1, (proximity - 1) / 0.4));
     const eased = closeness * closeness;
-    const offsetMax = 14;
+    const offsetMax = 32;
     const offset = offsetMax * eased * progress;
     const adjX = currentX + ux * offset;
     const adjY = currentY + uy * offset;
 
     return {
-      left: adjX - (containerSize - BUTTON_RADIUS * 2) / 2, 
+      left: adjX - (containerSize - BUTTON_RADIUS * 2) / 2,
       top: adjY - (containerSize - BUTTON_RADIUS * 2) / 2,
       width: containerSize,
       height: containerSize,
@@ -307,6 +307,9 @@ export const RadialMenu: FC<RadialMenuProps> = ({
       if (active && lastHapticId.value !== active) {
         lastHapticId.value = active;
         runOnJS(Haptics.selectionAsync)();
+      } else if (!active) {
+        // Clear lastHapticId when leaving button area
+        lastHapticId.value = null;
       }
     }
   };
@@ -368,7 +371,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({
 const styles = StyleSheet.create({
   button: {
     position: "absolute",
-    boxShadow: "0 0 12px 4px rgba(0, 0, 0, 0.1)",
+    boxShadow: "0 1.5px 0 0 rgba(0, 0, 0, 0.2)",
     borderRadius: 100,
     alignItems: "center",
     justifyContent: "center",

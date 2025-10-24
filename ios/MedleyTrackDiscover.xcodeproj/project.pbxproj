@@ -10,6 +10,7 @@
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		34E46EFA04ADEF65372E0C55 /* libPods-MedleyTrackDiscover.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F4769B6CA17DEFE8C2F5CC59 /* libPods-MedleyTrackDiscover.a */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
+		439A17A82EAB32AE0043B1FC /* warp_circle.riv in Resources */ = {isa = PBXBuildFile; fileRef = 439A17A72EAB32AE0043B1FC /* warp_circle.riv */; };
 		A50BD702B03A87B897337727 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 8F7801F644176535AC7D2CD4 /* PrivacyInfo.xcprivacy */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
@@ -20,8 +21,9 @@
 		13B07F961A680F5B00A75B9A /* MedleyTrackDiscover.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MedleyTrackDiscover.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = MedleyTrackDiscover/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = MedleyTrackDiscover/Info.plist; sourceTree = "<group>"; };
+		439A17A72EAB32AE0043B1FC /* warp_circle.riv */ = {isa = PBXFileReference; lastKnownFileType = file; path = warp_circle.riv; sourceTree = "<group>"; };
 		44C84FCDCF8CE53CC0BA3EF7 /* Pods-MedleyTrackDiscover.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MedleyTrackDiscover.release.xcconfig"; path = "Target Support Files/Pods-MedleyTrackDiscover/Pods-MedleyTrackDiscover.release.xcconfig"; sourceTree = "<group>"; };
-		8F7801F644176535AC7D2CD4 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = MedleyTrackDiscover/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		8F7801F644176535AC7D2CD4 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = MedleyTrackDiscover/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		9DE16254B3F57960F4F6ED10 /* Pods-MedleyTrackDiscover.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MedleyTrackDiscover.debug.xcconfig"; path = "Target Support Files/Pods-MedleyTrackDiscover/Pods-MedleyTrackDiscover.debug.xcconfig"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = MedleyTrackDiscover/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
@@ -67,6 +69,14 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		439A17A62EAB32860043B1FC /* RiveAssets */ = {
+			isa = PBXGroup;
+			children = (
+				439A17A72EAB32AE0043B1FC /* warp_circle.riv */,
+			);
+			path = RiveAssets;
+			sourceTree = "<group>";
+		};
 		5855E2C044031DF138F4511E /* ExpoModulesProviders */ = {
 			isa = PBXGroup;
 			children = (
@@ -81,7 +91,6 @@
 				9DE16254B3F57960F4F6ED10 /* Pods-MedleyTrackDiscover.debug.xcconfig */,
 				44C84FCDCF8CE53CC0BA3EF7 /* Pods-MedleyTrackDiscover.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -95,6 +104,7 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				439A17A62EAB32860043B1FC /* RiveAssets */,
 				13B07FAE1A68108700A75B9A /* MedleyTrackDiscover */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
@@ -197,6 +207,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
+				439A17A82EAB32AE0043B1FC /* warp_circle.riv in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
 				A50BD702B03A87B897337727 /* PrivacyInfo.xcprivacy in Resources */,
@@ -278,12 +289,14 @@
 				"${PODS_ROOT}/Target Support Files/Pods-MedleyTrackDiscover/Pods-MedleyTrackDiscover-frameworks.sh",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/React-Core-prebuilt/React.framework/React",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ReactNativeDependencies/ReactNativeDependencies.framework/ReactNativeDependencies",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/RiveRuntime/RiveRuntime.framework/RiveRuntime",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/React.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ReactNativeDependencies.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RiveRuntime.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -306,6 +319,7 @@
 				"${PODS_CONFIGURATION_BUILD_DIR}/RNSVG/RNSVGFilters.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/React-Core_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-cxxreact/React-cxxreact_privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/RiveRuntime/runtime_ios_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/SDWebImage/SDWebImage.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/Sentry/Sentry.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/expo-dev-launcher/EXDevLauncher.bundle",
@@ -321,6 +335,7 @@
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/RNSVGFilters.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-Core_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-cxxreact_privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/runtime_ios_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/SDWebImage.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Sentry.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/EXDevLauncher.bundle",

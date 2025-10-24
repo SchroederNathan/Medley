@@ -1,4 +1,3 @@
-import { Image } from "expo-image";
 import {
   TabList,
   Tabs,
@@ -13,15 +12,18 @@ import {
   UsersRound,
 } from "lucide-react-native";
 import React, { useContext } from "react";
-import {
-  StyleSheet,
-  TouchableOpacity,
-  TouchableOpacityProps,
-  View,
-} from "react-native";
+import { Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Rive from "rive-react-native";
 import { BottomGradient } from "../../../components/ui/bottom-gradient";
 import { HomeAnimationProvider } from "../../../contexts/home-animation-context";
 import { ThemeContext } from "../../../contexts/theme-context";
+import * as Haptics from "expo-haptics";
 
 type TabButtonProps = TabTriggerSlotProps & {
   icon: React.ReactNode;
@@ -39,17 +41,39 @@ const TabButton: React.FC<TabButtonProps> = ({ icon, isFocused, onPress }) => {
   );
 };
 
-const ImageTabButton: React.FC<TouchableOpacityProps> = ({ ...props }) => {
+const RiveButton: React.FC<TabTriggerSlotProps> = ({ onPress, isFocused }) => {
+  const bottom = useSafeAreaInsets().bottom;
+
+  // Shared value for scale animation
+  const scale = useSharedValue(1);
+
+  // Animated style for the scale transformation
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: scale.value }],
+    };
+  });
+
   return (
-    <TouchableOpacity {...props} style={[styles.tabTrigger]}>
-      <View style={styles.imageContainer}>
-        <Image
-          source={require("../../../assets/images/tab-button.png")}
-          style={[styles.image]}
-          contentFit="cover"
-        />
-      </View>
-    </TouchableOpacity>
+    <View style={styles.riveButtonWrapper}>
+      <Animated.View
+        style={[styles.riveButtonContainer, { bottom: bottom }, animatedStyle]}
+      >
+        <Rive resourceName="warp_circle" style={styles.riveButton} />
+      </Animated.View>
+      <Pressable
+        onPress={onPress}
+        onPressIn={() => {
+          scale.value = withSpring(0.9);
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+        }}
+        onPressOut={() => {
+          scale.value = withSpring(1);
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        }}
+        style={styles.riveButtonTrigger}
+      />
+    </View>
   );
 };
 
@@ -61,19 +85,54 @@ const TabsLayout = () => {
         <View style={styles.tabList}>
           <BottomGradient />
           <View style={styles.tabBar}>
-            <TabTrigger name="home" href="/(home)" asChild>
+            <TabTrigger
+              name="home"
+              href="/(home)"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+              }}
+              asChild
+            >
               <TabButton icon={<Home size={24} />} />
             </TabTrigger>
-            <TabTrigger name="social" href="/(social)" asChild>
+            <TabTrigger
+              name="social"
+              href="/(social)"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+              }}
+              asChild
+            >
               <TabButton icon={<UsersRound size={24} />} />
             </TabTrigger>
-            <TabTrigger name="match" href="/(match)" asChild>
-              <ImageTabButton />
+            <TabTrigger
+              name="match"
+              href="/(match)"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+              }}
+              asChild
+            >
+              <RiveButton />
             </TabTrigger>
-            <TabTrigger name="library" href="/(library)" asChild>
+            <TabTrigger
+              name="library"
+              href="/(library)"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+              }}
+              asChild
+            >
               <TabButton icon={<Library size={24} />} />
             </TabTrigger>
-            <TabTrigger name="profile" href="/(profile)" asChild>
+            <TabTrigger
+              name="profile"
+              href="/(profile)"
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+              }}
+              asChild
+            >
               <TabButton icon={<CircleUserRound size={24} />} />
             </TabTrigger>
           </View>
@@ -109,13 +168,41 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  imageContainer: {
-    boxShadow: "0px 0px 20px 10px rgba(0, 0, 0, 0.3)",
-    borderRadius: 100,
+  shadowContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   image: {
     width: 52,
     height: 52,
+  },
+  riveButtonContainer: {
+    position: "absolute",
+    width: 60,
+    height: 60,
+    borderRadius: 100,
+    zIndex: 10,
+    elevation: 10,
+  },
+  riveButton: {
+    width: 72,
+    height: 72,
+  },
+  riveButtonWrapper: {
+    position: "relative",
+    width: 72,
+    height: 72,
+  },
+  riveButtonTrigger: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 50,
   },
 });
 
