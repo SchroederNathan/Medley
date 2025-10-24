@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { usePreferredMedia } from "./use-preferred-media";
+import React, { useEffect, useState } from "react";
 import { useHomeAnimation } from "../contexts/home-animation-context";
+import { usePreferredMedia } from "./use-preferred-media";
 
 export const useSharedSearch = () => {
   const [query, setQuery] = useState("");

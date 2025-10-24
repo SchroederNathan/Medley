@@ -1,3 +1,4 @@
+import * as Haptics from "expo-haptics";
 import {
   TabList,
   Tabs,
@@ -23,7 +24,6 @@ import Rive from "rive-react-native";
 import { BottomGradient } from "../../../components/ui/bottom-gradient";
 import { HomeAnimationProvider } from "../../../contexts/home-animation-context";
 import { ThemeContext } from "../../../contexts/theme-context";
-import * as Haptics from "expo-haptics";
 
 type TabButtonProps = TabTriggerSlotProps & {
   icon: React.ReactNode;
@@ -64,12 +64,12 @@ const RiveButton: React.FC<TabTriggerSlotProps> = ({ onPress, isFocused }) => {
       <Pressable
         onPress={onPress}
         onPressIn={() => {
-          scale.value = withSpring(0.9);
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+          scale.value = withSpring(0.9);
         }}
         onPressOut={() => {
-          scale.value = withSpring(1);
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+          scale.value = withSpring(1);
         }}
         style={styles.riveButtonTrigger}
       />

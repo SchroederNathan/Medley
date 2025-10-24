@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { useUserMedia } from "./use-user-media";
 
 export const useLibrarySearch = (searchQuery: string) => {
@@ -10,10 +10,11 @@ export const useLibrarySearch = (searchQuery: string) => {
     }
 
     const query = searchQuery.toLowerCase().trim();
-    return userMediaQuery.data.filter((item) =>
-      item.title?.toLowerCase().includes(query) ||
-      item.description?.toLowerCase().includes(query) ||
-      item.media_type?.toLowerCase().includes(query)
+    return userMediaQuery.data.filter(
+      (item) =>
+        item.title?.toLowerCase().includes(query) ||
+        item.description?.toLowerCase().includes(query) ||
+        item.media_type?.toLowerCase().includes(query)
     );
   }, [userMediaQuery.data, searchQuery]);
 
@@ -26,4 +27,3 @@ export const useLibrarySearch = (searchQuery: string) => {
     handleSearchClear: () => "",
   };
 };
-

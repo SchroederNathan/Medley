@@ -44,7 +44,11 @@ const ProtectedLayout = () => {
 
       <Stack.Screen
         name="collection/[id]"
-        options={{ headerShown: false, presentation: "modal" }}
+        options={{
+          headerShown: false,
+          presentation: "modal",
+          contentStyle: { backgroundColor: theme.background },
+        }}
       />
     </Stack>
   );

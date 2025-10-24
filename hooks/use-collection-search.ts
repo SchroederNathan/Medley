@@ -1,19 +1,11 @@
-import React, {
-  useState,
-  useEffect,
-  useContext,
-  useCallback,
-  useMemo,
-} from "react";
+import React, { useCallback, useMemo, useState } from "react";
+import { Media } from "../types/media";
 import { usePreferredMedia } from "./use-preferred-media";
 import { useRecommendations } from "./use-recommendations";
-import { AuthContext } from "../contexts/auth-context";
-import { Media } from "../types/media";
 
 export const useCollectionSearch = () => {
   const [query, setQuery] = useState("");
   const [selectedMedia, setSelectedMedia] = useState<Media[]>([]);
-  const { isLoggedIn, user } = useContext(AuthContext);
 
   const mediaQuery = usePreferredMedia(query);
   const recommendationsQuery = useRecommendations({ kind: "all" });
@@ -34,7 +26,7 @@ export const useCollectionSearch = () => {
         setSelectedMedia((prev) => [...prev, media]);
       }
     },
-    [selectedMedia],
+    [selectedMedia]
   );
 
   const removeMediaFromCollection = useCallback((mediaId: string) => {
@@ -84,6 +76,6 @@ export const useCollectionSearch = () => {
       addMediaToCollection,
       removeMediaFromCollection,
       reorderMedia,
-    ],
+    ]
   );
 };

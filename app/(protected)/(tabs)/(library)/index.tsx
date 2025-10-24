@@ -48,18 +48,18 @@ const LibraryScreen = () => {
 
   const allCollections = useMemo(
     () => collectionsQuery.data ?? [],
-    [collectionsQuery.data],
+    [collectionsQuery.data]
   );
 
   // Filter collections by type
   const unrankedCollections = useMemo(
     () => allCollections.filter((c: any) => !c.ranked),
-    [allCollections],
+    [allCollections]
   );
 
   const rankedCollections = useMemo(
     () => allCollections.filter((c: any) => c.ranked),
-    [allCollections],
+    [allCollections]
   );
 
   const handleFilterPress = () => {
@@ -156,6 +156,9 @@ const LibraryScreen = () => {
                             ?.sort((a: any, b: any) => a.position - b.position)
                             .map((item: any) => item.media) ?? []
                         }
+                        onPress={() => {
+                          router.push(`/collection/${collection.id}`);
+                        }}
                         title={collection.name}
                         ranked={collection.ranked}
                       />
@@ -193,6 +196,9 @@ const LibraryScreen = () => {
                             ?.sort((a: any, b: any) => a.position - b.position)
                             .map((item: any) => item.media) ?? []
                         }
+                        onPress={() => {
+                          router.push(`/collection/${collection.id}`);
+                        }}
                         title={collection.name}
                         ranked={false}
                       />
@@ -227,6 +233,9 @@ const LibraryScreen = () => {
                             ?.sort((a: any, b: any) => a.position - b.position)
                             .map((item: any) => item.media) ?? []
                         }
+                        onPress={() => {
+                          router.push(`/collection/${collection.id}`);
+                        }}
                         title={collection.name}
                         ranked={true}
                       />

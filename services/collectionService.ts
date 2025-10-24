@@ -103,8 +103,8 @@ export class CollectionService {
       `,
       )
       .eq("id", collectionId)
-      .order("collection_items(position)", { ascending: true })
       .single();
+    // .maybeSingle(); // alternative to avoid error on 0 rows
 
     if (error) throw error;
     return data;

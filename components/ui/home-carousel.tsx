@@ -95,7 +95,7 @@ const CarouselDot: React.FC<CarouselDotProps> = ({
         DOT_CONTAINER_WIDTH * 6,
       ],
       [0.3, 0.7, 1, 1, 1, 0.7, 0.3],
-      Extrapolation.CLAMP,
+      Extrapolation.CLAMP
     );
 
     return {
@@ -504,10 +504,9 @@ const styles = StyleSheet.create({
   },
   title: {
     color: "white",
-    fontFamily: fontFamily.plusJakarta.bold,
-    fontSize: 16,
-    fontWeight: "600",
-    lineHeight: 20,
+    fontFamily: fontFamily.tanker.regular,
+    fontSize: 24,
+    letterSpacing: 0.3,
     zIndex: 10,
   },
   paginationContainer: {
