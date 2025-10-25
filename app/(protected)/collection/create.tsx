@@ -17,6 +17,8 @@ import Animated, {
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
+  withSpring,
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -64,6 +66,12 @@ const CreateCollection = () => {
   const searchTranslateX = useSharedValue(300);
   const backArrowOpacity = useSharedValue(0);
   const backArrowTranslateX = useSharedValue(-50);
+
+  // Header title animations
+  const headerNewOpacity = useSharedValue(1);
+  const headerNewTranslateY = useSharedValue(0);
+  const headerSearchOpacity = useSharedValue(0);
+  const headerSearchTranslateY = useSharedValue(-10);
 
   const dismissKeyboard = () => {
     Keyboard.dismiss();
@@ -146,6 +154,18 @@ const CreateCollection = () => {
       backArrowOpacity.value = withTiming(1, { duration: 300 }, () => {
         runOnJS(setIsEditingEntries)(true);
       });
+
+      // Animate header: New Collection out (down), Search Media in (down)
+      headerNewOpacity.value = withTiming(0, { duration: 300 });
+      headerNewTranslateY.value = withSpring(10, { duration: 300 });
+      headerSearchOpacity.value = withDelay(
+        100,
+        withSpring(1, { duration: 300 }),
+      );
+      headerSearchTranslateY.value = withDelay(
+        100,
+        withSpring(0, { duration: 300 }),
+      );
     } else {
       // Fade out search and fade in content
       searchOpacity.value = withTiming(0, { duration: 300 });
@@ -158,6 +178,15 @@ const CreateCollection = () => {
       contentTranslateX.value = withTiming(0, { duration: 300 }, () => {
         runOnJS(setIsEditingEntries)(false);
       });
+
+      // Animate header back: Search Media out (up), New Collection in (up)
+      headerSearchOpacity.value = withSpring(0, { duration: 300 });
+      headerSearchTranslateY.value = withSpring(-10, { duration: 300 });
+      headerNewOpacity.value = withDelay(100, withSpring(1, { duration: 300 }));
+      headerNewTranslateY.value = withDelay(
+        100,
+        withSpring(0, { duration: 300 }),
+      );
     }
   };
 
@@ -183,6 +212,20 @@ const CreateCollection = () => {
     };
   });
 
+  const headerNewAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: headerNewOpacity.value,
+      transform: [{ translateY: headerNewTranslateY.value }],
+    };
+  });
+
+  const headerSearchAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: headerSearchOpacity.value,
+      transform: [{ translateY: headerSearchTranslateY.value }],
+    };
+  });
+
   return (
     <>
       {/* Header */}
@@ -195,9 +238,32 @@ const CreateCollection = () => {
             <ArrowLeft size={24} color={theme.text} />
           </TouchableOpacity>
         </Animated.View>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>
-          New Collection
-        </Text>
+        <View style={styles.headerTitleContainer}>
+          {/* Invisible placeholder to preserve layout/spacing */}
+          <Text style={[styles.headerTitle, { color: "transparent" }]}>
+            New Collection
+          </Text>
+          <Animated.Text
+            style={[
+              styles.headerTitle,
+              styles.headerAnimatedTitle,
+              { color: theme.text },
+              headerNewAnimatedStyle,
+            ]}
+          >
+            New Collection
+          </Animated.Text>
+          <Animated.Text
+            style={[
+              styles.headerTitle,
+              styles.headerAnimatedTitle,
+              { color: theme.text },
+              headerSearchAnimatedStyle,
+            ]}
+          >
+            Search Media
+          </Animated.Text>
+        </View>
       </View>
 
       <View style={styles.container}>
@@ -465,6 +531,17 @@ const styles = StyleSheet.create({
     fontSize: 24,
     textAlign: "center",
     fontFamily: fontFamily.tanker.regular,
+  },
+  headerTitleContainer: {
+    position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerAnimatedTitle: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    textAlign: "center",
   },
   backArrowButton: {
     position: "absolute",

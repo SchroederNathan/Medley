@@ -48,18 +48,18 @@ const LibraryScreen = () => {
 
   const allCollections = useMemo(
     () => collectionsQuery.data ?? [],
-    [collectionsQuery.data]
+    [collectionsQuery.data],
   );
 
   // Filter collections by type
   const unrankedCollections = useMemo(
     () => allCollections.filter((c: any) => !c.ranked),
-    [allCollections]
+    [allCollections],
   );
 
   const rankedCollections = useMemo(
     () => allCollections.filter((c: any) => c.ranked),
-    [allCollections]
+    [allCollections],
   );
 
   const handleFilterPress = () => {
