@@ -29,7 +29,7 @@ const ProtectedLayout = () => {
           presentation: "formSheet",
           sheetGrabberVisible: true,
           sheetAllowedDetents: "fitToContents",
-          contentStyle: { backgroundColor: "transparent" },
+          contentStyle: { backgroundColor: theme.background },
         }}
       />
 

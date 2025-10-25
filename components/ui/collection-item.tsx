@@ -1,6 +1,6 @@
+import { Image } from "expo-image";
 import { GripVertical } from "lucide-react-native";
 import React, { useContext } from "react";
-import { Image } from "expo-image";
 import { Text, TouchableOpacity, View } from "react-native";
 import { ScaleDecorator } from "react-native-draggable-flatlist";
 import { ThemeContext } from "../../contexts/theme-context";
@@ -35,45 +35,145 @@ const CollectionItem = ({
     switch (rank) {
       case 1:
         return (
-          <Image
-            cachePolicy="memory-disk"
-            transition={200}
-            source={require("../../assets/badges/gold-badge.png")}
-            style={{ width: 40, height: 40 }}
-          />
+          <View
+            style={{
+              position: "relative",
+              width: 40,
+              height: 40,
+              overflow: "visible",
+            }}
+          >
+            <Image
+              cachePolicy="memory-disk"
+              transition={200}
+              source={require("../../assets/badges/gold-badge.png")}
+              style={{
+                position: "absolute",
+                width: 48,
+                height: 48,
+                top: -4,
+                left: -4,
+                tintColor: theme.background,
+              }}
+            />
+            <Image
+              cachePolicy="memory-disk"
+              transition={200}
+              source={require("../../assets/badges/gold-badge.png")}
+              style={{
+                width: 40,
+                height: 40,
+              }}
+            />
+          </View>
         );
       case 2:
         return (
-          <Image
-            cachePolicy="memory-disk"
-            transition={200}
-            source={require("../../assets/badges/silver-badge.png")}
-            style={{ width: 40, height: 40 }}
-          />
+          <View
+            style={{
+              position: "relative",
+              width: 40,
+              height: 40,
+              overflow: "visible",
+            }}
+          >
+            <Image
+              cachePolicy="memory-disk"
+              transition={200}
+              source={require("../../assets/badges/silver-badge.png")}
+              style={{
+                position: "absolute",
+                width: 48,
+                height: 48,
+                top: -4,
+                left: -4,
+                tintColor: theme.background,
+              }}
+            />
+            <Image
+              cachePolicy="memory-disk"
+              transition={200}
+              source={require("../../assets/badges/silver-badge.png")}
+              style={{
+                width: 40,
+                height: 40,
+              }}
+            />
+          </View>
         );
       case 3:
         return (
-          <Image
-            cachePolicy="memory-disk"
-            transition={200}
-            source={require("../../assets/badges/bronze-badge.png")}
-            style={{ width: 40, height: 40 }}
-          />
+          <View
+            style={{
+              position: "relative",
+              width: 40,
+              height: 40,
+              overflow: "visible",
+            }}
+          >
+            <Image
+              cachePolicy="memory-disk"
+              transition={200}
+              source={require("../../assets/badges/bronze-badge.png")}
+              style={{
+                position: "absolute",
+                width: 48,
+                height: 48,
+                top: -4,
+                left: -4,
+                tintColor: theme.background,
+              }}
+            />
+            <Image
+              cachePolicy="memory-disk"
+              transition={200}
+              source={require("../../assets/badges/bronze-badge.png")}
+              style={{
+                width: 40,
+                height: 40,
+              }}
+            />
+          </View>
         );
       default:
         return (
-          <Text
+          <View
             style={{
-              fontSize: 18,
-              fontWeight: "bold",
-              fontFamily: fontFamily.plusJakarta.bold,
-              color: theme.secondaryText,
-              minWidth: 24,
-              textAlign: "center",
+              position: "relative",
+              width: 32,
+              height: 32,
+              overflow: "visible",
             }}
           >
-            {rank}
-          </Text>
+            <View
+              style={{
+                position: "absolute",
+                top: -4,
+                left: -4,
+                width: 40,
+                height: 40,
+                backgroundColor: theme.background,
+                borderRadius: 20,
+              }}
+            />
+            <Text
+              style={{
+                fontSize: 18,
+                width: 32,
+                height: 32,
+                fontWeight: "bold",
+                fontFamily: fontFamily.plusJakarta.bold,
+                color: theme.secondaryText,
+                backgroundColor: theme.buttonBackground,
+                borderRadius: 20,
+                padding: 4,
+                minWidth: 24,
+                textAlign: "center",
+              }}
+            >
+              {rank}
+            </Text>
+          </View>
         );
     }
   };
@@ -83,7 +183,7 @@ const CollectionItem = ({
       style={{
         flexDirection: "row",
         alignItems: "center",
-        paddingVertical: 6,
+        paddingVertical: 16,
         borderRadius: 16,
       }}
     >
@@ -91,11 +191,15 @@ const CollectionItem = ({
       {isRanked && (
         <View
           style={{
+            position: "absolute",
+            top: 0,
+            left: -16,
             width: 40,
             height: 40,
             justifyContent: "center",
             alignItems: "center",
             marginRight: 12,
+            zIndex: 1,
           }}
         >
           {renderRankIndicator()}
