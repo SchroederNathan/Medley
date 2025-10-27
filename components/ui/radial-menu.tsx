@@ -6,12 +6,10 @@ import React, {
   useCallback,
   useMemo,
   useRef,
-  useState,
 } from "react";
 import { Dimensions, StyleSheet, View } from "react-native";
 import Animated, {
   runOnJS,
-  runOnUI,
   SharedValue,
   useAnimatedReaction,
   useAnimatedStyle,
@@ -48,35 +46,13 @@ const ButtonItem: FC<ButtonItemProps> = ({
   cursorX,
   cursorY,
 }) => {
-  const [iconSize, setIconSize] = useState(BASE_ICON_SIZE);
   const { theme } = useContext(ThemeContext);
-
-  // Update icon size based on proximity and progress
-  useAnimatedReaction(
-    () => {
-      const x = cursorX?.value ?? pressX;
-      const y = cursorY?.value ?? pressY;
-      const dx = x - button.pos.x;
-      const dy = y - button.pos.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const maxProximityDistance = BUTTON_RADIUS * 2;
-      const normalized = Math.max(
-        0,
-        Math.min(1, 1 - dist / maxProximityDistance),
-      );
-      const proximity = 1 + normalized * 0.4; // 1.0 to 1.4
-      return { progress: animationProgress.value, proximity };
-    },
-    ({ progress, proximity }) => {
-      const newSize = BASE_ICON_SIZE * proximity;
-      runOnJS(setIconSize)(newSize);
-    },
-  );
+  const secondaryBackgroundColor = theme.secondaryButtonBackground;
 
   const rStyle = useAnimatedStyle(() => {
     const isActive = hoveredId.value === button.id;
     return {
-      backgroundColor: isActive ? theme.secondaryButtonBackground : "#1C1C1C",
+      backgroundColor: isActive ? secondaryBackgroundColor : "#1C1C1C",
     };
   });
 
@@ -103,9 +79,6 @@ const ButtonItem: FC<ButtonItemProps> = ({
     const scale = progress * proximity; // Combined entrance + proximity scale
     const opacity = progress;
 
-    // Use width/height instead of transform scale for crisp rendering
-    const containerSize = BUTTON_RADIUS * 2 * scale;
-
     // Nudge button slightly away from initial press when finger nears center
     const vx = endX - startX;
     const vy = endY - startY;
@@ -120,11 +93,10 @@ const ButtonItem: FC<ButtonItemProps> = ({
     const adjY = currentY + uy * offset;
 
     return {
-      left: adjX - (containerSize - BUTTON_RADIUS * 2) / 2,
-      top: adjY - (containerSize - BUTTON_RADIUS * 2) / 2,
-      width: containerSize,
-      height: containerSize,
+      left: adjX,
+      top: adjY,
       opacity,
+      transform: [{ scale }],
     };
   });
 
@@ -152,10 +124,10 @@ const ButtonItem: FC<ButtonItemProps> = ({
       pointerEvents={isTracking ? "auto" : "none"}
     >
       <Animated.View style={activeIconStyle}>
-        <Icon size={iconSize} color="#000000" />
+        <Icon size={BASE_ICON_SIZE} color="#000000" />
       </Animated.View>
       <Animated.View style={inactiveIconStyle}>
-        <Icon size={iconSize} color="#FFFFFF" />
+        <Icon size={BASE_ICON_SIZE} color="#FFFFFF" />
       </Animated.View>
     </Animated.View>
   );
@@ -279,11 +251,9 @@ export const RadialMenu: FC<RadialMenuProps> = ({
   useEffect(() => {
     if (!hasAnimatedIn.current) {
       hasAnimatedIn.current = true;
-      runOnUI(() => {
-        animationProgress.value = withSpring(1, {
-          damping: 80,
-        });
-      })();
+      animationProgress.value = withSpring(1, {
+        damping: 80,
+      });
     }
   }, [animationProgress]);
 
@@ -291,23 +261,22 @@ export const RadialMenu: FC<RadialMenuProps> = ({
     "worklet";
     let active: string | null = null;
     let nearestId: string | null = null;
-    let nearestDist = Number.POSITIVE_INFINITY;
+    let nearestDist2 = Number.POSITIVE_INFINITY;
+    const hoverThreshold2 = BUTTON_RADIUS * 1.4 * (BUTTON_RADIUS * 1.4);
 
     for (let i = 0; i < buttonCenters.length; i++) {
       const b = buttonCenters[i];
       const dx = x - b.x;
       const dy = y - b.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
+      const dist2 = dx * dx + dy * dy;
 
-      if (dist < nearestDist) {
-        nearestDist = dist;
+      if (dist2 < nearestDist2) {
+        nearestDist2 = dist2;
         nearestId = b.id;
       }
-
-      // proximity is now derived within ButtonItem using cursor position
     }
 
-    if (nearestId && nearestDist <= BUTTON_RADIUS * 1.4) {
+    if (nearestId && nearestDist2 <= hoverThreshold2) {
       active = nearestId;
     }
     if (hoveredId.value !== active) {
@@ -378,5 +347,7 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     alignItems: "center",
     justifyContent: "center",
+    width: BUTTON_RADIUS * 2,
+    height: BUTTON_RADIUS * 2,
   },
 });
