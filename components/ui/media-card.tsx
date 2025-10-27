@@ -2,7 +2,7 @@ import { Canvas, LinearGradient, Rect, vec } from "@shopify/react-native-skia";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   DimensionValue,
   Share,
@@ -25,67 +25,11 @@ import Animated, {
 import { useOverlay } from "../../contexts/overlay-context";
 import { ThemeContext } from "../../contexts/theme-context";
 import { Media } from "../../types/media";
-import { RadialMenu } from "./radial-menu";
+import { Star, Bookmark, Share2 } from "lucide-react-native";
+import GradientSweepOverlay from "./gradient-sweep-overlay";
+import { useRadialOverlay } from "../../hooks/use-radial-overlay";
 
-// Gradient sweep overlay component using Skia for performance
-const GradientSweepOverlay = ({
-  width,
-  height,
-  isAnimating,
-}: {
-  width: number;
-  height: number;
-  isAnimating: boolean;
-}) => {
-  const sweepProgress = useSharedValue(0);
-
-  useEffect(() => {
-    if (isAnimating) {
-      sweepProgress.value = withTiming(1, {
-        duration: 800,
-        easing: Easing.out(Easing.ease),
-      });
-    }
-  }, [isAnimating, sweepProgress]);
-
-  const animatedGradientStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: height - sweepProgress.value * (height * 2) }],
-  }));
-
-  return (
-    <Animated.View
-      style={[
-        {
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width,
-          height,
-          overflow: "hidden",
-        },
-      ]}
-      pointerEvents="none"
-    >
-      <Animated.View style={[animatedGradientStyle]}>
-        <Canvas style={{ width, height, opacity: 0.5 }}>
-          <Rect x={0} y={0} width={width} height={height}>
-            <LinearGradient
-              start={vec(0, 0)}
-              end={vec(0, height)}
-              colors={[
-                "rgba(156, 106, 249, 0)",
-                "rgba(156, 106, 249, 0.8)",
-                "rgba(234, 191, 251, 1)",
-                "rgba(156, 106, 249, 0.8)",
-                "rgba(156, 106, 249, 0)",
-              ]}
-            />
-          </Rect>
-        </Canvas>
-      </Animated.View>
-    </Animated.View>
-  );
-};
+// Gradient overlay moved to shared component
 
 const MediaCard = ({
   media,
@@ -107,12 +51,6 @@ const MediaCard = ({
   const pulse = useSharedValue(0.6);
   const scale = useSharedValue(1);
   const cardRef = useRef<View>(null);
-  const isLongPressed = useSharedValue(false);
-  // Track finger for menu hover detection
-  const cursorX = useSharedValue(0);
-  const cursorY = useSharedValue(0);
-  const releaseSignal = useSharedValue(0);
-  const overlayOpen = useSharedValue(0);
 
   const skeletonStyle = useAnimatedStyle(() => ({
     opacity: pulse.value,
@@ -122,9 +60,32 @@ const MediaCard = ({
     transform: [{ scale: scale.value }],
   }));
 
-  const handleShowOverlay = (pressX: number, pressY: number) => {
-    cardRef.current?.measureInWindow((x, y, cardWidth, cardHeight) => {
-      const cardClone = (
+  const actions = useMemo(
+    () => [
+      { id: "star", icon: Star },
+      { id: "bookmark", icon: Bookmark },
+      { id: "share", icon: Share2 },
+    ],
+    [],
+  );
+
+  const { longPressGesture, panGesture, isLongPressed, overlayOpen } =
+    useRadialOverlay({
+      actions,
+      onSelect: async (actionId) => {
+        if (actionId === "share") {
+          try {
+            await Share.share({ message: media.title || "Share" });
+          } catch {}
+        } else if (actionId === "bookmark") {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          router.push(`/save-media?id=${media.id}`);
+        } else if (actionId === "star") {
+          // no-op for now
+        }
+      },
+      targetRef: cardRef,
+      renderClone: ({ x, y, width: cardWidth, height: cardHeight }) => (
         <View
           style={{
             position: "absolute",
@@ -152,93 +113,33 @@ const MediaCard = ({
             />
           </View>
         </View>
-      );
-      const content = (
-        <View style={[StyleSheet.absoluteFill, { zIndex: 10000 }]}>
-          {cardClone}
-          <RadialMenu
-            pressX={pressX}
-            pressY={pressY}
-            cursorX={cursorX}
-            cursorY={cursorY}
-            releaseSignal={releaseSignal}
-            onSelect={async (action) => {
-              if (action === "share") {
-                try {
-                  await Share.share({ message: media.title || "Share" });
-                } catch {}
-              } else if (action === "bookmark") {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                router.push(`/save-media?id=${media.id}`);
-              } else if (action === "star") {
-                // Temporarily empty behavior
-                console.log("Star tapped");
-              }
-              overlayOpen.value = 0;
-              hideOverlay();
-            }}
-            onCancel={() => {
-              overlayOpen.value = 0;
-              hideOverlay();
-            }}
-          />
-        </View>
-      );
-      showOverlay(content);
-      overlayOpen.value = 1;
+      ),
     });
-  };
 
-  const longPressGesture = Gesture.LongPress()
-    .minDuration(500)
-    .maxDistance(25)
+  const longPressWithScale = longPressGesture
     .onBegin(() => {
-      // Scale down on press
+      "worklet";
       scale.value = withSpring(0.95);
     })
-    .onStart((event) => {
-      runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium);
-      isLongPressed.value = true;
-      const ax = (event as any).absoluteX ?? (event as any).x ?? 0;
-      const ay = (event as any).absoluteY ?? (event as any).y ?? 0;
-      cursorX.value = ax;
-      cursorY.value = ay;
-      runOnJS(handleShowOverlay)(ax, ay);
-    })
     .onFinalize(() => {
-      isLongPressed.value = false;
-      // Scale back up
+      "worklet";
       scale.value = withSpring(1);
     });
 
   // Pan gesture to track finger movement during and after long press
   // Only activates after long press duration, so it doesn't interfere with scrolling
-  const panGesture = Gesture.Pan()
-    .maxPointers(1)
-    .activateAfterLongPress(500) // Match long press duration
-    .onBegin((e) => {
-      cursorX.value = e.absoluteX;
-      cursorY.value = e.absoluteY;
-    })
-    .onUpdate((e) => {
-      // Track cursor for RadialMenu
-      cursorX.value = e.absoluteX;
-      cursorY.value = e.absoluteY;
-    })
-    .onEnd(() => {
-      if (overlayOpen.value === 1) {
-        releaseSignal.value = releaseSignal.value + 1;
-      }
-    });
+  const pan = panGesture;
 
   const tapGesture = Gesture.Tap()
     .maxDuration(500)
     .onBegin(() => {
       // Scale down on press
+      "worklet";
       scale.value = withSpring(0.95);
     })
     .onEnd(() => {
       // Scale back up
+      "worklet";
       scale.value = withSpring(1);
       if (!isLongPressed.value) {
         runOnJS(router.push)(`/media-detail?id=${media.id}`);
@@ -246,13 +147,14 @@ const MediaCard = ({
     })
     .onFinalize(() => {
       // Ensure scale is reset
+      "worklet";
       scale.value = withSpring(1);
     });
 
   // Simultaneous allows pan to track alongside tap/long-press without blocking
   const composedGesture = Gesture.Simultaneous(
-    Gesture.Race(longPressGesture, tapGesture),
-    panGesture,
+    Gesture.Race(longPressWithScale, tapGesture),
+    pan,
   );
 
   useEffect(() => {

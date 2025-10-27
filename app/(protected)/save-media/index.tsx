@@ -71,6 +71,7 @@ const SaveMedia = () => {
   const renderCollectionItem = ({ item }: { item: any }) => (
     <View style={{ opacity: addingToCollection === item.id ? 0.6 : 1 }}>
       <CollectionCard
+        id={item.id}
         mediaItems={
           item.collection_items
             ?.sort((a: any, b: any) => a.position - b.position)

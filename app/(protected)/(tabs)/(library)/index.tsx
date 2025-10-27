@@ -150,6 +150,7 @@ const LibraryScreen = () => {
                   ) : (
                     allCollections.map((collection: any) => (
                       <CollectionCard
+                        id={collection.id}
                         key={collection.id}
                         mediaItems={
                           collection.collection_items
@@ -190,6 +191,7 @@ const LibraryScreen = () => {
                   ) : (
                     unrankedCollections.map((collection: any) => (
                       <CollectionCard
+                        id={collection.id}
                         key={collection.id}
                         mediaItems={
                           collection.collection_items
@@ -227,6 +229,7 @@ const LibraryScreen = () => {
                   ) : (
                     rankedCollections.map((collection: any) => (
                       <CollectionCard
+                        id={collection.id}
                         key={collection.id}
                         mediaItems={
                           collection.collection_items

@@ -1,5 +1,4 @@
 import * as Haptics from "expo-haptics";
-import { Share2, Star, Bookmark } from "lucide-react-native";
 import React, {
   FC,
   useContext,
@@ -22,20 +21,21 @@ import Animated, {
 import { ThemeContext } from "../../contexts/theme-context";
 
 const BUTTON_RADIUS = 28; // 56px diameter
-const RADIUS = 96; // distance from press point to button center
-const ANGLE_SPREAD_DEG = 40; // spread offset around the base angle
+const DEFAULT_RADIUS = 96; // distance from press point to button center
+const DEFAULT_ANGLE_STEP_DEG = 40; // per-step spread offset around the base angle
 
 // Base icon size that scales dynamically
 const BASE_ICON_SIZE = 22;
 
 type ButtonItemProps = {
-  button: { id: RadialAction; icon: any; pos: { x: number; y: number } };
-  hoveredId: SharedValue<RadialAction | null>;
+  button: { id: string; icon: any; pos: { x: number; y: number } };
+  hoveredId: SharedValue<string | null>;
   isTracking: boolean;
   pressX: number;
   pressY: number;
   animationProgress: SharedValue<number>;
-  proximityScale: SharedValue<number>;
+  cursorX?: SharedValue<number>;
+  cursorY?: SharedValue<number>;
 };
 
 const ButtonItem: FC<ButtonItemProps> = ({
@@ -45,17 +45,28 @@ const ButtonItem: FC<ButtonItemProps> = ({
   pressX,
   pressY,
   animationProgress,
-  proximityScale,
+  cursorX,
+  cursorY,
 }) => {
   const [iconSize, setIconSize] = useState(BASE_ICON_SIZE);
   const { theme } = useContext(ThemeContext);
 
   // Update icon size based on proximity and progress
   useAnimatedReaction(
-    () => ({
-      progress: animationProgress.value,
-      proximity: proximityScale.value,
-    }),
+    () => {
+      const x = cursorX?.value ?? pressX;
+      const y = cursorY?.value ?? pressY;
+      const dx = x - button.pos.x;
+      const dy = y - button.pos.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const maxProximityDistance = BUTTON_RADIUS * 2;
+      const normalized = Math.max(
+        0,
+        Math.min(1, 1 - dist / maxProximityDistance),
+      );
+      const proximity = 1 + normalized * 0.4; // 1.0 to 1.4
+      return { progress: animationProgress.value, proximity };
+    },
     ({ progress, proximity }) => {
       const newSize = BASE_ICON_SIZE * proximity;
       runOnJS(setIconSize)(newSize);
@@ -78,7 +89,17 @@ const ButtonItem: FC<ButtonItemProps> = ({
 
     const currentX = startX + (endX - startX) * progress;
     const currentY = startY + (endY - startY) * progress;
-    const proximity = proximityScale.value;
+    const cx = cursorX?.value ?? pressX;
+    const cy = cursorY?.value ?? pressY;
+    const dx = cx - button.pos.x;
+    const dy = cy - button.pos.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const maxProximityDistance = BUTTON_RADIUS * 2;
+    const normalized = Math.max(
+      0,
+      Math.min(1, 1 - dist / maxProximityDistance),
+    );
+    const proximity = 1 + normalized * 0.4; // 1.0 to 1.4
     const scale = progress * proximity; // Combined entrance + proximity scale
     const opacity = progress;
 
@@ -140,7 +161,7 @@ const ButtonItem: FC<ButtonItemProps> = ({
   );
 };
 
-export type RadialAction = "star" | "bookmark" | "share";
+export type RadialActionDef = { id: string; icon: any };
 
 type RadialMenuProps = {
   pressX: number;
@@ -148,7 +169,10 @@ type RadialMenuProps = {
   cursorX?: SharedValue<number>;
   cursorY?: SharedValue<number>;
   releaseSignal?: SharedValue<number>;
-  onSelect: (action: RadialAction) => void;
+  actions: RadialActionDef[];
+  radius?: number;
+  angleStepDeg?: number;
+  onSelect: (actionId: string) => void;
   onCancel: () => void;
 };
 
@@ -158,6 +182,9 @@ export const RadialMenu: FC<RadialMenuProps> = ({
   cursorX,
   cursorY,
   releaseSignal,
+  actions,
+  radius = DEFAULT_RADIUS,
+  angleStepDeg = DEFAULT_ANGLE_STEP_DEG,
   onSelect,
   onCancel,
 }) => {
@@ -206,53 +233,47 @@ export const RadialMenu: FC<RadialMenuProps> = ({
   }, [pressX, pressY, width, height]);
 
   const anglesDeg = useMemo(() => {
-    // Three buttons: left, center, right around the base angle
-    return [
-      baseAngleDeg - ANGLE_SPREAD_DEG,
-      baseAngleDeg,
-      baseAngleDeg + ANGLE_SPREAD_DEG,
-    ];
-  }, [baseAngleDeg]);
+    const count = Math.max(1, actions.length);
+    if (count === 1) return [baseAngleDeg];
+    const half = (count - 1) / 2;
+    return new Array(count).fill(0).map((_, i) => {
+      const offsetIndex = i - half;
+      return baseAngleDeg + offsetIndex * angleStepDeg;
+    });
+  }, [baseAngleDeg, actions.length, angleStepDeg]);
 
   const toXY = useCallback(
     (deg: number) => {
       const rad = (deg * Math.PI) / 180;
       return {
-        x: pressX + RADIUS * Math.cos(rad),
-        y: pressY + RADIUS * Math.sin(rad),
+        x: pressX + radius * Math.cos(rad),
+        y: pressY + radius * Math.sin(rad),
       };
     },
-    [pressX, pressY],
+    [pressX, pressY, radius],
   );
 
   const buttons = useMemo(
-    () => [
-      { id: "star" as const, icon: Star, pos: toXY(anglesDeg[0]) },
-      { id: "bookmark" as const, icon: Bookmark, pos: toXY(anglesDeg[1]) },
-      { id: "share" as const, icon: Share2, pos: toXY(anglesDeg[2]) },
-    ],
-    [anglesDeg, toXY],
+    () =>
+      actions.map((a, i) => ({
+        id: a.id,
+        icon: a.icon,
+        pos: toXY(anglesDeg[i]),
+      })),
+    [actions, anglesDeg, toXY],
   );
 
   // Centers used inside worklets (simple serializable objects only)
   const buttonCenters = useMemo(
-    () => [
-      { id: "star" as const, x: buttons[0].pos.x, y: buttons[0].pos.y },
-      { id: "bookmark" as const, x: buttons[1].pos.x, y: buttons[1].pos.y },
-      { id: "share" as const, x: buttons[2].pos.x, y: buttons[2].pos.y },
-    ],
+    () => buttons.map((b) => ({ id: b.id, x: b.pos.x, y: b.pos.y })),
     [buttons],
   );
 
-  const hoveredId = useSharedValue<RadialAction | null>(null);
-  const lastHapticId = useSharedValue<RadialAction | null>(null);
+  const hoveredId = useSharedValue<string | null>(null);
+  const lastHapticId = useSharedValue<string | null>(null);
   const animationProgress = useSharedValue(0);
   const hasAnimatedIn = useRef(false);
-  const proximityScales = {
-    star: useSharedValue(1),
-    bookmark: useSharedValue(1),
-    share: useSharedValue(1),
-  };
+  // Removed per-button shared values to avoid hook calls in dynamic loops/callbacks
 
   // Animate buttons in when component mounts
   useEffect(() => {
@@ -268,35 +289,22 @@ export const RadialMenu: FC<RadialMenuProps> = ({
 
   const checkButtonHover = (x: number, y: number) => {
     "worklet";
-    let active: RadialAction | null = null;
-    let nearestId: RadialAction | null = null;
+    let active: string | null = null;
+    let nearestId: string | null = null;
     let nearestDist = Number.POSITIVE_INFINITY;
-    const maxProximityDistance = BUTTON_RADIUS * 2;
 
-    for (const b of buttonCenters) {
+    for (let i = 0; i < buttonCenters.length; i++) {
+      const b = buttonCenters[i];
       const dx = x - b.x;
       const dy = y - b.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
 
-      // Track nearest for hover state
       if (dist < nearestDist) {
         nearestDist = dist;
         nearestId = b.id;
       }
 
-      // Compute proximity scale between 1.0 and 1.4 (upscaling for emphasis)
-      const normalized = Math.max(
-        0,
-        Math.min(1, 1 - dist / maxProximityDistance),
-      );
-      const proximity = 1 + normalized * 0.4; // 1.0 to 1.4
-      if (b.id === "star") {
-        proximityScales.star.value = proximity;
-      } else if (b.id === "bookmark") {
-        proximityScales.bookmark.value = proximity;
-      } else {
-        proximityScales.share.value = proximity;
-      }
+      // proximity is now derived within ButtonItem using cursor position
     }
 
     if (nearestId && nearestDist <= BUTTON_RADIUS * 1.4) {
@@ -355,13 +363,8 @@ export const RadialMenu: FC<RadialMenuProps> = ({
           pressX={pressX}
           pressY={pressY}
           animationProgress={animationProgress}
-          proximityScale={
-            b.id === "star"
-              ? proximityScales.star
-              : b.id === "bookmark"
-                ? proximityScales.bookmark
-                : proximityScales.share
-          }
+          cursorX={cursorX}
+          cursorY={cursorY}
         />
       ))}
     </View>

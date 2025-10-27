@@ -1,9 +1,21 @@
-import React, { useContext } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useContext, useMemo, useRef } from "react";
+import { Alert, Share, StyleSheet, Text, View } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, {
+  runOnJS,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
+import { Share2, Pencil, Trash2 } from "lucide-react-native";
+import * as Haptics from "expo-haptics";
+import { useRouter } from "expo-router";
 import { ThemeContext } from "../../contexts/theme-context";
+import { AuthContext } from "../../contexts/auth-context";
 import { fontFamily } from "../../lib/fonts";
 import { Media } from "../../types/media";
 import MediaCard from "./media-card";
+import { useRadialOverlay } from "../../hooks/use-radial-overlay";
+import { CollectionService } from "../../services/collectionService";
 
 const CollectionMediaGrid = ({ mediaItems }: { mediaItems: Media[] }) => {
   const { theme } = useContext(ThemeContext);
@@ -63,12 +75,14 @@ const CollectionMediaGrid = ({ mediaItems }: { mediaItems: Media[] }) => {
 };
 
 const CollectionCard = ({
+  id,
   mediaItems,
   isLoading = false,
   title,
   ranked = false,
   onPress,
 }: {
+  id: string;
   mediaItems: Media[];
   isLoading?: boolean;
   title: string;
@@ -76,6 +90,11 @@ const CollectionCard = ({
   onPress?: () => void;
 }) => {
   const { theme } = useContext(ThemeContext);
+  const { user } = useContext(AuthContext);
+  const router = useRouter();
+
+  const cardRef = useRef<View>(null);
+  const scale = useSharedValue(1);
 
   const content = (
     <View
@@ -96,35 +115,113 @@ const CollectionCard = ({
     </View>
   );
 
-  if (onPress) {
-    return (
-      <TouchableOpacity
-        onPress={onPress}
+  const actions = useMemo(
+    () => [
+      { id: "edit", icon: Pencil },
+      { id: "delete", icon: Trash2 },
+      { id: "share", icon: Share2 },
+    ],
+    [],
+  );
+
+  const { longPressGesture, panGesture, isLongPressed } = useRadialOverlay({
+    actions,
+    onSelect: async (actionId) => {
+      if (actionId === "share") {
+        try {
+          await Share.share({ message: title || "Share" });
+        } catch {}
+      } else if (actionId === "edit") {
+        router.push(`/collection/${id}`);
+      } else if (actionId === "delete") {
+        if (!user?.id) return;
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        Alert.alert(
+          "Delete collection",
+          "Are you sure you want to delete this collection?",
+          [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Delete",
+              style: "destructive",
+              onPress: async () => {
+                try {
+                  await CollectionService.deleteCollection(id, user?.id || "");
+                } catch {}
+              },
+            },
+          ],
+        );
+      }
+    },
+    targetRef: cardRef as React.RefObject<View>,
+    renderClone: ({ x, y, width, height }) => (
+      <View style={{ position: "absolute", top: y, left: x, width, height }}>
+        <View
+          style={[
+            styles.container,
+            {
+              width,
+              height,
+              overflow: "visible",
+            },
+          ]}
+        >
+          {content}
+        </View>
+      </View>
+    ),
+  });
+
+  const longPressWithScale = longPressGesture
+    .onBegin(() => {
+      "worklet";
+      scale.value = withSpring(0.97);
+    })
+    .onFinalize(() => {
+      "worklet";
+      scale.value = withSpring(1);
+    });
+
+  const tapGesture = Gesture.Tap()
+    .maxDuration(500)
+    .onBegin(() => {
+      "worklet";
+      scale.value = withSpring(0.97);
+    })
+    .onEnd(() => {
+      "worklet";
+      scale.value = withSpring(1);
+      if (!isLongPressed.value && onPress) {
+        runOnJS(onPress)();
+      }
+    })
+    .onFinalize(() => {
+      "worklet";
+      scale.value = withSpring(1);
+    });
+
+  const composedGesture = Gesture.Simultaneous(
+    Gesture.Race(longPressWithScale, tapGesture),
+    panGesture,
+  );
+
+  return (
+    <GestureDetector gesture={composedGesture}>
+      <Animated.View
+        ref={cardRef}
         style={[
           styles.container,
           {
             //   borderColor: theme.buttonBorder,
             //   backgroundColor: theme.buttonBackground,
+            transform: [{ scale: scale }],
           },
         ]}
       >
         {content}
-      </TouchableOpacity>
-    );
-  }
-
-  return (
-    <View
-      style={[
-        styles.container,
-        {
-          //   borderColor: theme.buttonBorder,
-          //   backgroundColor: theme.buttonBackground,
-        },
-      ]}
-    >
-      {content}
-    </View>
+      </Animated.View>
+    </GestureDetector>
   );
 };
 
