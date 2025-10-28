@@ -404,7 +404,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({
                 fontFamily: fontFamily.tanker.regular,
                 textShadowColor: "rgba(0,0,0,1)",
                 textShadowOffset: { width: 0, height: 0 },
-                textShadowRadius: 8
+                textShadowRadius: 8,
               }}
             >
               {hoveredTitle}
