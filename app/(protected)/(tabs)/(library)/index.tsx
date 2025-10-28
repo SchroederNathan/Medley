@@ -1,6 +1,7 @@
+import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import React, { useContext, useMemo } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Dimensions, StyleSheet, Text, View } from "react-native";
 import Svg, {
   Defs,
   FeBlend,
@@ -13,6 +14,7 @@ import AddCollection from "../../../../components/ui/add-collection";
 import { AnimatedBlur } from "../../../../components/ui/animated-blur";
 import { AnimatedChevron } from "../../../../components/ui/animated-chevron";
 import CollectionCard from "../../../../components/ui/collection-card";
+import MediaCard from "../../../../components/ui/media-card";
 import ProfileButton from "../../../../components/ui/profile-button";
 import { PullToSearchContent } from "../../../../components/ui/pull-to-search-content";
 import { SharedHeader } from "../../../../components/ui/shared-header";
@@ -20,11 +22,18 @@ import TabPager from "../../../../components/ui/tab-pager";
 import { ThemeContext } from "../../../../contexts/theme-context";
 import { useLibrarySearch } from "../../../../hooks/use-library-search";
 import { useUserCollections } from "../../../../hooks/use-user-collections";
+import { useUserMedia } from "../../../../hooks/use-user-media";
 import { fontFamily } from "../../../../lib/fonts";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const CARD_SPACING = 12;
+const CARD_WIDTH = (SCREEN_WIDTH - 40 - CARD_SPACING * 3) / 4;
+const CARD_HEIGHT = CARD_WIDTH * 1.5;
 
 const LibraryScreen = () => {
   const { theme } = useContext(ThemeContext);
   const collectionsQuery = useUserCollections();
+  const mediaQuery = useUserMedia();
   const [activeTab, setActiveTab] = React.useState("all");
   const [query, setQuery] = React.useState("");
   const router = useRouter();
@@ -46,20 +55,22 @@ const LibraryScreen = () => {
     { key: "ranked", title: "Ranked" },
   ];
 
+  const allMedia = useMemo(() => mediaQuery.data ?? [], [mediaQuery.data]);
+
   const allCollections = useMemo(
     () => collectionsQuery.data ?? [],
-    [collectionsQuery.data],
+    [collectionsQuery.data]
   );
 
   // Filter collections by type
   const unrankedCollections = useMemo(
     () => allCollections.filter((c: any) => !c.ranked),
-    [allCollections],
+    [allCollections]
   );
 
   const rankedCollections = useMemo(
     () => allCollections.filter((c: any) => c.ranked),
-    [allCollections],
+    [allCollections]
   );
 
   const handleFilterPress = () => {
@@ -129,13 +140,7 @@ const LibraryScreen = () => {
               onChange={(key: string) => setActiveTab(key)}
               pages={[
                 // All tab - shows both ranked and unranked
-                <View key="all" style={{ flex: 1, paddingTop: 24, gap: 16 }}>
-                  <AddCollection
-                    title="Add Collection"
-                    onPress={() => {
-                      router.push("/collection/create");
-                    }}
-                  />
+                <View key="all" style={{ flex: 1 }}>
                   {allCollections.length === 0 ? (
                     <Text
                       style={{
@@ -145,25 +150,32 @@ const LibraryScreen = () => {
                         fontFamily: fontFamily.plusJakarta.regular,
                       }}
                     >
-                      No collections yet. Create your first one!
+                      No media yet. Save some media to get started!
                     </Text>
                   ) : (
-                    allCollections.map((collection: any) => (
-                      <CollectionCard
-                        id={collection.id}
-                        key={collection.id}
-                        mediaItems={
-                          collection.collection_items
-                            ?.sort((a: any, b: any) => a.position - b.position)
-                            .map((item: any) => item.media) ?? []
-                        }
-                        onPress={() => {
-                          router.push(`/collection/${collection.id}`);
-                        }}
-                        title={collection.name}
-                        ranked={collection.ranked}
-                      />
-                    ))
+                    <FlashList
+                      data={allMedia}
+                      renderItem={({ item }) => (
+                        <MediaCard
+                          media={item}
+                          width={CARD_WIDTH}
+                          height={CARD_HEIGHT}
+                        />
+                      )}
+                      masonry
+                      numColumns={4}
+                      keyExtractor={(item) => item.id}
+                      ItemSeparatorComponent={() => (
+                        <View style={{ height: CARD_SPACING }} />
+                      )}
+                      contentContainerStyle={{
+                        paddingTop: 20,
+                        marginRight: 28,
+                        paddingBottom: 100,
+                      }}
+                      scrollEnabled={false}
+                      showsVerticalScrollIndicator={false}
+                    />
                   )}
                 </View>,
                 // Collections tab - unranked only
