@@ -117,9 +117,9 @@ const CollectionCard = ({
 
   const actions = useMemo(
     () => [
-      { id: "edit", icon: EditIcon },
-      { id: "delete", icon: DeleteIcon },
-      { id: "share", icon: ShareIcon },
+      { id: "edit", icon: EditIcon, title: "Edit" },
+      { id: "delete", icon: DeleteIcon, title: "Delete" },
+      { id: "share", icon: ShareIcon, title: "Share" },
     ],
     [],
   );

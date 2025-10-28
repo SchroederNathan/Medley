@@ -6,19 +6,32 @@ import Animated, { runOnJS, useSharedValue } from "react-native-reanimated";
 import { useOverlay } from "../contexts/overlay-context";
 import { RadialMenu } from "../components/ui/radial-menu";
 
-export type RadialActionDef = { id: string; icon: any };
+export type RadialActionDef = { id: string; icon: any; title: string };
 
 type UseRadialOverlayParams = {
   actions: RadialActionDef[];
   onSelect: (id: string) => void | Promise<void>;
   onCancel?: () => void;
-  targetRef: React.RefObject<View>;
-  renderClone: (dims: { x: number; y: number; width: number; height: number }) => React.ReactNode;
+  targetRef: React.RefObject<View | null>;
+  renderClone: (dims: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }) => React.ReactNode;
   longPressMs?: number;
   maxDistance?: number;
 };
 
-export function useRadialOverlay({ actions, onSelect, onCancel, targetRef, renderClone, longPressMs = 500, maxDistance = 25 }: UseRadialOverlayParams) {
+export function useRadialOverlay({
+  actions,
+  onSelect,
+  onCancel,
+  targetRef,
+  renderClone,
+  longPressMs = 500,
+  maxDistance = 25,
+}: UseRadialOverlayParams) {
   const { showOverlay, hideOverlay } = useOverlay();
 
   const cursorX = useSharedValue(0);
@@ -61,14 +74,26 @@ export function useRadialOverlay({ actions, onSelect, onCancel, targetRef, rende
         overlayOpen.value = 1;
       });
     },
-    [actions, hideOverlay, onCancel, onSelect, overlayOpen, releaseSignal, showOverlay, targetRef, cursorX, cursorY, renderClone],
+    [
+      actions,
+      hideOverlay,
+      onCancel,
+      onSelect,
+      overlayOpen,
+      releaseSignal,
+      showOverlay,
+      targetRef,
+      cursorX,
+      cursorY,
+      renderClone,
+    ]
   );
 
   const longPressGesture = Gesture.LongPress()
     .minDuration(longPressMs)
     .maxDistance(maxDistance)
     .onStart((event) => {
-      'worklet';
+      "worklet";
       runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Medium);
       isLongPressed.value = true;
       const ax = (event as any).absoluteX ?? (event as any).x ?? 0;
@@ -78,7 +103,7 @@ export function useRadialOverlay({ actions, onSelect, onCancel, targetRef, rende
       runOnJS(openOverlayAt)(ax, ay);
     })
     .onFinalize(() => {
-      'worklet';
+      "worklet";
       isLongPressed.value = false;
     });
 
@@ -86,17 +111,17 @@ export function useRadialOverlay({ actions, onSelect, onCancel, targetRef, rende
     .maxPointers(1)
     .activateAfterLongPress(longPressMs)
     .onBegin((e) => {
-      'worklet';
+      "worklet";
       cursorX.value = e.absoluteX;
       cursorY.value = e.absoluteY;
     })
     .onUpdate((e) => {
-      'worklet';
+      "worklet";
       cursorX.value = e.absoluteX;
       cursorY.value = e.absoluteY;
     })
     .onEnd(() => {
-      'worklet';
+      "worklet";
       if (overlayOpen.value === 1) {
         releaseSignal.value = releaseSignal.value + 1;
       }
@@ -109,5 +134,3 @@ export function useRadialOverlay({ actions, onSelect, onCancel, targetRef, rende
     overlayOpen,
   } as const;
 }
-
-

@@ -62,9 +62,9 @@ const MediaCard = ({
 
   const actions = useMemo(
     () => [
-      { id: "star", icon: StarIcon },
-      { id: "bookmark", icon: BookmarkIcon },
-      { id: "share", icon: ShareIcon },
+      { id: "star", icon: StarIcon, title: "Favorite" },
+      { id: "bookmark", icon: BookmarkIcon, title: "Save" },
+      { id: "share", icon: ShareIcon, title: "Share" },
     ],
     [],
   );
@@ -84,7 +84,7 @@ const MediaCard = ({
           // no-op for now
         }
       },
-      targetRef: cardRef,
+      targetRef: cardRef as React.RefObject<View>,
       renderClone: ({ x, y, width: cardWidth, height: cardHeight }) => (
         <View
           style={{

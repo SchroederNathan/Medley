@@ -6,6 +6,7 @@ import React, {
   useCallback,
   useMemo,
   useRef,
+  useState,
 } from "react";
 import { Dimensions, StyleSheet, View } from "react-native";
 import Animated, {
@@ -17,6 +18,7 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { ThemeContext } from "../../contexts/theme-context";
+import { fontFamily } from "../../lib/fonts";
 
 const BUTTON_RADIUS = 28; // 56px diameter
 const DEFAULT_RADIUS = 96; // distance from press point to button center
@@ -133,7 +135,7 @@ const ButtonItem: FC<ButtonItemProps> = ({
   );
 };
 
-export type RadialActionDef = { id: string; icon: any };
+export type RadialActionDef = { id: string; icon: any; title: string };
 
 type RadialMenuProps = {
   pressX: number;
@@ -161,6 +163,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({
   onCancel,
 }) => {
   const { width, height } = Dimensions.get("window");
+  const { theme } = useContext(ThemeContext);
 
   // Determine base angle from long-press point per thumb-position rules.
   // User provides angles with 0° at top, increasing counterclockwise.
@@ -242,6 +245,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({
   );
 
   const hoveredId = useSharedValue<string | null>(null);
+  const [hoveredActionId, setHoveredActionId] = useState<string | null>(null);
   const lastHapticId = useSharedValue<string | null>(null);
   const animationProgress = useSharedValue(0);
   const hasAnimatedIn = useRef(false);
@@ -300,6 +304,15 @@ export const RadialMenu: FC<RadialMenuProps> = ({
     },
   );
 
+  // Mirror hoveredId into React state to read title string safely
+  useAnimatedReaction(
+    () => hoveredId.value,
+    (val, prev) => {
+      if (val === prev) return;
+      runOnJS(setHoveredActionId)(val);
+    },
+  );
+
   // React to release signal from parent
   useAnimatedReaction(
     () => (releaseSignal ? releaseSignal.value : -1),
@@ -321,6 +334,31 @@ export const RadialMenu: FC<RadialMenuProps> = ({
   // Determine if we're actively tracking a gesture
   const isTracking = cursorX !== undefined && cursorY !== undefined;
 
+  // Compute label text from hovered action id
+  const hoveredTitle = useMemo(() => {
+    if (!hoveredActionId) return "";
+    const a = actions.find((x) => x.id === hoveredActionId);
+    return a?.title ?? "";
+  }, [actions, hoveredActionId]);
+
+  // Compute label position diagonally opposite the initial press quadrant
+  const pressIsLeft = pressX < width / 2;
+  const labelOnLeft = !pressIsLeft; // keep opposite horizontally for clarity
+
+  // Vertical placement: prefer top 2/3 of screen, inverse-mapped from pressY
+  const verticalMargin = 36;
+  const allowedTopMin = verticalMargin; // top padding
+  const allowedTopMax = height * (2 / 3) - verticalMargin; // bottom of allowed band
+  const pressNorm = Math.max(0, Math.min(1, pressY / height));
+  const inv = 1 - pressNorm; // higher press -> lower label; lower press -> higher label
+  let labelTop = allowedTopMin + inv * (allowedTopMax - allowedTopMin);
+
+  // Keep label reasonably near the press position for readability
+  const maxVerticalDelta = Math.min(160, height * 0.2);
+  const nearMin = Math.max(allowedTopMin, pressY - maxVerticalDelta);
+  const nearMax = Math.min(allowedTopMax, pressY + maxVerticalDelta);
+  labelTop = Math.max(nearMin, Math.min(labelTop, nearMax));
+
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
       {buttons.map((b) => (
@@ -336,6 +374,44 @@ export const RadialMenu: FC<RadialMenuProps> = ({
           cursorY={cursorY}
         />
       ))}
+      {!!hoveredTitle && (
+        <View
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              zIndex: 10001,
+              pointerEvents: "none",
+              overflow: "visible",
+            },
+          ]}
+          pointerEvents="none"
+        >
+          <View
+            style={{
+              position: "absolute",
+              overflow: "visible",
+              top: labelTop,
+              left: labelOnLeft ? 36 : undefined,
+              right: labelOnLeft ? undefined : 36,
+              alignItems: labelOnLeft ? "flex-start" : "flex-end",
+            }}
+          >
+            <Animated.Text
+              style={{
+                color: theme.text,
+                overflow: "visible",
+                fontSize: 40,
+                fontFamily: fontFamily.tanker.regular,
+                textShadowColor: "rgba(0,0,0,1)",
+                textShadowOffset: { width: 0, height: 0 },
+                textShadowRadius: 8
+              }}
+            >
+              {hoveredTitle}
+            </Animated.Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 };
