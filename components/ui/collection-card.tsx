@@ -6,7 +6,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
-import { Share2, Pencil, Trash2 } from "lucide-react-native";
+import { ShareIcon, EditIcon, DeleteIcon } from "./svg-icons";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { ThemeContext } from "../../contexts/theme-context";
@@ -117,9 +117,9 @@ const CollectionCard = ({
 
   const actions = useMemo(
     () => [
-      { id: "edit", icon: Pencil },
-      { id: "delete", icon: Trash2 },
-      { id: "share", icon: Share2 },
+      { id: "edit", icon: EditIcon },
+      { id: "delete", icon: DeleteIcon },
+      { id: "share", icon: ShareIcon },
     ],
     [],
   );

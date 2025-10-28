@@ -25,7 +25,7 @@ import Animated, {
 import { useOverlay } from "../../contexts/overlay-context";
 import { ThemeContext } from "../../contexts/theme-context";
 import { Media } from "../../types/media";
-import { Star, Bookmark, Share2 } from "lucide-react-native";
+import { StarIcon, BookmarkIcon, ShareIcon } from "./svg-icons";
 import GradientSweepOverlay from "./gradient-sweep-overlay";
 import { useRadialOverlay } from "../../hooks/use-radial-overlay";
 
@@ -62,9 +62,9 @@ const MediaCard = ({
 
   const actions = useMemo(
     () => [
-      { id: "star", icon: Star },
-      { id: "bookmark", icon: Bookmark },
-      { id: "share", icon: Share2 },
+      { id: "star", icon: StarIcon },
+      { id: "bookmark", icon: BookmarkIcon },
+      { id: "share", icon: ShareIcon },
     ],
     [],
   );

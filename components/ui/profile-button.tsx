@@ -1,8 +1,8 @@
 import { router } from "expo-router";
-import { UserRound } from "lucide-react-native";
 import React, { useContext } from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
 import { ThemeContext } from "../../contexts/theme-context";
+import { ProfileButtonIcon } from "./svg-icons";
 
 const ProfileButton = () => {
   const { theme } = useContext(ThemeContext);
@@ -19,7 +19,7 @@ const ProfileButton = () => {
       ]}
       onPress={() => router.push("/(profile)")}
     >
-      <UserRound size={24} color={theme.text} />
+      <ProfileButtonIcon size={24} color={theme.text} />
     </TouchableOpacity>
   );
 };

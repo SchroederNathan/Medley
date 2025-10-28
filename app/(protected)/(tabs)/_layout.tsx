@@ -6,12 +6,6 @@ import {
   TabTrigger,
   TabTriggerSlotProps,
 } from "expo-router/ui";
-import {
-  CircleUserRound,
-  Home,
-  Library,
-  UsersRound,
-} from "lucide-react-native";
 import React, { useContext } from "react";
 import { Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
 import Animated, {
@@ -24,19 +18,42 @@ import Rive from "rive-react-native";
 import { BottomGradient } from "../../../components/ui/bottom-gradient";
 import { HomeAnimationProvider } from "../../../contexts/home-animation-context";
 import { ThemeContext } from "../../../contexts/theme-context";
+import {
+  HomeOutlineIcon,
+  HomeFilledIcon,
+  SocialOutlineIcon,
+  SocialFilledIcon,
+  LibraryOutlineIcon,
+  LibraryFilledIcon,
+  ProfileOutlineIcon,
+  ProfileFilledIcon,
+} from "../../../components/ui/svg-icons";
 
 type TabButtonProps = TabTriggerSlotProps & {
-  icon: React.ReactNode;
+  outlineIcon: React.ComponentType<{ size?: number; color?: string }>;
+  filledIcon: React.ComponentType<{ size?: number; color?: string }>;
 };
 
-const TabButton: React.FC<TabButtonProps> = ({ icon, isFocused, onPress }) => {
+const hexToRgba = (hex: string, alpha: number) => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
+const TabButton: React.FC<TabButtonProps> = ({
+  outlineIcon: OutlineIcon,
+  filledIcon: FilledIcon,
+  isFocused,
+  onPress,
+}) => {
   const { theme } = useContext(ThemeContext);
+  const IconComponent = isFocused ? FilledIcon : OutlineIcon;
+  const iconColor = isFocused ? theme.text : theme.secondaryText;
 
   return (
     <TouchableOpacity onPress={onPress || undefined} style={styles.tabTrigger}>
-      {React.cloneElement(icon as React.ReactElement<any>, {
-        color: isFocused ? theme.text : theme.secondaryText,
-      })}
+      <IconComponent size={24} color={iconColor} />
     </TouchableOpacity>
   );
 };
@@ -93,7 +110,10 @@ const TabsLayout = () => {
               }}
               asChild
             >
-              <TabButton icon={<Home size={24} />} />
+              <TabButton
+                outlineIcon={HomeOutlineIcon}
+                filledIcon={HomeFilledIcon}
+              />
             </TabTrigger>
             <TabTrigger
               name="social"
@@ -103,7 +123,10 @@ const TabsLayout = () => {
               }}
               asChild
             >
-              <TabButton icon={<UsersRound size={24} />} />
+              <TabButton
+                outlineIcon={SocialOutlineIcon}
+                filledIcon={SocialFilledIcon}
+              />
             </TabTrigger>
             <TabTrigger
               name="match"
@@ -123,7 +146,10 @@ const TabsLayout = () => {
               }}
               asChild
             >
-              <TabButton icon={<Library size={24} />} />
+              <TabButton
+                outlineIcon={LibraryOutlineIcon}
+                filledIcon={LibraryFilledIcon}
+              />
             </TabTrigger>
             <TabTrigger
               name="profile"
@@ -133,7 +159,10 @@ const TabsLayout = () => {
               }}
               asChild
             >
-              <TabButton icon={<CircleUserRound size={24} />} />
+              <TabButton
+                outlineIcon={ProfileOutlineIcon}
+                filledIcon={ProfileFilledIcon}
+              />
             </TabTrigger>
           </View>
         </View>
