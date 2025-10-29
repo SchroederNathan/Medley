@@ -8,13 +8,13 @@ import Animated, {
   useDerivedValue,
   withTiming,
 } from "react-native-reanimated";
-import { ThemeContextType } from "../../contexts/theme-context";
+import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
 
 interface AnimatedDetailHeaderProps {
   scrollY: SharedValue<number>;
   title: string;
-  theme: ThemeContextType["theme"];
+  theme: React.ContextType<typeof ThemeContext>["theme"];
   topPadding: number;
   onBackPress?: () => void;
   titleYPosition?: number;
@@ -23,6 +23,7 @@ interface AnimatedDetailHeaderProps {
 const HEADER_HEIGHT = 44; // Standard header height
 const BACKDROP_HEIGHT = 320; // Same as current backdrop height
 const POSTER_PADDING = 72;
+const DEFAULT_TITLE_Y_POSITION = BACKDROP_HEIGHT - POSTER_PADDING + 80;
 
 export const AnimatedDetailHeader: React.FC<AnimatedDetailHeaderProps> = ({
   scrollY,
@@ -30,7 +31,7 @@ export const AnimatedDetailHeader: React.FC<AnimatedDetailHeaderProps> = ({
   theme,
   topPadding,
   onBackPress,
-  titleYPosition = BACKDROP_HEIGHT - POSTER_PADDING + 80,
+  titleYPosition = DEFAULT_TITLE_Y_POSITION,
 }) => {
   // Scroll-based transition boundaries - when title reaches top of screen
   const rInputRange = useDerivedValue(() => {

@@ -1,15 +1,29 @@
+import { FlashList } from "@shopify/flash-list";
+import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useContext } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Dimensions,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AnimatedDetailHeader } from "../../../components/ui/animated-detail-header";
+import MediaCard from "../../../components/ui/media-card";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { useCollection } from "../../../hooks/use-collection";
 import { fontFamily } from "../../../lib/fonts";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const CARD_SPACING = 12;
+const CARD_WIDTH = (SCREEN_WIDTH - 40 - CARD_SPACING * 2) / 3;
+const CARD_HEIGHT = CARD_WIDTH * 1.5;
 
 const CollectionDetail = () => {
   const { theme } = useContext(ThemeContext);
@@ -21,6 +35,153 @@ const CollectionDetail = () => {
 
   // Data
   const { data: collection, isLoading, error } = useCollection(collectionId);
+
+  // Render rank indicator for media cards
+  const renderRankIndicator = (rank: number) => {
+    if (!collection?.ranked) return null;
+    switch (rank) {
+      case 1:
+        return (
+          <View
+            style={{
+              position: "relative",
+              width: 32,
+              height: 32,
+              overflow: "visible",
+            }}
+          >
+            <Image
+              cachePolicy="memory-disk"
+              transition={200}
+              source={require("../../../assets/badges/gold-badge.png")}
+              style={{
+                position: "absolute",
+                width: 40,
+                height: 40,
+                top: -4,
+                left: -4,
+                tintColor: theme.background,
+              }}
+            />
+            <Image
+              cachePolicy="memory-disk"
+              transition={200}
+              source={require("../../../assets/badges/gold-badge.png")}
+              style={{
+                width: 32,
+                height: 32,
+              }}
+            />
+          </View>
+        );
+      case 2:
+        return (
+          <View
+            style={{
+              position: "relative",
+              width: 32,
+              height: 32,
+              overflow: "visible",
+            }}
+          >
+            <Image
+              cachePolicy="memory-disk"
+              transition={200}
+              source={require("../../../assets/badges/silver-badge.png")}
+              style={{
+                position: "absolute",
+                width: 40,
+                height: 40,
+                top: -4,
+                left: -4,
+                tintColor: theme.background,
+              }}
+            />
+            <Image
+              cachePolicy="memory-disk"
+              transition={200}
+              source={require("../../../assets/badges/silver-badge.png")}
+              style={{
+                width: 32,
+                height: 32,
+              }}
+            />
+          </View>
+        );
+      case 3:
+        return (
+          <View
+            style={{
+              position: "relative",
+              width: 32,
+              height: 32,
+              overflow: "visible",
+            }}
+          >
+            <Image
+              cachePolicy="memory-disk"
+              transition={200}
+              source={require("../../../assets/badges/bronze-badge.png")}
+              style={{
+                position: "absolute",
+                width: 40,
+                height: 40,
+                top: -4,
+                left: -4,
+                tintColor: theme.background,
+              }}
+            />
+            <Image
+              cachePolicy="memory-disk"
+              transition={200}
+              source={require("../../../assets/badges/bronze-badge.png")}
+              style={{
+                width: 32,
+                height: 32,
+              }}
+            />
+          </View>
+        );
+      default:
+        return (
+          <View
+            style={{
+              position: "relative",
+              width: 32,
+              height: 32,
+              overflow: "visible",
+            }}
+          >
+            <View
+              style={{
+                position: "absolute",
+                top: -4,
+                left: -4,
+                width: 40,
+                height: 40,
+                backgroundColor: theme.background,
+                borderRadius: 30,
+              }}
+            />
+            <Text
+              style={{
+                fontSize: 14,
+                width: 32,
+                height: 32,
+                fontFamily: fontFamily.plusJakarta.bold,
+                color: theme.secondaryText,
+                backgroundColor: theme.buttonBackground,
+                borderRadius: 30,
+                textAlign: "center",
+                paddingTop: 6,
+              }}
+            >
+              {rank}
+            </Text>
+          </View>
+        );
+    }
+  };
 
   // Shared scroll position for header animations
   const scrollY = useSharedValue(0);
@@ -36,7 +197,6 @@ const CollectionDetail = () => {
     return (
       <View
         style={[
-          styles.centered,
           { backgroundColor: theme.background, paddingTop: safeAreaInsets.top },
         ]}
       >
@@ -49,7 +209,6 @@ const CollectionDetail = () => {
     return (
       <View
         style={[
-          styles.centered,
           { backgroundColor: theme.background, paddingTop: safeAreaInsets.top },
         ]}
       >
@@ -73,7 +232,6 @@ const CollectionDetail = () => {
     return (
       <View
         style={[
-          styles.centered,
           { backgroundColor: theme.background, paddingTop: safeAreaInsets.top },
         ]}
       >
@@ -91,13 +249,18 @@ const CollectionDetail = () => {
   }
 
   return (
-    <View style={[{ flex: 1, backgroundColor: theme.background, padding: 20 }]}>
+    <View
+      style={[
+        { flex: 1, backgroundColor: theme.background, paddingHorizontal: 20 },
+      ]}
+    >
       {/* Animated Header */}
       <AnimatedDetailHeader
         scrollY={scrollY}
         title={collection.name}
         theme={theme}
         topPadding={20}
+        titleYPosition={140}
       />
 
       <Animated.ScrollView
@@ -121,21 +284,43 @@ const CollectionDetail = () => {
           ) : null}
 
           {/* Items */}
-          <View style={{ marginTop: 16, gap: 12 }}>
-            {collection.collection_items?.map((item) => (
-              <View
-                key={item.id}
-                style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-              >
-                <Text style={{ color: theme.secondaryText, width: 20 }}>
-                  {item.position}.
-                </Text>
-                <Text style={{ color: theme.text, flex: 1 }} numberOfLines={1}>
-                  {item.media?.title}
-                </Text>
+          <FlashList
+            data={collection.collection_items}
+            renderItem={({ item, index }) => (
+              <View style={{ position: "relative", marginBottom: 20 }}>
+                <MediaCard
+                  media={item.media}
+                  width={CARD_WIDTH}
+                  height={CARD_HEIGHT}
+                />
+                {/* Temporarily force rank indicator for testing */}
+                {true && (
+                  <View
+                    style={{
+                      position: "absolute",
+                      bottom: -16,
+                      left: CARD_WIDTH / 2 - 16,
+                      zIndex: 10,
+                    }}
+                  >
+                    {renderRankIndicator(index + 1)}
+                  </View>
+                )}
               </View>
-            ))}
-          </View>
+            )}
+            masonry
+            numColumns={3}
+            keyExtractor={(item) => item.id}
+            ItemSeparatorComponent={() => (
+              <View style={{ height: CARD_SPACING }} />
+            )}
+            contentContainerStyle={{
+              paddingTop: 20,
+              paddingBottom: 120,
+            }}
+            scrollEnabled={false}
+            showsVerticalScrollIndicator={false}
+          />
         </View>
       </Animated.ScrollView>
     </View>
@@ -149,18 +334,9 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 72,
   },
-  scrollViewContent: {
-    paddingHorizontal: 16,
-  },
-  content: {
-    // paddingTop: 20,
-  },
-  centered: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 16,
-  },
+  scrollViewContent: {},
+  content: {},
+
   title: {
     fontSize: 40,
     fontFamily: fontFamily.tanker.regular,

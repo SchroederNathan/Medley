@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import { ArrowLeft, Plus, Trophy } from "lucide-react-native";
 import React, { useCallback, useContext, useState } from "react";
 import {
@@ -22,7 +23,6 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
 import Button from "../../../components/ui/button";
 import CollectionItem from "../../../components/ui/collection-item";
 import Input from "../../../components/ui/input";
@@ -33,8 +33,8 @@ import { AuthContext } from "../../../contexts/auth-context";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { useCollectionSearch } from "../../../hooks/use-collection-search";
 import { fontFamily } from "../../../lib/fonts";
-import { Media } from "../../../types/media";
 import { CollectionService } from "../../../services/collectionService";
+import { Media } from "../../../types/media";
 
 const CreateCollection = () => {
   const { theme } = useContext(ThemeContext);
@@ -84,14 +84,6 @@ const CreateCollection = () => {
       return;
     }
 
-    if (selectedMedia.length === 0) {
-      Alert.alert(
-        "No Media Added",
-        "Please add at least one media item to your collection.",
-      );
-      return;
-    }
-
     if (!user?.id) {
       Alert.alert("Error", "You must be logged in to create a collection.");
       return;
@@ -108,6 +100,8 @@ const CreateCollection = () => {
       });
 
       // Success! Navigate to the collection detail page
+      router.back();
+
       router.push(`/collection/${collection.id}`);
     } catch (error) {
       console.error("Failed to create collection:", error);
