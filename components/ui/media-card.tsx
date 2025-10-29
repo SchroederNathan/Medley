@@ -1,4 +1,3 @@
-import { Canvas, LinearGradient, Rect, vec } from "@shopify/react-native-skia";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
@@ -24,10 +23,10 @@ import Animated, {
 } from "react-native-reanimated";
 import { useOverlay } from "../../contexts/overlay-context";
 import { ThemeContext } from "../../contexts/theme-context";
-import { Media } from "../../types/media";
-import { StarIcon, BookmarkIcon, ShareIcon } from "./svg-icons";
-import GradientSweepOverlay from "./gradient-sweep-overlay";
 import { useRadialOverlay } from "../../hooks/use-radial-overlay";
+import { Media } from "../../types/media";
+import GradientSweepOverlay from "./gradient-sweep-overlay";
+import { BookmarkIcon, ShareIcon, StarIcon } from "./svg-icons";
 
 // Gradient overlay moved to shared component
 
@@ -46,7 +45,6 @@ const MediaCard = ({
 }) => {
   const { theme } = useContext(ThemeContext);
   const router = useRouter();
-  const { showOverlay, hideOverlay } = useOverlay();
   const [isLoading, setIsLoading] = useState(true);
   const pulse = useSharedValue(0.6);
   const scale = useSharedValue(1);
@@ -69,52 +67,51 @@ const MediaCard = ({
     [],
   );
 
-  const { longPressGesture, panGesture, isLongPressed, overlayOpen } =
-    useRadialOverlay({
-      actions,
-      onSelect: async (actionId) => {
-        if (actionId === "share") {
-          try {
-            await Share.share({ message: media.title || "Share" });
-          } catch {}
-        } else if (actionId === "bookmark") {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-          router.push(`/save-media?id=${media.id}`);
-        } else if (actionId === "star") {
-          // no-op for now
-        }
-      },
-      targetRef: cardRef as React.RefObject<View>,
-      renderClone: ({ x, y, width: cardWidth, height: cardHeight }) => (
+  const { longPressGesture, panGesture, isLongPressed } = useRadialOverlay({
+    actions,
+    onSelect: async (actionId) => {
+      if (actionId === "share") {
+        try {
+          await Share.share({ message: media.title || "Share" });
+        } catch {}
+      } else if (actionId === "bookmark") {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        router.push(`/save-media?id=${media.id}`);
+      } else if (actionId === "star") {
+        // no-op for now
+      }
+    },
+    targetRef: cardRef as React.RefObject<View>,
+    renderClone: ({ x, y, width: cardWidth, height: cardHeight }) => (
+      <View
+        style={{
+          position: "absolute",
+          top: y,
+          left: x,
+          width: cardWidth,
+          height: cardHeight,
+        }}
+      >
         <View
-          style={{
-            position: "absolute",
-            top: y,
-            left: x,
-            width: cardWidth,
-            height: cardHeight,
-          }}
+          style={[
+            styles.container,
+            {
+              width: cardWidth,
+              height: cardHeight,
+              backgroundColor: theme.buttonBackground,
+            },
+          ]}
         >
-          <View
-            style={[
-              styles.container,
-              {
-                width: cardWidth,
-                height: cardHeight,
-                backgroundColor: theme.buttonBackground,
-              },
-            ]}
-          >
-            {cardContent}
-            <GradientSweepOverlay
-              width={cardWidth}
-              height={cardHeight}
-              isAnimating
-            />
-          </View>
+          {cardContent}
+          <GradientSweepOverlay
+            width={cardWidth}
+            height={cardHeight}
+            isAnimating
+          />
         </View>
-      ),
-    });
+      </View>
+    ),
+  });
 
   const longPressWithScale = longPressGesture
     .onBegin(() => {

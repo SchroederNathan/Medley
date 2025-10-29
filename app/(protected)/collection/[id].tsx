@@ -22,7 +22,7 @@ import { fontFamily } from "../../../lib/fonts";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_SPACING = 12;
-const CARD_WIDTH = (SCREEN_WIDTH - 40 - CARD_SPACING * 2) / 3;
+const CARD_WIDTH = (SCREEN_WIDTH - 40 - CARD_SPACING * 3) / 3;
 const CARD_HEIGHT = CARD_WIDTH * 1.5;
 
 const CollectionDetail = () => {
@@ -287,14 +287,19 @@ const CollectionDetail = () => {
           <FlashList
             data={collection.collection_items}
             renderItem={({ item, index }) => (
-              <View style={{ position: "relative", marginBottom: 20 }}>
+              <View
+                style={{
+                  position: "relative",
+                  marginBottom: collection.ranked ? 20 : 0,
+                }}
+              >
                 <MediaCard
                   media={item.media}
                   width={CARD_WIDTH}
                   height={CARD_HEIGHT}
                 />
                 {/* Temporarily force rank indicator for testing */}
-                {true && (
+                {collection.ranked && (
                   <View
                     style={{
                       position: "absolute",
