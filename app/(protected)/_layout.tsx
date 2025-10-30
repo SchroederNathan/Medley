@@ -50,6 +50,13 @@ const ProtectedLayout = () => {
           contentStyle: { backgroundColor: theme.background },
         }}
       />
+      <Stack.Screen
+        name="settings"
+        options={{
+          headerShown: false,
+          contentStyle: { backgroundColor: theme.background },
+        }}
+      />
     </Stack>
   );
 };

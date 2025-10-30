@@ -1,5 +1,13 @@
+import { useRouter } from "expo-router";
 import React, { useContext } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, {
   Defs,
   FeBlend,
@@ -11,7 +19,7 @@ import Svg, {
 import { AnimatedProfileImage } from "../../../../components/ui/animated-profile-image";
 import Button from "../../../../components/ui/button";
 import { DefaultProfileImage } from "../../../../components/ui/default-profile-image";
-import { AuthContext } from "../../../../contexts/auth-context";
+import { SettingsIcon } from "../../../../components/ui/svg-icons";
 import { ProfileImageAnimationProvider } from "../../../../contexts/profile-image-animation-context";
 import { ThemeContext } from "../../../../contexts/theme-context";
 import { useUserProfile } from "../../../../hooks/use-user-profile";
@@ -19,7 +27,8 @@ import { fontFamily } from "../../../../lib/fonts";
 
 const ProfileScreen = () => {
   const { theme } = useContext(ThemeContext);
-  const authContext = useContext(AuthContext);
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { isLoading, error, data: profile } = useUserProfile();
   if (isLoading) {
     return (
@@ -44,7 +53,7 @@ const ProfileScreen = () => {
 
   return (
     <ProfileImageAnimationProvider>
-      <View style={styles.container}>
+      <View style={[styles.container, { paddingTop: insets.top + 20 }]}>
         <Svg
           width="150%"
           height="100%"
@@ -81,17 +90,20 @@ const ProfileScreen = () => {
           />
         </Svg>
 
+        <View style={styles.header}>
+          <Pressable
+            onPress={() => router.push("/settings")}
+            style={{ padding: 10, marginRight: -10 }}
+          >
+            <SettingsIcon size={24} color={theme.text} />
+          </Pressable>
+        </View>
+
         {/* Content */}
         <DefaultProfileImage />
         <Text style={[styles.name, { color: theme.text }]}>
           {profile?.name}
         </Text>
-
-        <Button
-          title="Logout"
-          onPress={() => authContext.logOut()}
-          styles={styles.button}
-        />
       </View>
       <AnimatedProfileImage />
     </ProfileImageAnimationProvider>
@@ -104,8 +116,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 20,
-    justifyContent: "center",
     alignItems: "center",
+  },
+
+  header: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    width: "100%",
+    marginBottom: 32,
   },
   spotlightSvg: {
     position: "absolute",
