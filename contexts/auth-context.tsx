@@ -5,12 +5,11 @@ import { supabase } from "../lib/utils";
 import { queryClient } from "../lib/query-client";
 
 const authStorageKey = "authState";
-const userStorageKey = "userProfile";
 
 type User = {
   id?: string;
   name?: string;
-  preferred_media?: Array<"Games" | "Movies" | "Books">;
+  preferred_media?: ("Games" | "Movies" | "Books")[];
 };
 
 type AuthState = {
@@ -21,11 +20,12 @@ type AuthState = {
   logOut: () => void;
   setUserId: (id: string) => void;
   setUserName: (name: string) => void;
-  setUserPreferredMedia: (media: Array<"Games" | "Movies" | "Books">) => void;
+  setUserPreferredMedia: (media: ("Games" | "Movies" | "Books")[]) => void;
   completeOnboarding: (
-    mediaPreferences?: Array<"Games" | "Movies" | "Books">
+    mediaPreferences?: ("Games" | "Movies" | "Books")[],
   ) => Promise<void>;
   fetchUserProfile: (id: string) => Promise<any>;
+  uploadProfileImage: (file: File | Blob) => Promise<string>;
 };
 
 export const AuthContext = createContext<AuthState>({
@@ -39,6 +39,7 @@ export const AuthContext = createContext<AuthState>({
   setUserPreferredMedia: () => {},
   completeOnboarding: async () => {},
   fetchUserProfile: async () => {},
+  uploadProfileImage: async () => "",
 });
 
 export const AuthProvider = ({ children }: PropsWithChildren) => {
@@ -71,6 +72,58 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     return data;
   };
 
+  // Upload profile image using the edge function
+  const uploadProfileImage = async (file: File | Blob): Promise<string> => {
+    if (!user.id) {
+      throw new Error("User must be logged in to upload profile image");
+    }
+
+    try {
+      // Get current session for authentication
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session) {
+        throw new Error("Authentication required");
+      }
+
+      // Create FormData for the file upload
+      const formData = new FormData();
+      formData.append("file", file);
+
+      // Call the edge function
+      const { data, error } = await supabase.functions.invoke(
+        "upload-profile-image",
+        {
+          body: formData,
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        },
+      );
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data?.success || !data?.url) {
+        throw new Error(data?.error || "Failed to upload image");
+      }
+
+      // Invalidate and refetch the user profile to get the updated avatar_url
+      await queryClient.invalidateQueries({
+        queryKey: ["userProfile", user.id],
+      });
+
+      return data.url;
+    } catch (error) {
+      console.error("Error uploading profile image:", error);
+      throw error;
+    }
+  };
+
   const setUserId = (id: string) => {
     setUser({ ...user, id });
   };
@@ -79,14 +132,12 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     setUser({ ...user, name });
   };
 
-  const setUserPreferredMedia = (
-    media: Array<"Games" | "Movies" | "Books">
-  ) => {
+  const setUserPreferredMedia = (media: ("Games" | "Movies" | "Books")[]) => {
     setUser({ ...user, preferred_media: media });
   };
 
   const completeOnboarding = async (
-    preferredMedia?: Array<"Games" | "Movies" | "Books">
+    preferredMedia?: ("Games" | "Movies" | "Books")[],
   ) => {
     if (!user.id || !user.name || !preferredMedia) {
       throw new Error("Missing required user information");
@@ -192,7 +243,6 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     initializeAuth();
   }, []);
 
-
   return (
     <AuthContext.Provider
       value={{
@@ -206,6 +256,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         setUserPreferredMedia,
         completeOnboarding,
         fetchUserProfile,
+        uploadProfileImage,
       }}
     >
       {children}
