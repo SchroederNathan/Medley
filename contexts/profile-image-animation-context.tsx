@@ -34,7 +34,7 @@ type ContextValue = {
 };
 
 const ProfileImageAnimationContext = createContext<ContextValue>(
-  {} as ContextValue,
+  {} as ContextValue
 );
 
 export const ProfileImageAnimationProvider: FC<PropsWithChildren> = ({
@@ -69,7 +69,7 @@ export const ProfileImageAnimationProvider: FC<PropsWithChildren> = ({
       // Update coordinates to maintain visual connection
       imageXCoord.value = measurementValue.pageX;
       imageYCoord.value = measurementValue.pageY;
-    },
+    }
   );
 
   const open = () => {
@@ -84,12 +84,12 @@ export const ProfileImageAnimationProvider: FC<PropsWithChildren> = ({
     // Center horizontally by offsetting by half the expanded size
     imageXCoord.value = withTiming(
       screenCenterX - expandedProfileImageSize / 2,
-      _timingConfig,
+      _timingConfig
     );
     // Center vertically using same calculation for visual balance
     imageYCoord.value = withTiming(
       screenCenterY - expandedProfileImageSize / 2,
-      _timingConfig,
+      _timingConfig
     );
     // Delay close button appearance until main animation completes for sequential focus
     closeBtnOpacity.value = withDelay(_duration, withTiming(1));
@@ -107,7 +107,7 @@ export const ProfileImageAnimationProvider: FC<PropsWithChildren> = ({
     // Delay state change until animation completes to prevent flickering
     imageState.value = withDelay(
       _duration,
-      withTiming("close", { duration: 0 }),
+      withTiming("close", { duration: 0 })
     );
     // Animate blur away first for visual hierarchy
     blurIntensity.value = withTiming(0, _timingConfig);
@@ -151,7 +151,7 @@ export const useProfileImageAnimation = () => {
 
   if (!context) {
     throw new Error(
-      "useProfileImageAnimation must be used within an ProfileImageAnimationProvider",
+      "useProfileImageAnimation must be used within an ProfileImageAnimationProvider"
     );
   }
 

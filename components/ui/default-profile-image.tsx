@@ -1,10 +1,9 @@
-import React, { FC } from "react";
+import React, { FC, useContext } from "react";
 import { StyleSheet, Pressable, Text } from "react-native";
 import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import { useProfileImageAnimation } from "../../contexts/profile-image-animation-context";
 import { Image } from "expo-image";
 import { useUserProfile } from "../../hooks/use-user-profile";
-import { useContext } from "react";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
 
