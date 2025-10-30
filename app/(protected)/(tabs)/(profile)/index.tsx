@@ -8,17 +8,19 @@ import Svg, {
   Filter,
   Path,
 } from "react-native-svg";
+import { AnimatedProfileImage } from "../../../../components/ui/animated-profile-image";
 import Button from "../../../../components/ui/button";
+import { DefaultProfileImage } from "../../../../components/ui/default-profile-image";
 import { AuthContext } from "../../../../contexts/auth-context";
+import { ProfileImageAnimationProvider } from "../../../../contexts/profile-image-animation-context";
+import { ThemeContext } from "../../../../contexts/theme-context";
 import { useUserProfile } from "../../../../hooks/use-user-profile";
 import { fontFamily } from "../../../../lib/fonts";
-import { ProfileImageAnimationProvider } from "../../../../contexts/profile-image-animation-context";
-import { AnimatedProfileImage } from "../../../../components/ui/animated-profile-image";
-import { DefaultProfileImage } from "../../../../components/ui/default-profile-image";
 
 const ProfileScreen = () => {
+  const { theme } = useContext(ThemeContext);
   const authContext = useContext(AuthContext);
-  const { isLoading, error } = useUserProfile();
+  const { isLoading, error, data: profile } = useUserProfile();
   if (isLoading) {
     return (
       <View style={styles.container}>
@@ -81,6 +83,9 @@ const ProfileScreen = () => {
 
         {/* Content */}
         <DefaultProfileImage />
+        <Text style={[styles.name, { color: theme.text }]}>
+          {profile?.name}
+        </Text>
 
         <Button
           title="Logout"
@@ -114,6 +119,7 @@ const styles = StyleSheet.create({
   name: {
     fontFamily: fontFamily.plusJakarta.bold,
     fontSize: 24,
+    marginTop: 20,
     marginBottom: 10,
   },
   preferences: {

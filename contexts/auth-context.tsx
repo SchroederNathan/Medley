@@ -1,8 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { createContext, PropsWithChildren, useEffect, useState } from "react";
-import { supabase } from "../lib/utils";
 import { queryClient } from "../lib/query-client";
+import { supabase } from "../lib/utils";
 
 const authStorageKey = "authState";
 
@@ -22,7 +22,7 @@ type AuthState = {
   setUserName: (name: string) => void;
   setUserPreferredMedia: (media: ("Games" | "Movies" | "Books")[]) => void;
   completeOnboarding: (
-    mediaPreferences?: ("Games" | "Movies" | "Books")[],
+    mediaPreferences?: ("Games" | "Movies" | "Books")[]
   ) => Promise<void>;
   fetchUserProfile: (id: string) => Promise<any>;
   uploadProfileImage: (imageUri: string) => Promise<string>;
@@ -96,21 +96,28 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       throw profileResult.error;
     }
 
-    const currentProfile = profileResult.data;
-    let oldFilePath: string | null = null;
-    if (currentProfile?.avatar_url) {
-      try {
-        const urlParts = currentProfile.avatar_url.split("/profile-images/");
-        if (urlParts.length > 1) {
-          oldFilePath = `profiles/${user.id}/${urlParts[1]}`;
-        }
-      } catch (e) {
-        console.warn("Could not parse old avatar URL:", e);
-      }
-    }
+    // Use a fixed filename to replace the existing image
+    const fileName = `profiles/${user.id}/avatar.jpg`;
 
-    const timestamp = Date.now();
-    const fileName = `profiles/${user.id}/${timestamp}.jpg`;
+    // Delete existing avatar if it exists to ensure clean replacement
+    const { data: deleteData, error: deleteError } = await supabase.storage
+      .from("profile-images")
+      .remove([fileName]);
+
+    // Log delete result for debugging
+    if (deleteError) {
+      const isNotFound =
+        deleteError.message?.includes("not found") ||
+        deleteError.message?.includes("does not exist") ||
+        deleteError.message?.includes("No such file");
+      if (!isNotFound) {
+        console.warn("Could not delete existing avatar:", deleteError);
+      } else {
+        console.log("No existing avatar to delete (first upload)");
+      }
+    } else if (deleteData && deleteData.length > 0) {
+      console.log("Successfully deleted existing avatar");
+    }
 
     let fileData: ArrayBuffer | null = null;
     let fileReadError: Error | null = null;
@@ -144,6 +151,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       }
     }
 
+    // Upload new file - upsert disabled since we deleted first
     const uploadResult = await supabase.storage
       .from("profile-images")
       .upload(fileName, fileData, {
@@ -153,19 +161,49 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       });
 
     if (uploadResult.error) {
-      console.error("Error uploading image:", uploadResult.error);
-      const uploadError = uploadResult.error;
-      throw uploadError;
+      // If file still exists despite delete, try with upsert
+      if (
+        uploadResult.error.message?.includes("already exists") ||
+        uploadResult.error.message?.includes("duplicate")
+      ) {
+        console.warn(
+          "File exists after delete, using upsert:",
+          uploadResult.error.message
+        );
+        const upsertResult = await supabase.storage
+          .from("profile-images")
+          .upload(fileName, fileData, {
+            contentType,
+            upsert: true,
+            cacheControl: "3600",
+          });
+
+        if (upsertResult.error) {
+          console.error(
+            "Error uploading image (with upsert):",
+            upsertResult.error
+          );
+          const uploadError = upsertResult.error;
+          throw uploadError;
+        }
+      } else {
+        console.error("Error uploading image:", uploadResult.error);
+        const uploadError = uploadResult.error;
+        throw uploadError;
+      }
     }
 
     const {
       data: { publicUrl },
     } = supabase.storage.from("profile-images").getPublicUrl(fileName);
 
+    // Add cache-busting query parameter to force image refresh
+    const cacheBustUrl = `${publicUrl}?t=${Date.now()}`;
+
     const updateResult = await supabase
       .from("profiles")
       .update({
-        avatar_url: publicUrl,
+        avatar_url: cacheBustUrl,
         updated_at: new Date().toISOString(),
       })
       .eq("id", user.id);
@@ -177,19 +215,17 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       throw updateError;
     }
 
-    if (oldFilePath && oldFilePath !== fileName) {
-      try {
-        await supabase.storage.from("profile-images").remove([oldFilePath]);
-      } catch (deleteError) {
-        console.warn("Failed to delete old avatar:", deleteError);
-      }
-    }
-
+    // Force refetch the profile immediately to update UI
     await queryClient.invalidateQueries({
       queryKey: ["userProfile", user.id],
     });
 
-    return publicUrl;
+    // Refetch the profile data immediately to ensure UI updates
+    await queryClient.refetchQueries({
+      queryKey: ["userProfile", user.id],
+    });
+
+    return cacheBustUrl;
   };
 
   const setUserId = (id: string) => {
@@ -205,7 +241,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   };
 
   const completeOnboarding = async (
-    preferredMedia?: ("Games" | "Movies" | "Books")[],
+    preferredMedia?: ("Games" | "Movies" | "Books")[]
   ) => {
     if (!user.id || !user.name || !preferredMedia) {
       throw new Error("Missing required user information");
@@ -289,8 +325,6 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
       let sessionResult;
       try {
         sessionResult = await supabase.auth.getSession();
