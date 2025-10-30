@@ -25,7 +25,7 @@ type AuthState = {
     mediaPreferences?: ("Games" | "Movies" | "Books")[],
   ) => Promise<void>;
   fetchUserProfile: (id: string) => Promise<any>;
-  uploadProfileImage: (file: File | Blob) => Promise<string>;
+  uploadProfileImage: (imageUri: string) => Promise<string>;
 };
 
 export const AuthContext = createContext<AuthState>({
@@ -57,7 +57,6 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     }
   };
 
-  //get user profile from database
   const fetchUserProfile = async (id: string) => {
     const { data, error } = await supabase
       .from("profiles")
@@ -72,56 +71,125 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     return data;
   };
 
-  // Upload profile image using the edge function
-  const uploadProfileImage = async (file: File | Blob): Promise<string> => {
+  const uploadProfileImage = async (imageUri: string): Promise<string> => {
     if (!user.id) {
       throw new Error("User must be logged in to upload profile image");
     }
 
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError || !session) {
+      throw new Error("Authentication required");
+    }
+
+    const profileResult = await supabase
+      .from("profiles")
+      .select("avatar_url")
+      .eq("id", user.id)
+      .single();
+
+    if (profileResult.error) {
+      console.error("Error fetching profile:", profileResult.error);
+      throw profileResult.error;
+    }
+
+    const currentProfile = profileResult.data;
+    let oldFilePath: string | null = null;
+    if (currentProfile?.avatar_url) {
+      try {
+        const urlParts = currentProfile.avatar_url.split("/profile-images/");
+        if (urlParts.length > 1) {
+          oldFilePath = `profiles/${user.id}/${urlParts[1]}`;
+        }
+      } catch (e) {
+        console.warn("Could not parse old avatar URL:", e);
+      }
+    }
+
+    const timestamp = Date.now();
+    const fileName = `profiles/${user.id}/${timestamp}.jpg`;
+
+    let fileData: ArrayBuffer | null = null;
+    let fileReadError: Error | null = null;
+    let detectedContentType: string | null = null;
+
     try {
-      // Get current session for authentication
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
+      const response = await fetch(imageUri);
+      fileData = await response.arrayBuffer();
+      detectedContentType = response.headers.get("content-type");
+    } catch (error) {
+      fileReadError = error as Error;
+    }
 
-      if (sessionError || !session) {
-        throw new Error("Authentication required");
+    if (fileReadError || !fileData) {
+      console.error("Error reading image file:", fileReadError);
+      throw fileReadError || new Error("Failed to read image file");
+    }
+
+    let contentType = "image/jpeg";
+    if (
+      detectedContentType &&
+      detectedContentType !== "application/octet-stream"
+    ) {
+      contentType = detectedContentType;
+    } else {
+      const lowerUri = imageUri.toLowerCase();
+      if (lowerUri.endsWith(".png")) {
+        contentType = "image/png";
+      } else if (lowerUri.endsWith(".webp")) {
+        contentType = "image/webp";
       }
+    }
 
-      // Create FormData for the file upload
-      const formData = new FormData();
-      formData.append("file", file);
-
-      // Call the edge function
-      const { data, error } = await supabase.functions.invoke(
-        "upload-profile-image",
-        {
-          body: formData,
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        },
-      );
-
-      if (error) {
-        throw error;
-      }
-
-      if (!data?.success || !data?.url) {
-        throw new Error(data?.error || "Failed to upload image");
-      }
-
-      // Invalidate and refetch the user profile to get the updated avatar_url
-      await queryClient.invalidateQueries({
-        queryKey: ["userProfile", user.id],
+    const uploadResult = await supabase.storage
+      .from("profile-images")
+      .upload(fileName, fileData, {
+        contentType,
+        upsert: false,
+        cacheControl: "3600",
       });
 
-      return data.url;
-    } catch (error) {
-      console.error("Error uploading profile image:", error);
-      throw error;
+    if (uploadResult.error) {
+      console.error("Error uploading image:", uploadResult.error);
+      const uploadError = uploadResult.error;
+      throw uploadError;
     }
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("profile-images").getPublicUrl(fileName);
+
+    const updateResult = await supabase
+      .from("profiles")
+      .update({
+        avatar_url: publicUrl,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", user.id);
+
+    if (updateResult.error) {
+      await supabase.storage.from("profile-images").remove([fileName]);
+      console.error("Error updating profile:", updateResult.error);
+      const updateError = updateResult.error;
+      throw updateError;
+    }
+
+    if (oldFilePath && oldFilePath !== fileName) {
+      try {
+        await supabase.storage.from("profile-images").remove([oldFilePath]);
+      } catch (deleteError) {
+        console.warn("Failed to delete old avatar:", deleteError);
+      }
+    }
+
+    await queryClient.invalidateQueries({
+      queryKey: ["userProfile", user.id],
+    });
+
+    return publicUrl;
   };
 
   const setUserId = (id: string) => {
@@ -143,51 +211,58 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       throw new Error("Missing required user information");
     }
 
-    try {
-      // First, ensure the profile exists (in case trigger failed)
-      const { data: existingProfile } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("id", user.id)
-        .single();
+    const { data: existingProfile, error: fetchError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", user.id)
+      .single();
 
-      if (!existingProfile) {
-        // Create profile if it doesn't exist
-        const { error: insertError } = await supabase.from("profiles").insert({
-          id: user.id,
+    if (fetchError) {
+      console.error("Error fetching profile:", fetchError);
+      throw fetchError;
+    }
+
+    let dbError: Error | null = null;
+
+    if (!existingProfile) {
+      const insertResult = await supabase.from("profiles").insert({
+        id: user.id,
+        name: user.name,
+        media_preferences: {
+          preferred_media: preferredMedia,
+          onboarding_completed: true,
+          completed_at: new Date().toISOString(),
+        },
+      });
+
+      if (insertResult.error) {
+        dbError = insertResult.error;
+      }
+    } else {
+      const updateResult = await supabase
+        .from("profiles")
+        .update({
           name: user.name,
           media_preferences: {
             preferred_media: preferredMedia,
             onboarding_completed: true,
             completed_at: new Date().toISOString(),
           },
-        });
+        })
+        .eq("id", user.id);
 
-        if (insertError) throw insertError;
-      } else {
-        // Update existing profile
-        const { error: updateError } = await supabase
-          .from("profiles")
-          .update({
-            name: user.name,
-            media_preferences: {
-              preferred_media: preferredMedia,
-              onboarding_completed: true,
-              completed_at: new Date().toISOString(),
-            },
-          })
-          .eq("id", user.id);
-
-        if (updateError) throw updateError;
+      if (updateResult.error) {
+        dbError = updateResult.error;
       }
-
-      logIn(user.id);
-
-      router.replace("/(tabs)"); // Navigate to main app
-    } catch (error) {
-      console.error("Error completing onboarding:", error);
-      throw error;
     }
+
+    if (dbError) {
+      console.error("Error completing onboarding:", dbError);
+      throw dbError;
+    }
+
+    logIn(user.id);
+    router.replace("/(tabs)");
   };
 
   const logIn = (id: string) => {
@@ -201,9 +276,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     setUser({});
     storeAuthState({ isLoggedIn: false });
 
-    // Sign out from Supabase too
     await supabase.auth.signOut();
-    // Clear React Query cache and persisted storage
     try {
       await queryClient.cancelQueries();
       queryClient.clear();
@@ -217,27 +290,42 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   useEffect(() => {
     const initializeAuth = async () => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      try {
-        // Prefer Supabase session as the source of truth
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
 
-        if (session?.user?.id) {
-          setUser({ id: session.user.id });
-          setIsLoggedIn(true);
-          storeAuthState({ isLoggedIn: true });
-        } else {
-          // Fallback to last stored auth flag
-          const value = await AsyncStorage.getItem(authStorageKey);
-          if (value !== null) {
-            const auth = JSON.parse(value);
-            setIsLoggedIn(!!auth.isLoggedIn);
-          }
-        }
+      let sessionResult;
+      try {
+        sessionResult = await supabase.auth.getSession();
       } catch (error) {
         console.error("Error initializing auth:", error);
+        setIsReady(true);
+        return;
       }
+
+      const session = sessionResult?.data?.session;
+      const userId = session?.user?.id;
+
+      if (userId) {
+        setUser({ id: userId });
+        setIsLoggedIn(true);
+        storeAuthState({ isLoggedIn: true });
+      } else {
+        let authStorageValue: string | null = null;
+        try {
+          authStorageValue = await AsyncStorage.getItem(authStorageKey);
+        } catch (error) {
+          console.warn("Failed to read auth storage:", error);
+        }
+
+        if (authStorageValue !== null) {
+          try {
+            const auth = JSON.parse(authStorageValue);
+            const isLoggedIn = Boolean(auth.isLoggedIn);
+            setIsLoggedIn(isLoggedIn);
+          } catch (error) {
+            console.warn("Failed to parse auth storage:", error);
+          }
+        }
+      }
+
       setIsReady(true);
     };
     initializeAuth();

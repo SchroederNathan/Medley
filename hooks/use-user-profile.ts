@@ -27,11 +27,11 @@ export function useUploadProfileImage() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (file: File | Blob) => {
+    mutationFn: async (imageUri: string) => {
       if (!user?.id) {
         throw new Error("User must be logged in");
       }
-      return uploadProfileImage(file);
+      return uploadProfileImage(imageUri);
     },
     onSuccess: () => {
       // Invalidate and refetch the user profile to get the updated avatar_url

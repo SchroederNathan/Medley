@@ -1,4 +1,10 @@
-import { createContext, FC, PropsWithChildren, useContext } from "react";
+import {
+  createContext,
+  FC,
+  PropsWithChildren,
+  useContext,
+  useEffect,
+} from "react";
 import { useWindowDimensions } from "react-native";
 import {
   Easing,
@@ -34,7 +40,7 @@ type ContextValue = {
 };
 
 const ProfileImageAnimationContext = createContext<ContextValue>(
-  {} as ContextValue
+  {} as ContextValue,
 );
 
 export const ProfileImageAnimationProvider: FC<PropsWithChildren> = ({
@@ -59,6 +65,24 @@ export const ProfileImageAnimationProvider: FC<PropsWithChildren> = ({
   const blurIntensity = useSharedValue(0);
   const closeBtnOpacity = useSharedValue(0);
   const changeImageRowOpacity = useSharedValue(0);
+  // Store screen dimensions as shared values for use in worklets
+  const screenCenterXValue = useSharedValue(screenCenterX);
+  const screenCenterYValue = useSharedValue(screenCenterY);
+  const expandedSizeValue = useSharedValue(expandedProfileImageSize);
+
+  // Sync shared values when screen dimensions change
+  useEffect(() => {
+    screenCenterXValue.value = screenCenterX;
+    screenCenterYValue.value = screenCenterY;
+    expandedSizeValue.value = expandedProfileImageSize;
+  }, [
+    screenCenterX,
+    screenCenterY,
+    expandedProfileImageSize,
+    screenCenterXValue,
+    screenCenterYValue,
+    expandedSizeValue,
+  ]);
 
   // Track profile image position as user scrolls to ensure animation starts from current position
   useAnimatedReaction(
@@ -69,28 +93,27 @@ export const ProfileImageAnimationProvider: FC<PropsWithChildren> = ({
       // Update coordinates to maintain visual connection
       imageXCoord.value = measurementValue.pageX;
       imageYCoord.value = measurementValue.pageY;
-    }
+    },
   );
 
   const open = () => {
     "worklet";
+
+    const centerX = screenCenterXValue.value;
+    const centerY = screenCenterYValue.value;
+    const expandedSize = expandedSizeValue.value;
+    const halfSize = expandedSize / 2;
 
     // Immediate state change ensures proper rendering order
     imageState.value = "open";
     // Blur intensity 100 matches iOS system blur intensity
     blurIntensity.value = withTiming(100, _timingConfig);
     // Animate size, x, and y coordinates simultaneously for cohesive motion
-    imageSize.value = withTiming(expandedProfileImageSize, _timingConfig);
+    imageSize.value = withTiming(expandedSize, _timingConfig);
     // Center horizontally by offsetting by half the expanded size
-    imageXCoord.value = withTiming(
-      screenCenterX - expandedProfileImageSize / 2,
-      _timingConfig
-    );
+    imageXCoord.value = withTiming(centerX - halfSize, _timingConfig);
     // Center vertically using same calculation for visual balance
-    imageYCoord.value = withTiming(
-      screenCenterY - expandedProfileImageSize / 2,
-      _timingConfig
-    );
+    imageYCoord.value = withTiming(centerY - halfSize, _timingConfig);
     // Delay close button appearance until main animation completes for sequential focus
     closeBtnOpacity.value = withDelay(_duration, withTiming(1));
     // Change image row fades in with close button
@@ -107,7 +130,7 @@ export const ProfileImageAnimationProvider: FC<PropsWithChildren> = ({
     // Delay state change until animation completes to prevent flickering
     imageState.value = withDelay(
       _duration,
-      withTiming("close", { duration: 0 })
+      withTiming("close", { duration: 0 }),
     );
     // Animate blur away first for visual hierarchy
     blurIntensity.value = withTiming(0, _timingConfig);
@@ -151,7 +174,7 @@ export const useProfileImageAnimation = () => {
 
   if (!context) {
     throw new Error(
-      "useProfileImageAnimation must be used within an ProfileImageAnimationProvider"
+      "useProfileImageAnimation must be used within an ProfileImageAnimationProvider",
     );
   }
 
