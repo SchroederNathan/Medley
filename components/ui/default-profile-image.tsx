@@ -6,12 +6,14 @@ import { Image } from "expo-image";
 import { useUserProfile } from "../../hooks/use-user-profile";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export const DefaultProfileImage: FC = () => {
   const { theme } = useContext(ThemeContext);
   const { data: profile } = useUserProfile();
+  const insets = useSafeAreaInsets();
   const {
     targetRef,
     onTargetLayout,
@@ -34,6 +36,7 @@ export const DefaultProfileImage: FC = () => {
           styles.container,
           rImagePlaceholderStyle,
           {
+            marginTop: insets.top,
             width: defaultProfileImageSize,
             height: defaultProfileImageSize,
             backgroundColor: theme.buttonBackground,

@@ -1,5 +1,6 @@
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useContext } from "react";
 import { StyleSheet, Text, ViewStyle, Pressable } from "react-native";
 import Animated, {
@@ -47,48 +48,78 @@ const Button = ({
     };
   });
 
+  // Convert border color to transparent for gradient
+  // Handle rgba format (e.g., "rgba(64, 64, 64, 0.5)" -> "rgba(64, 64, 64, 0)")
+  let transparentBorder = buttonBorder;
+  const rgbaMatch = buttonBorder.match(
+    /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/,
+  );
+  if (rgbaMatch) {
+    transparentBorder = `rgba(${rgbaMatch[1]}, ${rgbaMatch[2]}, ${rgbaMatch[3]}, 0)`;
+  } else {
+    // Handle hex format (e.g., "#737373" -> "rgba(115, 115, 115, 0)")
+    const hexMatch = buttonBorder.match(/#([0-9A-Fa-f]{6})/);
+    if (hexMatch) {
+      const r = parseInt(hexMatch[1].substring(0, 2), 16);
+      const g = parseInt(hexMatch[1].substring(2, 4), 16);
+      const b = parseInt(hexMatch[1].substring(4, 6), 16);
+      transparentBorder = `rgba(${r}, ${g}, ${b}, 0)`;
+    }
+  }
+
   return (
     <Animated.View
-      style={[
-        styles.buttonContainer,
-        { borderColor: buttonBorder },
-        animatedStyle,
-        additionalStyles,
-        disabled && { opacity: 0.5 },
-      ]}
+      style={[animatedStyle, additionalStyles, disabled && { opacity: 0.5 }]}
     >
-      <BlurView
-        intensity={20}
-        tint="default"
-        pointerEvents="none"
-        style={[styles.blurView, { backgroundColor: buttonBackground }]}
-      />
-      <Pressable
-        onPressIn={() => {
-          if (!disabled) {
-            scale.value = withSpring(0.95);
-            Haptics.selectionAsync();
-          }
-        }}
-        onPressOut={() => {
-          if (!disabled) {
-            scale.value = withSpring(1);
-          }
-        }}
-        onPress={disabled ? undefined : onPress}
-        disabled={disabled}
-        style={styles.pressableContent}
+      <LinearGradient
+        colors={[buttonBorder, transparentBorder]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={styles.gradientBorder}
       >
-        {icon && icon}
-        <Text
+        <Animated.View
           style={[
-            styles.buttonText,
-            { color: variant === "secondary" ? theme.background : theme.text },
+            styles.buttonContainer,
+            { backgroundColor: buttonBackground },
           ]}
         >
-          {title}
-        </Text>
-      </Pressable>
+          <BlurView
+            intensity={20}
+            tint="default"
+            pointerEvents="none"
+            style={[styles.blurView, { backgroundColor: buttonBackground }]}
+          />
+          <Pressable
+            onPressIn={() => {
+              if (!disabled) {
+                scale.value = withSpring(0.95);
+                Haptics.selectionAsync();
+              }
+            }}
+            onPressOut={() => {
+              if (!disabled) {
+                scale.value = withSpring(1);
+              }
+            }}
+            onPress={disabled ? undefined : onPress}
+            disabled={disabled}
+            style={styles.pressableContent}
+          >
+            {icon && icon}
+            <Text
+              style={[
+                styles.buttonText,
+                {
+                  color:
+                    variant === "secondary" ? theme.background : theme.text,
+                },
+              ]}
+            >
+              {title}
+            </Text>
+          </Pressable>
+        </Animated.View>
+      </LinearGradient>
     </Animated.View>
   );
 };
@@ -96,11 +127,15 @@ const Button = ({
 export default Button;
 
 const styles = StyleSheet.create({
+  gradientBorder: {
+    borderRadius: 16,
+    padding: 1,
+    borderCurve: "continuous",
+  },
   buttonContainer: {
     height: 52,
     paddingHorizontal: 32,
-    borderRadius: 16,
-    borderWidth: 1,
+    borderRadius: 15,
     position: "relative",
     overflow: "hidden",
     borderCurve: "continuous",

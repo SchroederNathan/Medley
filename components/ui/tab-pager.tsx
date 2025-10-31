@@ -32,6 +32,7 @@ type TabIndicatorProps = {
   tabWidths: SharedValue<number[]>;
   tabOffsets: SharedValue<number[]>;
   tabBarOffsetX: SharedValue<number>;
+  centerOffset?: SharedValue<number>;
 };
 
 const TabIndicator: React.FC<TabIndicatorProps> = ({
@@ -39,6 +40,7 @@ const TabIndicator: React.FC<TabIndicatorProps> = ({
   tabWidths,
   tabOffsets,
   tabBarOffsetX,
+  centerOffset,
 }) => {
   const { theme } = useContext(ThemeContext);
 
@@ -55,8 +57,11 @@ const TabIndicator: React.FC<TabIndicatorProps> = ({
       tabWidths.value,
     );
 
+    // Apply centering offset if provided
+    const centeringAdjustment = centerOffset?.value ?? 0;
+
     return {
-      left,
+      left: left + centeringAdjustment,
       width,
       transform: [
         {
@@ -112,6 +117,7 @@ type TabPagerProps = {
   onChange: (key: string, index: number) => void;
   style?: ViewStyle;
   pages: React.ReactNode[];
+  centerTabs?: boolean;
 };
 
 // animated tab pager with smooth indicator
@@ -121,6 +127,7 @@ const TabPager = ({
   onChange,
   style,
   pages,
+  centerTabs = false,
 }: TabPagerProps) => {
   const { theme } = useContext(ThemeContext);
   const { width: windowWidth } = useWindowDimensions();
@@ -167,6 +174,32 @@ const TabPager = ({
     tabsLength: tabs.length,
     sidePadding: 0,
     gap: TAB_BAR_GAP,
+  });
+
+  // Calculate centering offset for indicator when centerTabs is true
+  const centerOffset = useSharedValue(0);
+  const headerWidth = useSharedValue(windowWidth);
+
+  // Update headerWidth when window dimensions change
+  React.useEffect(() => {
+    headerWidth.value = windowWidth;
+  }, [windowWidth]);
+
+  useDerivedValue(() => {
+    "worklet";
+    if (centerTabs) {
+      // Calculate total width of all tabs
+      const totalTabsWidth = tabWidths.value.reduce((sum, width, index) => {
+        return sum + width + (index > 0 ? TAB_BAR_GAP : 0);
+      }, 0);
+
+      // Calculate centering offset: (container width - total tabs width) / 2
+      // When centerTabs is true, header has no horizontal margins, so use full width
+      const availableWidth = headerWidth.value;
+      centerOffset.value = (availableWidth - totalTabsWidth) / 2;
+    } else {
+      centerOffset.value = 0;
+    }
   });
 
   // Smart tab centering algorithm with smooth interpolation
@@ -287,7 +320,13 @@ const TabPager = ({
   return (
     <View style={[styles.container, style]} onLayout={onContainerLayout}>
       {/* Header section with tabs and indicator */}
-      <View style={styles.header}>
+      <View
+        style={[styles.header, centerTabs && styles.headerCentered]}
+        onLayout={(e) => {
+          const { width } = e.nativeEvent.layout;
+          headerWidth.value = width;
+        }}
+      >
         {/* Reanimated.FlatList enables worklet-optimized scroll handling */}
         <Animated.FlatList
           ref={listAnimatedRef}
@@ -295,12 +334,19 @@ const TabPager = ({
           keyExtractor={(item) => item.key}
           renderItem={renderTabItem}
           horizontal
-          contentContainerStyle={{
-            gap: TAB_BAR_GAP,
-          }}
+          contentContainerStyle={[
+            {
+              gap: TAB_BAR_GAP,
+            },
+            centerTabs && {
+              flexGrow: 1,
+              justifyContent: "center",
+            },
+          ]}
           showsHorizontalScrollIndicator={false}
           onScroll={scrollHandler}
           scrollEventThrottle={16}
+          scrollEnabled={!centerTabs}
         />
         {/* Positioned below tabs for proper layering */}
         <TabIndicator
@@ -308,6 +354,7 @@ const TabPager = ({
           tabWidths={tabWidths}
           tabOffsets={tabOffsets}
           tabBarOffsetX={tabBarOffsetX}
+          centerOffset={centerTabs ? centerOffset : undefined}
         />
       </View>
 
@@ -352,6 +399,10 @@ const styles = StyleSheet.create({
   header: {
     position: "relative",
     marginHorizontal: 20,
+  },
+  headerCentered: {
+    alignItems: "center",
+    marginHorizontal: 0,
   },
   tab: {
     paddingBottom: 8,

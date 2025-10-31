@@ -1,12 +1,17 @@
 import { useRouter } from "expo-router";
-import React, { useContext } from "react";
+import React, { useContext, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Dimensions,
   Pressable,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import Animated, {
+  useAnimatedScrollHandler,
+  useSharedValue,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, {
   Defs,
@@ -20,16 +25,90 @@ import { AnimatedProfileImage } from "../../../../components/ui/animated-profile
 import Button from "../../../../components/ui/button";
 import { DefaultProfileImage } from "../../../../components/ui/default-profile-image";
 import { SettingsIcon } from "../../../../components/ui/svg-icons";
+import TabPager from "../../../../components/ui/tab-pager";
 import { ProfileImageAnimationProvider } from "../../../../contexts/profile-image-animation-context";
 import { ThemeContext } from "../../../../contexts/theme-context";
 import { useUserProfile } from "../../../../hooks/use-user-profile";
 import { fontFamily } from "../../../../lib/fonts";
 
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+
+const tabs = [
+  { key: "media", title: "Media" },
+  { key: "favorites", title: "Favorites" },
+];
+
 const ProfileScreen = () => {
   const { theme } = useContext(ThemeContext);
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const [activeTab, setActiveTab] = useState<string>("media");
+  const scrollViewRef = useRef<Animated.ScrollView>(null);
+  const tabPagerContainerRef = useRef<View>(null);
+  const scrollY = useSharedValue(0);
+  const [tabPagerHeaderY, setTabPagerHeaderY] = useState(0);
+
   const { isLoading, error, data: profile } = useUserProfile();
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
+
+  const measureTabPagerPosition = () => {
+    if (tabPagerContainerRef.current && scrollViewRef.current) {
+      tabPagerContainerRef.current.measureLayout(
+        scrollViewRef.current as any,
+        (x, y, width, height) => {
+          // y is relative to the ScrollView content, which is what we need
+          setTabPagerHeaderY(y);
+        },
+        () => {
+          // Fallback to measureInWindow if measureLayout fails
+          tabPagerContainerRef.current?.measureInWindow(
+            (x, y, width, height) => {
+              // Convert window coordinates to scroll content coordinates
+              // We need to account for the scroll position and padding
+              const scrollContentY = y - insets.top - 20; // Subtract paddingTop
+              setTabPagerHeaderY(scrollContentY);
+            }
+          );
+        }
+      );
+    }
+  };
+
+  const handleTabChange = (key: string) => {
+    setActiveTab(key);
+    // Measure position and scroll
+    if (tabPagerContainerRef.current) {
+      tabPagerContainerRef.current.measureLayout(
+        scrollViewRef.current as any,
+        (x, y, width, height) => {
+          // y is already relative to ScrollView content
+          if (scrollViewRef.current) {
+            scrollViewRef.current.scrollTo({
+              y: Math.max(0, y - insets.top),
+              animated: true,
+            });
+          }
+        },
+        () => {
+          // Fallback
+          measureTabPagerPosition();
+          setTimeout(() => {
+            if (scrollViewRef.current && tabPagerHeaderY > 0) {
+              scrollViewRef.current.scrollTo({
+                y: Math.max(0, tabPagerHeaderY - insets.top),
+                animated: true,
+              });
+            }
+          }, 50);
+        }
+      );
+    }
+  };
   if (isLoading) {
     return (
       <View style={styles.container}>
@@ -53,7 +132,7 @@ const ProfileScreen = () => {
 
   return (
     <ProfileImageAnimationProvider>
-      <View style={[styles.container, { paddingTop: insets.top + 20 }]}>
+      <View style={styles.container}>
         <Svg
           width="150%"
           height="100%"
@@ -90,35 +169,88 @@ const ProfileScreen = () => {
           />
         </Svg>
 
-        <View style={styles.header}>
-          <Pressable
-            onPress={() => router.push("/settings")}
-            style={{ padding: 10, marginRight: -10 }}
-          >
-            <SettingsIcon size={24} color={theme.text} />
-          </Pressable>
-        </View>
+        <Animated.ScrollView
+          ref={scrollViewRef}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingTop: insets.top + 20,
+            paddingHorizontal: 20,
+            alignItems: "center",
+            paddingBottom: 100,
+            // Ensure minimum height to allow scrolling even with minimal content
+            // Calculate: TabPager position + screen height - safe area top
+            // This ensures we can scroll TabPager to top but never past it
+            minHeight:
+              tabPagerHeaderY > 0
+                ? tabPagerHeaderY + SCREEN_HEIGHT - insets.top
+                : SCREEN_HEIGHT * 2,
+          }}
+        >
+          <View style={styles.header}>
+            <Pressable
+              onPress={() => router.push("/settings")}
+              style={{ padding: 10, marginRight: -10 }}
+            >
+              <SettingsIcon size={24} color={theme.text} />
+            </Pressable>
+          </View>
 
-        {/* Content */}
-        <DefaultProfileImage />
-        <Text style={[styles.name, { color: theme.text }]}>
-          {profile?.name}
-        </Text>
-        <View style={styles.profileInfoRow}>
-          <Pressable style={styles.countContainer}>
-            <Text style={[styles.count, { color: theme.text }]}>0</Text>
-            <Text style={[styles.countLabel, { color: theme.secondaryText }]}>
-              Followers
-            </Text>
-          </Pressable>
-          <View style={[styles.separator, { backgroundColor: theme.border }]} />
-          <Pressable style={styles.countContainer}>
-            <Text style={[styles.count, { color: theme.text }]}>7</Text>
-            <Text style={[styles.countLabel, { color: theme.secondaryText }]}>
-              Following
-            </Text>
-          </Pressable>
-        </View>
+          {/* Content */}
+          <DefaultProfileImage />
+          <Text style={[styles.name, { color: theme.text }]}>
+            {profile?.name}
+          </Text>
+          <View style={styles.profileInfoRow}>
+            <Pressable style={styles.countContainer}>
+              <Text style={[styles.count, { color: theme.text }]}>0</Text>
+              <Text style={[styles.countLabel, { color: theme.secondaryText }]}>
+                Followers
+              </Text>
+            </Pressable>
+            <View
+              style={[styles.separator, { backgroundColor: theme.border }]}
+            />
+            <Pressable style={styles.countContainer}>
+              <Text style={[styles.count, { color: theme.text }]}>7</Text>
+              <Text style={[styles.countLabel, { color: theme.secondaryText }]}>
+                Following
+              </Text>
+            </Pressable>
+          </View>
+
+          <Button
+            title="Edit Profile"
+            onPress={() => {}}
+            styles={styles.editProfileButton}
+          />
+
+          <View
+            ref={tabPagerContainerRef}
+            style={{
+              flex: 1,
+              width: "100%",
+              marginTop: insets.top < 20 ? 52 : insets.top, // gives proper margin between follower/following count row and tab pager
+            }}
+            onLayout={() => {
+              // Measure position after layout
+              measureTabPagerPosition();
+            }}
+          >
+            <TabPager
+              tabs={tabs}
+              selectedKey={activeTab}
+              onChange={handleTabChange}
+              style={{ marginHorizontal: -20 }}
+              centerTabs={true}
+              pages={[
+                <View key="media" style={{ flex: 1 }}></View>,
+                <View key="favorites" style={{ flex: 1 }}></View>,
+              ]}
+            />
+          </View>
+        </Animated.ScrollView>
       </View>
       <AnimatedProfileImage />
     </ProfileImageAnimationProvider>
@@ -130,8 +262,6 @@ export default ProfileScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 20,
-    alignItems: "center",
   },
 
   header: {
@@ -139,7 +269,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     alignItems: "center",
     width: "100%",
-    marginBottom: 32,
+    // marginBottom: 32,
   },
   spotlightSvg: {
     position: "absolute",
@@ -154,7 +284,7 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.plusJakarta.bold,
     fontSize: 24,
     marginTop: 20,
-    marginBottom: 32,
+    marginBottom: 24,
   },
   preferences: {
     fontFamily: fontFamily.plusJakarta.regular,
@@ -197,5 +327,8 @@ const styles = StyleSheet.create({
   separator: {
     width: 1,
     height: 30,
+  },
+  editProfileButton: {
+    marginTop: 24,
   },
 });
