@@ -2,7 +2,7 @@ import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useContext } from "react";
-import { StyleSheet, Text, ViewStyle, Pressable } from "react-native";
+import { Pressable, StyleSheet, Text, ViewStyle } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -71,55 +71,57 @@ const Button = ({
     <Animated.View
       style={[animatedStyle, additionalStyles, disabled && { opacity: 0.5 }]}
     >
-      <LinearGradient
-        colors={[buttonBorder, transparentBorder]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={styles.gradientBorder}
+      <Pressable
+        onPressIn={() => {
+          if (!disabled) {
+            scale.value = withSpring(0.95);
+            Haptics.selectionAsync();
+          }
+        }}
+        onPressOut={() => {
+          if (!disabled) {
+            scale.value = withSpring(1);
+          }
+        }}
+        onPress={disabled ? undefined : onPress}
+        disabled={disabled}
+        style={styles.pressable}
       >
-        <Animated.View
-          style={[
-            styles.buttonContainer,
-            { backgroundColor: buttonBackground },
-          ]}
+        <LinearGradient
+          colors={[buttonBorder, transparentBorder]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={styles.gradientBorder}
         >
-          <BlurView
-            intensity={20}
-            tint="default"
-            pointerEvents="none"
-            style={[styles.blurView, { backgroundColor: buttonBackground }]}
-          />
-          <Pressable
-            onPressIn={() => {
-              if (!disabled) {
-                scale.value = withSpring(0.95);
-                Haptics.selectionAsync();
-              }
-            }}
-            onPressOut={() => {
-              if (!disabled) {
-                scale.value = withSpring(1);
-              }
-            }}
-            onPress={disabled ? undefined : onPress}
-            disabled={disabled}
-            style={styles.pressableContent}
+          <Animated.View
+            style={[
+              styles.buttonContainer,
+              { backgroundColor: buttonBackground },
+            ]}
           >
-            {icon && icon}
-            <Text
-              style={[
-                styles.buttonText,
-                {
-                  color:
-                    variant === "secondary" ? theme.background : theme.text,
-                },
-              ]}
-            >
-              {title}
-            </Text>
-          </Pressable>
-        </Animated.View>
-      </LinearGradient>
+            <BlurView
+              intensity={20}
+              tint="default"
+              pointerEvents="none"
+              style={[styles.blurView, { backgroundColor: buttonBackground }]}
+            />
+            <Animated.View style={styles.pressableContent}>
+              {icon && icon}
+              <Text
+                style={[
+                  styles.buttonText,
+                  {
+                    color:
+                      variant === "secondary" ? theme.background : theme.text,
+                  },
+                ]}
+              >
+                {title}
+              </Text>
+            </Animated.View>
+          </Animated.View>
+        </LinearGradient>
+      </Pressable>
     </Animated.View>
   );
 };
@@ -156,9 +158,13 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
   },
+  pressable: {
+    width: "100%",
+  },
   pressableContent: {
     width: "100%",
     height: "100%",
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
