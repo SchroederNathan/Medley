@@ -104,6 +104,21 @@ const ProfileScreen = () => {
         <Text style={[styles.name, { color: theme.text }]}>
           {profile?.name}
         </Text>
+        <View style={styles.profileInfoRow}>
+          <Pressable style={styles.countContainer}>
+            <Text style={[styles.count, { color: theme.text }]}>0</Text>
+            <Text style={[styles.countLabel, { color: theme.secondaryText }]}>
+              Followers
+            </Text>
+          </Pressable>
+          <View style={[styles.separator, { backgroundColor: theme.border }]} />
+          <Pressable style={styles.countContainer}>
+            <Text style={[styles.count, { color: theme.text }]}>7</Text>
+            <Text style={[styles.countLabel, { color: theme.secondaryText }]}>
+              Following
+            </Text>
+          </Pressable>
+        </View>
       </View>
       <AnimatedProfileImage />
     </ProfileImageAnimationProvider>
@@ -139,7 +154,7 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.plusJakarta.bold,
     fontSize: 24,
     marginTop: 20,
-    marginBottom: 10,
+    marginBottom: 32,
   },
   preferences: {
     fontFamily: fontFamily.plusJakarta.regular,
@@ -159,5 +174,28 @@ const styles = StyleSheet.create({
   },
   button: {
     width: "100%",
+  },
+  profileInfoRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+  },
+  countContainer: {
+    width: 100,
+    alignItems: "center",
+    gap: 4,
+  },
+  count: {
+    fontFamily: fontFamily.plusJakarta.bold,
+    fontSize: 16,
+  },
+  countLabel: {
+    fontFamily: fontFamily.plusJakarta.medium,
+    fontSize: 16,
+  },
+  separator: {
+    width: 1,
+    height: 30,
   },
 });
