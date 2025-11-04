@@ -44,6 +44,14 @@
           "project": "react-native",
           "organization": "schroeder-nathan"
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icons/icon.png",
+          "color": "#171717",
+          "sounds": []
+        }
       ]
     ],
     "extra": {

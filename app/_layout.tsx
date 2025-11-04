@@ -10,6 +10,7 @@ import { ThemeContext, ThemeProvider } from "../contexts/theme-context";
 import { ToastProvider } from "../contexts/toast-context";
 import { useAppFonts } from "../lib/fonts";
 import * as Sentry from "@sentry/react-native";
+import { NotificationsProvider } from "../components/providers/notifications-provider";
 
 Sentry.init({
   dsn: "https://077c17121b5dbfc5cecd4ec763173e88@o4510162802049024.ingest.us.sentry.io/4510162816073728",
@@ -58,50 +59,52 @@ const AuthProviderWithSplash = () => {
         <GestureHandlerRootView style={{ flex: 1 }}>
           <OverlayProvider>
             <ToastProvider>
-              <StatusBar style="auto" />
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                  contentStyle: { backgroundColor: theme.background },
-                }}
-              >
-                <Stack.Screen
-                  name="(protected)"
-                  options={{
+              <NotificationsProvider>
+                <StatusBar style="auto" />
+                <Stack
+                  screenOptions={{
                     headerShown: false,
+                    contentStyle: { backgroundColor: theme.background },
                   }}
-                />
-                <Stack.Screen
-                  name="onboarding"
-                  options={{
-                    animation: "none",
-                  }}
-                />
-                <Stack.Screen
-                  name="login"
-                  options={{
-                    animation: "none",
-                  }}
-                />
-                <Stack.Screen
-                  name="name"
-                  options={{
-                    animation: "none",
-                  }}
-                />
-                <Stack.Screen
-                  name="media-preferences"
-                  options={{
-                    animation: "none",
-                  }}
-                />
-                <Stack.Screen
-                  name="signup"
-                  options={{
-                    animation: "none",
-                  }}
-                />
-              </Stack>
+                >
+                  <Stack.Screen
+                    name="(protected)"
+                    options={{
+                      headerShown: false,
+                    }}
+                  />
+                  <Stack.Screen
+                    name="onboarding"
+                    options={{
+                      animation: "none",
+                    }}
+                  />
+                  <Stack.Screen
+                    name="login"
+                    options={{
+                      animation: "none",
+                    }}
+                  />
+                  <Stack.Screen
+                    name="name"
+                    options={{
+                      animation: "none",
+                    }}
+                  />
+                  <Stack.Screen
+                    name="media-preferences"
+                    options={{
+                      animation: "none",
+                    }}
+                  />
+                  <Stack.Screen
+                    name="signup"
+                    options={{
+                      animation: "none",
+                    }}
+                  />
+                </Stack>
+              </NotificationsProvider>
             </ToastProvider>
           </OverlayProvider>
         </GestureHandlerRootView>

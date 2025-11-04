@@ -72,9 +72,9 @@ const ProfileScreen = () => {
               // We need to account for the scroll position and padding
               const scrollContentY = y - insets.top - 20; // Subtract paddingTop
               setTabPagerHeaderY(scrollContentY);
-            }
+            },
           );
-        }
+        },
       );
     }
   };
@@ -105,7 +105,7 @@ const ProfileScreen = () => {
               });
             }
           }, 50);
-        }
+        },
       );
     }
   };

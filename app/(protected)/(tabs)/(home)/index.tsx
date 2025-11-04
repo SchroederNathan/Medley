@@ -11,18 +11,22 @@ import Svg, {
 } from "react-native-svg";
 import { AnimatedBlur } from "../../../../components/ui/animated-blur";
 import { AnimatedChevron } from "../../../../components/ui/animated-chevron";
+import Button from "../../../../components/ui/button";
 import Carousel from "../../../../components/ui/carousel";
 import HomeCarousel from "../../../../components/ui/home-carousel";
 import ProfileButton from "../../../../components/ui/profile-button";
 import { PullToSearchContent } from "../../../../components/ui/pull-to-search-content";
 import { SharedHeader } from "../../../../components/ui/shared-header";
+import { AuthContext } from "../../../../contexts/auth-context";
 import { ThemeContext } from "../../../../contexts/theme-context";
 import { useRecommendations } from "../../../../hooks/use-recommendations";
 import { useSharedSearch } from "../../../../hooks/use-shared-search";
 import { fontFamily } from "../../../../lib/fonts";
+import { sendPushNotification } from "../../../../lib/notifications";
 
 const IndexScreen = () => {
   const { theme } = useContext(ThemeContext);
+  const { user } = useContext(AuthContext);
   const {
     query,
     searchResults,
@@ -113,6 +117,15 @@ const IndexScreen = () => {
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"
         >
+          <Button
+            title="Send Push Notification"
+            onPress={() => {
+              sendPushNotification({
+                userId: user?.id as string,
+                body: "Hello, this is a test push notification",
+              });
+            }}
+          />
           <Carousel
             style={{ marginTop: 0 }}
             media={recommendedMovies.data ?? []}
