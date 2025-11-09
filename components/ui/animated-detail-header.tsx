@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { ChevronLeft } from "lucide-react-native";
+import { ChevronLeft, MoreHorizontal, Share } from "lucide-react-native";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, {
@@ -111,6 +111,41 @@ export const AnimatedDetailHeader: React.FC<AnimatedDetailHeaderProps> = ({
           }}
         />
       </TouchableOpacity>
+
+      <View style={[styles.rightContainer, { top: topPadding }]}>
+        <TouchableOpacity
+          onPress={() => {}}
+          style={styles.shareButton}
+          accessibilityRole="button"
+          accessibilityLabel="Share"
+        >
+          <Share size={20} color={theme.text} />
+          <View
+            style={{
+              ...StyleSheet.absoluteFillObject,
+              backgroundColor: "rgba(10, 10, 10, 0.7)",
+              borderRadius: 20,
+              zIndex: -1,
+            }}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => {}}
+          style={styles.moreButton}
+          accessibilityRole="button"
+          accessibilityLabel="More"
+        >
+          <MoreHorizontal size={20} color={theme.text} />
+          <View
+            style={{
+              ...StyleSheet.absoluteFillObject,
+              backgroundColor: "rgba(10, 10, 10, 0.7)",
+              borderRadius: 20,
+              zIndex: -1,
+            }}
+          />
+        </TouchableOpacity>
+      </View>
     </>
   );
 };
@@ -141,6 +176,35 @@ const styles = StyleSheet.create({
     left: 16,
     height: 40,
     width: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  rightContainer: {
+    position: "absolute",
+    right: 20,
+    height: 40,
+    zIndex: 20,
+    flexDirection: "row",
+    gap: 4,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  // Share button
+  shareButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  // More button
+  moreButton: {
+    width: 40,
+    height: 40,
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
