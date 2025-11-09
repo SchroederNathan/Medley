@@ -53,6 +53,7 @@ export const AnimatedProfileImage: FC = () => {
     changeImageRowOpacity,
     open,
     close,
+    snapToCenter,
   } = useProfileImageAnimation();
 
   const handleClose = () => {
@@ -140,7 +141,8 @@ export const AnimatedProfileImage: FC = () => {
       if (distance > expandedProfileImageSize / 2) {
         close();
       } else {
-        open();
+        // Snap back to center from current dragged position
+        snapToCenter();
       }
     });
 

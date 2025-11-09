@@ -40,6 +40,7 @@ type ContextValue = {
   changeImageRowOpacity: ReturnType<typeof useSharedValue<number>>;
   open: () => void;
   close: () => void;
+  snapToCenter: () => void;
 };
 
 const ProfileImageAnimationContext = createContext<ContextValue>(
@@ -161,6 +162,30 @@ export const ProfileImageAnimationProvider: FC<PropsWithChildren> = ({
     isAnimating.value = withDelay(_duration, withTiming(0, { duration: 0 }));
   };
 
+  const snapToCenter = () => {
+    "worklet";
+
+    // Mark that we're animating to prevent reaction from interfering
+    isAnimating.value = 1;
+
+    const centerX = screenCenterXValue.value;
+    const centerY = screenCenterYValue.value;
+    const expandedSize = expandedSizeValue.value;
+    const halfSize = expandedSize / 2;
+
+    // Animate from CURRENT position (where user let go) to center
+    // Don't reset position - animate from where it currently is
+    blurIntensity.value = withTiming(100, _timingConfig);
+    imageSize.value = withTiming(expandedSize, _timingConfig);
+    imageXCoord.value = withTiming(centerX - halfSize, _timingConfig);
+    imageYCoord.value = withTiming(centerY - halfSize, _timingConfig);
+    // Show close button and change image row
+    closeBtnOpacity.value = withDelay(_duration, withTiming(1));
+    changeImageRowOpacity.value = withDelay(_duration, withTiming(1));
+    // Clear animating flag after animation completes
+    isAnimating.value = withDelay(_duration, withTiming(0, { duration: 0 }));
+  };
+
   const close = () => {
     "worklet";
 
@@ -224,6 +249,7 @@ export const ProfileImageAnimationProvider: FC<PropsWithChildren> = ({
         changeImageRowOpacity,
         open,
         close,
+        snapToCenter,
       }}
     >
       {children}
