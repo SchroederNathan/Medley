@@ -28,6 +28,9 @@ type ContextValue = {
   expandedProfileImageSize: number;
   targetRef: ReturnType<typeof useTargetMeasurement>["targetRef"];
   onTargetLayout: () => void;
+  handleMeasurement: ReturnType<
+    typeof useTargetMeasurement
+  >["handleMeasurement"];
   imageState: ReturnType<typeof useSharedValue<"open" | "close">>;
   imageXCoord: ReturnType<typeof useSharedValue<number>>;
   imageYCoord: ReturnType<typeof useSharedValue<number>>;
@@ -55,10 +58,12 @@ export const ProfileImageAnimationProvider: FC<PropsWithChildren> = ({
   // 65% of screen width balances image visibility with background context
   const expandedProfileImageSize = screenWidth * 0.65;
 
-  const { targetRef, onTargetLayout, measurement } = useTargetMeasurement();
+  const { targetRef, onTargetLayout, measurement, handleMeasurement } =
+    useTargetMeasurement();
 
   // Shared values coordinate animation state across components without re-renders
   const imageState = useSharedValue<"open" | "close">("close");
+  const isAnimating = useSharedValue(0); // 0 = false, 1 = true (for animation compatibility)
   const imageXCoord = useSharedValue(screenCenterX);
   const imageYCoord = useSharedValue(screenCenterY);
   const imageSize = useSharedValue(defaultProfileImageSize);
@@ -85,12 +90,15 @@ export const ProfileImageAnimationProvider: FC<PropsWithChildren> = ({
   ]);
 
   // Track profile image position as user scrolls to ensure animation starts from current position
+  // Only update when closed and not animating to avoid interfering with animations
   useAnimatedReaction(
     () => measurement.value,
     (measurementValue) => {
       if (measurementValue === null) return;
+      if (imageState.value === "open") return; // Don't update during open state
+      if (isAnimating.value === 1) return; // Don't update during animations
 
-      // Update coordinates to maintain visual connection
+      // Update coordinates to maintain visual connection when closed
       imageXCoord.value = measurementValue.pageX;
       imageYCoord.value = measurementValue.pageY;
     },
@@ -99,33 +107,84 @@ export const ProfileImageAnimationProvider: FC<PropsWithChildren> = ({
   const open = () => {
     "worklet";
 
+    // Mark that we're animating to prevent reaction from interfering
+    isAnimating.value = 1;
+
+    // Get the current exact position of the profile image
+    const currentMeasurement = measurement.value;
+    if (currentMeasurement === null) {
+      // Fallback if measurement not available
+      const centerX = screenCenterXValue.value;
+      const centerY = screenCenterYValue.value;
+      const expandedSize = expandedSizeValue.value;
+      const halfSize = expandedSize / 2;
+
+      imageState.value = "open";
+      imageXCoord.value = centerX - halfSize;
+      imageYCoord.value = centerY - halfSize;
+      imageSize.value = expandedSize;
+      blurIntensity.value = withTiming(100, _timingConfig);
+      closeBtnOpacity.value = withDelay(_duration, withTiming(1));
+      changeImageRowOpacity.value = withDelay(_duration, withTiming(1));
+      isAnimating.value = withDelay(_duration, withTiming(0, { duration: 0 }));
+      return;
+    }
+
     const centerX = screenCenterXValue.value;
     const centerY = screenCenterYValue.value;
     const expandedSize = expandedSizeValue.value;
     const halfSize = expandedSize / 2;
 
+    // Set initial position to EXACT current position of profile image
+    const startX = currentMeasurement.pageX;
+    const startY = currentMeasurement.pageY;
+    const startSize = defaultProfileImageSize;
+
+    // Set initial values immediately (no animation) so image appears at exact position
+    imageXCoord.value = startX;
+    imageYCoord.value = startY;
+    imageSize.value = startSize;
+
     // Immediate state change ensures proper rendering order
     imageState.value = "open";
-    // Blur intensity 100 matches iOS system blur intensity
+
+    // Now animate from exact position to center
     blurIntensity.value = withTiming(100, _timingConfig);
-    // Animate size, x, and y coordinates simultaneously for cohesive motion
     imageSize.value = withTiming(expandedSize, _timingConfig);
-    // Center horizontally by offsetting by half the expanded size
     imageXCoord.value = withTiming(centerX - halfSize, _timingConfig);
-    // Center vertically using same calculation for visual balance
     imageYCoord.value = withTiming(centerY - halfSize, _timingConfig);
     // Delay close button appearance until main animation completes for sequential focus
     closeBtnOpacity.value = withDelay(_duration, withTiming(1));
     // Change image row fades in with close button
     changeImageRowOpacity.value = withDelay(_duration, withTiming(1));
+    // Clear animating flag after animation completes
+    isAnimating.value = withDelay(_duration, withTiming(0, { duration: 0 }));
   };
 
   const close = () => {
     "worklet";
 
-    // Get the current position of the original profile image
-    const x = measurement.value?.pageX ?? 0;
-    const y = measurement.value?.pageY ?? 0;
+    // Mark that we're animating to prevent reaction from interfering
+    isAnimating.value = 1;
+
+    // Get the current EXACT position of the original profile image
+    const currentMeasurement = measurement.value;
+    if (currentMeasurement === null) {
+      // Fallback if measurement not available
+      blurIntensity.value = withTiming(0, _timingConfig);
+      imageSize.value = withTiming(defaultProfileImageSize, _timingConfig);
+      imageState.value = withDelay(
+        _duration,
+        withTiming("close", { duration: 0 }),
+      );
+      closeBtnOpacity.value = withTiming(0, { duration: _duration });
+      changeImageRowOpacity.value = withTiming(0, { duration: 75 });
+      isAnimating.value = withDelay(_duration, withTiming(0, { duration: 0 }));
+      return;
+    }
+
+    const targetX = currentMeasurement.pageX;
+    const targetY = currentMeasurement.pageY;
 
     // Delay state change until animation completes to prevent flickering
     imageState.value = withDelay(
@@ -136,14 +195,16 @@ export const ProfileImageAnimationProvider: FC<PropsWithChildren> = ({
     blurIntensity.value = withTiming(0, _timingConfig);
     // Return to original size simultaneously with position for cohesive motion
     imageSize.value = withTiming(defaultProfileImageSize, _timingConfig);
-    // Return to original horizontal position
-    imageXCoord.value = withTiming(x, _timingConfig);
-    // Return to original vertical position
-    imageYCoord.value = withTiming(y, _timingConfig);
+    // Return to EXACT original horizontal position
+    imageXCoord.value = withTiming(targetX, _timingConfig);
+    // Return to EXACT original vertical position
+    imageYCoord.value = withTiming(targetY, _timingConfig);
     // Hide close button immediately as animation begins
     closeBtnOpacity.value = withTiming(0, { duration: _duration });
     // Change image row fades out faster for better UX (100ms vs 250ms)
     changeImageRowOpacity.value = withTiming(0, { duration: 75 });
+    // Clear animating flag after animation completes
+    isAnimating.value = withDelay(_duration, withTiming(0, { duration: 0 }));
   };
 
   return (
@@ -153,6 +214,7 @@ export const ProfileImageAnimationProvider: FC<PropsWithChildren> = ({
         expandedProfileImageSize,
         targetRef,
         onTargetLayout,
+        handleMeasurement,
         imageState,
         imageXCoord,
         imageYCoord,

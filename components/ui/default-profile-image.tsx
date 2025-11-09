@@ -17,10 +17,20 @@ export const DefaultProfileImage: FC = () => {
   const {
     targetRef,
     onTargetLayout,
+    handleMeasurement,
     defaultProfileImageSize,
     imageState,
     open,
   } = useProfileImageAnimation();
+
+  const handleOpen = () => {
+    // Ensure we have the latest measurement before opening
+    handleMeasurement();
+    // Small delay to ensure measurement completes
+    requestAnimationFrame(() => {
+      open();
+    });
+  };
 
   // This style controls visibility of the original image during animation
   const rImagePlaceholderStyle = useAnimatedStyle(() => {
@@ -30,8 +40,10 @@ export const DefaultProfileImage: FC = () => {
   });
 
   return (
-    <Animated.View ref={targetRef} onLayout={onTargetLayout}>
+    <Animated.View>
       <AnimatedPressable
+        ref={targetRef}
+        onLayout={onTargetLayout}
         style={[
           styles.container,
           rImagePlaceholderStyle,
@@ -43,7 +55,7 @@ export const DefaultProfileImage: FC = () => {
             borderColor: theme.buttonBorder,
           },
         ]}
-        onPress={open}
+        onPress={handleOpen}
       >
         {profile?.avatar_url ? (
           <Image

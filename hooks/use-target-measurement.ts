@@ -27,17 +27,26 @@ export const useTargetMeasurement = () => {
 
   useEffect(() => {
     if (isTargetMounted) {
-      setTimeout(() => {
+      // Measure immediately and also after a short delay to ensure accurate positioning
+      handleMeasurement();
+      const timeout = setTimeout(() => {
         handleMeasurement();
-      }, 500); // Wait for sure the target to be mounted
+      }, 100);
+      return () => clearTimeout(timeout);
     }
   }, [isTargetMounted]);
 
   const onTargetLayout = () => {
-    if (isTargetMounted === false) {
+    // Measure on every layout change to track position accurately
+    if (isTargetMounted) {
+      // Use requestAnimationFrame to ensure measurement happens after layout
+      requestAnimationFrame(() => {
+        handleMeasurement();
+      });
+    } else {
       setIsTargetMounted(true);
     }
   };
 
-  return { measurement, targetRef, onTargetLayout };
+  return { measurement, targetRef, onTargetLayout, handleMeasurement };
 };

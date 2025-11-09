@@ -74,11 +74,9 @@ const RiveButton: React.FC<TabTriggerSlotProps> = ({ onPress, isFocused }) => {
       <Pressable
         onPress={onPress}
         onPressIn={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
           scale.value = withSpring(0.9);
         }}
         onPressOut={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
           scale.value = withSpring(1);
         }}
         style={styles.riveButtonTrigger}
@@ -95,14 +93,7 @@ const TabsLayout = () => {
         <View style={styles.tabList}>
           <BottomGradient />
           <View style={styles.tabBar}>
-            <TabTrigger
-              name="home"
-              href="/(home)"
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
-              }}
-              asChild
-            >
+            <TabTrigger name="home" href="/(home)" onPress={() => {}} asChild>
               <TabButton
                 outlineIcon={HomeOutlineIcon}
                 filledIcon={HomeFilledIcon}
@@ -111,9 +102,7 @@ const TabsLayout = () => {
             <TabTrigger
               name="social"
               href="/(social)"
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
-              }}
+              onPress={() => {}}
               asChild
             >
               <TabButton
@@ -121,22 +110,13 @@ const TabsLayout = () => {
                 filledIcon={SocialFilledIcon}
               />
             </TabTrigger>
-            <TabTrigger
-              name="match"
-              href="/(match)"
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
-              }}
-              asChild
-            >
+            <TabTrigger name="match" href="/(match)" onPress={() => {}} asChild>
               <RiveButton />
             </TabTrigger>
             <TabTrigger
               name="library"
               href="/(library)"
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
-              }}
+              onPress={() => {}}
               asChild
             >
               <TabButton
@@ -147,9 +127,7 @@ const TabsLayout = () => {
             <TabTrigger
               name="profile"
               href="/(profile)"
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
-              }}
+              onPress={() => {}}
               asChild
             >
               <TabButton

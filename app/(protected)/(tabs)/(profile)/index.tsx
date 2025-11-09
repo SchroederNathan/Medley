@@ -188,7 +188,7 @@ const ProfileScreen = () => {
                 : SCREEN_HEIGHT * 2,
           }}
         >
-          <View style={styles.header}>
+          <View style={[styles.header, { top: insets.top + 20 }]}>
             <Pressable
               onPress={() => router.push("/settings")}
               style={{ padding: 10, marginRight: -10 }}
@@ -266,6 +266,8 @@ const styles = StyleSheet.create({
 
   header: {
     flexDirection: "row",
+    position: "absolute",
+    right: 20,
     justifyContent: "flex-end",
     alignItems: "center",
     width: "100%",

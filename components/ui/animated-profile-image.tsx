@@ -43,6 +43,7 @@ export const AnimatedProfileImage: FC = () => {
   const [isPickingImage, setIsPickingImage] = useState(false);
   const {
     expandedProfileImageSize,
+    handleMeasurement,
     imageState,
     imageXCoord,
     imageYCoord,
@@ -53,6 +54,15 @@ export const AnimatedProfileImage: FC = () => {
     open,
     close,
   } = useProfileImageAnimation();
+
+  const handleClose = () => {
+    // Ensure we have the latest measurement before closing
+    handleMeasurement();
+    // Small delay to ensure measurement completes
+    requestAnimationFrame(() => {
+      close();
+    });
+  };
 
   const imageScale = useSharedValue(1);
   const panStartX = useSharedValue(0);
@@ -171,7 +181,7 @@ export const AnimatedProfileImage: FC = () => {
     <GestureDetector gesture={pan}>
       <AnimatedPressable
         style={[StyleSheet.absoluteFill, rImageContainerStyle]}
-        onPress={close}
+        onPress={handleClose}
       >
         <AnimatedBlurView
           tint="dark"
