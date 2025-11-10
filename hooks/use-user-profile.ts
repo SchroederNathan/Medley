@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useContext } from "react";
 import { AuthContext } from "../contexts/auth-context";
+import { supabase } from "../lib/utils";
 
 export function useUserProfile() {
   const { user, isLoggedIn, fetchUserProfile } = useContext(AuthContext);
@@ -11,6 +12,35 @@ export function useUserProfile() {
       user?.id ? fetchUserProfile(user.id) : Promise.reject("No user ID"),
     enabled: isLoggedIn && !!user?.id,
     // Longer stale time because profiles rarely change
+    staleTime: 1000 * 60 * 30, // 30 minutes
+    gcTime: 1000 * 60 * 60 * 24, // 24 hours
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
+}
+
+/**
+ * Hook to fetch a user profile by ID
+ * Useful for displaying other users' profiles
+ */
+export function useUserProfileById(userId?: string) {
+  return useQuery({
+    queryKey: ["userProfile", userId],
+    queryFn: async () => {
+      if (!userId) throw new Error("No user ID provided");
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    },
+    enabled: !!userId,
     staleTime: 1000 * 60 * 30, // 30 minutes
     gcTime: 1000 * 60 * 60 * 24, // 24 hours
     refetchOnMount: false,

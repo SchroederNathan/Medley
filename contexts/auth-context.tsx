@@ -181,7 +181,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         if (upsertResult.error) {
           console.error(
             "Error uploading image (with upsert):",
-            upsertResult.error
+            upsertResult.error,
           );
           const uploadError = upsertResult.error;
           throw uploadError;

@@ -26,6 +26,7 @@ import MediaCard from "../../../components/ui/media-card";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { useCollection } from "../../../hooks/use-collection";
 import { fontFamily } from "../../../lib/fonts";
+import { useUserProfileById } from "../../../hooks/use-user-profile";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_SPACING = 12;
@@ -124,6 +125,24 @@ const ParallaxBackdropImage: React.FC<ParallaxBackdropImageProps> = ({
   );
 };
 
+// Helper function to format date with ordinal suffix
+const formatCollectionDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  const currentYear = new Date().getFullYear();
+  const year = date.getFullYear();
+  const month = date.toLocaleDateString("en-US", { month: "short" });
+  const day = date.getDate();
+
+  const ordinalDay = `${day}`;
+
+  // Include year only if it's not the current year
+  if (year === currentYear) {
+    return `${month} ${ordinalDay}`;
+  } else {
+    return `${month} ${ordinalDay}, ${year}`;
+  }
+};
+
 const CollectionDetail = () => {
   const { theme } = useContext(ThemeContext);
   const safeAreaInsets = useSafeAreaInsets();
@@ -134,6 +153,9 @@ const CollectionDetail = () => {
 
   // Data
   const { data: collection, isLoading, error } = useCollection(collectionId);
+
+  // Fetch collection owner's profile
+  const { data: ownerProfile } = useUserProfileById(collection?.user_id);
 
   // Render rank indicator for media cards
   const renderRankIndicator = (rank: number) => {
@@ -396,6 +418,50 @@ const CollectionDetail = () => {
         scrollEventThrottle={1000 / 60}
       >
         <View style={[styles.content, { paddingHorizontal: 20 }]}>
+          {/* Owner Profile Section */}
+          {ownerProfile && (
+            <View style={styles.ownerSection}>
+              <View
+                style={[
+                  styles.profileImageContainer,
+                  {
+                    backgroundColor: theme.buttonBackground,
+                    borderColor: theme.buttonBorder,
+                  },
+                ]}
+              >
+                {ownerProfile.avatar_url ? (
+                  <Image
+                    source={{ uri: ownerProfile.avatar_url }}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                    transition={200}
+                    style={StyleSheet.absoluteFill}
+                  />
+                ) : (
+                  <Text
+                    style={[
+                      styles.profilePlaceholderText,
+                      { color: theme.text },
+                    ]}
+                  >
+                    {ownerProfile.name?.charAt(0)?.toUpperCase() || "?"}
+                  </Text>
+                )}
+              </View>
+              <View style={styles.ownerNameContainer}>
+                <Text style={[styles.ownerName, { color: theme.text }]}>
+                  {ownerProfile.name || "Unknown User"}
+                </Text>
+                <Text
+                  style={[styles.dateCreated, { color: theme.secondaryText }]}
+                >
+                  {formatCollectionDate(collection.created_at)}
+                </Text>
+              </View>
+            </View>
+          )}
+
           <Text style={[styles.title, { color: theme.text }]}>
             {collection.name}
           </Text>
@@ -463,6 +529,39 @@ const styles = StyleSheet.create({
   scrollViewContent: {},
   content: {},
 
+  ownerSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingTop: 20,
+    marginBottom: 16,
+  },
+  profileImageContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 8,
+  },
+  profilePlaceholderText: {
+    fontSize: 16,
+    fontFamily: fontFamily.plusJakarta.medium,
+    textTransform: "uppercase",
+  },
+  ownerNameContainer: {
+    flexDirection: "column",
+    gap: 2,
+  },
+  ownerName: {
+    fontSize: 14,
+    fontFamily: fontFamily.plusJakarta.medium,
+  },
+  dateCreated: {
+    fontSize: 12,
+    fontFamily: fontFamily.plusJakarta.medium,
+  },
   title: {
     fontSize: 40,
     fontFamily: fontFamily.tanker.regular,
