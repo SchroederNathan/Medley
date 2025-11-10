@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { ChevronLeft, MoreHorizontal, Share } from "lucide-react-native";
+import { ChevronDown, ChevronLeft } from "lucide-react-native";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, {
@@ -11,11 +11,18 @@ import Animated, {
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
 
+interface RightButton {
+  icon: React.ReactNode;
+  onPress: () => void;
+}
+
 interface AnimatedDetailHeaderProps {
   scrollY: SharedValue<number>;
   title: string;
   theme: React.ContextType<typeof ThemeContext>["theme"];
   topPadding: number;
+  isModal?: boolean;
+  rightButtons?: RightButton[];
   onBackPress?: () => void;
   titleYPosition?: number;
 }
@@ -30,6 +37,8 @@ export const AnimatedDetailHeader: React.FC<AnimatedDetailHeaderProps> = ({
   title,
   theme,
   topPadding,
+  isModal = false,
+  rightButtons,
   onBackPress,
   titleYPosition = DEFAULT_TITLE_Y_POSITION,
 }) => {
@@ -101,7 +110,11 @@ export const AnimatedDetailHeader: React.FC<AnimatedDetailHeaderProps> = ({
         accessibilityRole="button"
         accessibilityLabel="Go back"
       >
-        <ChevronLeft size={20} color={theme.text} />
+        {isModal ? (
+          <ChevronDown size={20} color={theme.text} />
+        ) : (
+          <ChevronLeft size={20} color={theme.text} />
+        )}
         <View
           style={{
             ...StyleSheet.absoluteFillObject,
@@ -112,40 +125,29 @@ export const AnimatedDetailHeader: React.FC<AnimatedDetailHeaderProps> = ({
         />
       </TouchableOpacity>
 
-      <View style={[styles.rightContainer, { top: topPadding }]}>
-        <TouchableOpacity
-          onPress={() => {}}
-          style={styles.shareButton}
-          accessibilityRole="button"
-          accessibilityLabel="Share"
-        >
-          <Share size={20} color={theme.text} />
-          <View
-            style={{
-              ...StyleSheet.absoluteFillObject,
-              backgroundColor: "rgba(10, 10, 10, 0.7)",
-              borderRadius: 20,
-              zIndex: -1,
-            }}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => {}}
-          style={styles.moreButton}
-          accessibilityRole="button"
-          accessibilityLabel="More"
-        >
-          <MoreHorizontal size={20} color={theme.text} />
-          <View
-            style={{
-              ...StyleSheet.absoluteFillObject,
-              backgroundColor: "rgba(10, 10, 10, 0.7)",
-              borderRadius: 20,
-              zIndex: -1,
-            }}
-          />
-        </TouchableOpacity>
-      </View>
+      {/* Right Container */}
+      {rightButtons && rightButtons.length > 0 && (
+        <View style={[styles.rightContainer, { top: topPadding }]}>
+          {rightButtons.map((button, index) => (
+            <TouchableOpacity
+              key={index}
+              onPress={button.onPress}
+              style={styles.rightButton}
+              accessibilityRole="button"
+            >
+              {button.icon}
+              <View
+                style={{
+                  ...StyleSheet.absoluteFillObject,
+                  backgroundColor: "rgba(10, 10, 10, 0.7)",
+                  borderRadius: 20,
+                  zIndex: -1,
+                }}
+              />
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
     </>
   );
 };
@@ -192,17 +194,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  // Share button
-  shareButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  // More button
-  moreButton: {
+  rightButton: {
     width: 40,
     height: 40,
     borderRadius: 20,

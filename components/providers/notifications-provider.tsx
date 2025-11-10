@@ -52,7 +52,7 @@ export function NotificationsProvider({ children }: Props) {
           } catch (error) {
             console.warn("Failed to handle notification response:", error);
           }
-        }
+        },
       );
     } catch (error) {
       console.warn("Failed to add notification response listener:", error);

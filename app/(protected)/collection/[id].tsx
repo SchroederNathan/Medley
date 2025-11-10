@@ -1,16 +1,23 @@
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
+import { MoreHorizontal, Share } from "lucide-react-native";
 import React, { useContext } from "react";
 import {
   ActivityIndicator,
   Dimensions,
+  Platform,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 import Animated, {
+  Extrapolation,
+  interpolate,
+  SharedValue,
   useAnimatedScrollHandler,
+  useAnimatedStyle,
   useSharedValue,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -24,6 +31,98 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_SPACING = 12;
 const CARD_WIDTH = (SCREEN_WIDTH - 40 - CARD_SPACING * 3) / 3;
 const CARD_HEIGHT = CARD_WIDTH * 1.5;
+
+// Parallax animation constants
+const BACKDROP_WIDTH = Dimensions.get("window").width;
+const BACKDROP_HEIGHT = 320; // Same as current backdrop height
+const TOP_OFFSET = 30; // Offset for parallax effect
+
+interface BackdropImageProps {
+  imageUri: string;
+}
+
+const BackdropImage: React.FC<BackdropImageProps> = ({ imageUri }) => {
+  return (
+    <View style={{ width: BACKDROP_WIDTH, height: BACKDROP_HEIGHT }}>
+      {/* Base crisp image layer */}
+      <Image
+        source={{ uri: imageUri }}
+        contentFit="cover"
+        cachePolicy="memory-disk"
+        transition={200}
+        style={{
+          width: BACKDROP_WIDTH,
+          height: BACKDROP_HEIGHT,
+        }}
+      />
+      {/* Linear gradient overlay */}
+      <LinearGradient
+        colors={["rgba(10,10,10,0)", "rgba(10,10,10,1)"]}
+        locations={[0, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+    </View>
+  );
+};
+
+interface ParallaxBackdropImageProps {
+  scrollY: SharedValue<number>;
+  imageUri: string;
+}
+
+const ParallaxBackdropImage: React.FC<ParallaxBackdropImageProps> = ({
+  scrollY,
+  imageUri,
+}) => {
+  // Parallax animation style combining translateY movement and scale transforms
+  const rImageBgStyle = useAnimatedStyle(() => {
+    return {
+      // Negative offset compensates for status bar space
+      top: -TOP_OFFSET,
+      transform: [
+        {
+          // Parallax effect: image moves slower than scroll for depth illusion
+          // Pull down (-30px): image moves down 30px
+          // Normal scroll (0-height): image moves up at 1:1 ratio with scroll
+          translateY: interpolate(
+            scrollY.value,
+            [-TOP_OFFSET, 0, BACKDROP_HEIGHT], // Input: pull-down, start, full scroll
+            [TOP_OFFSET, 0, -BACKDROP_HEIGHT], // Output: move down, neutral, move up
+            Extrapolation.CLAMP,
+          ),
+        },
+        {
+          // Scale animation for dramatic pull-to-zoom effect (iOS bounce)
+          // Overscroll creates 2x zoom, returns to normal at scroll start
+          scale: interpolate(
+            scrollY.value,
+            [-BACKDROP_HEIGHT, -TOP_OFFSET, 0], // Input: max overscroll, minor pull, normal
+            [2, 1, 1], // Output: 200% zoom, normal, normal
+            Extrapolation.CLAMP,
+          ),
+        },
+      ],
+    };
+  });
+
+  return (
+    <Animated.View
+      style={[
+        rImageBgStyle,
+        // Fixed dimensions prevent layout shifts during animations
+        // transformOrigin "top" ensures scaling happens from header top edge
+        {
+          width: BACKDROP_WIDTH,
+          height: BACKDROP_HEIGHT,
+          transformOrigin: "top",
+          position: "absolute",
+        },
+      ]}
+    >
+      <BackdropImage imageUri={imageUri} />
+    </Animated.View>
+  );
+};
 
 const CollectionDetail = () => {
   const { theme } = useContext(ThemeContext);
@@ -248,23 +347,46 @@ const CollectionDetail = () => {
     );
   }
 
+  // Get backdrop URL from first media item
+  const firstMediaItem = collection.collection_items?.[0]?.media;
+  const backdropUrl = firstMediaItem?.backdrop_url;
+
   return (
-    <View
-      style={[
-        { flex: 1, backgroundColor: theme.background, paddingHorizontal: 20 },
-      ]}
-    >
+    <View style={[{ flex: 1, backgroundColor: theme.background }]}>
+      {/* Parallax Backdrop */}
+      {backdropUrl && (
+        <ParallaxBackdropImage scrollY={scrollY} imageUri={backdropUrl} />
+      )}
+
       {/* Animated Header */}
       <AnimatedDetailHeader
         scrollY={scrollY}
         title={collection.name}
+        isModal={Platform.OS === "ios"}
         theme={theme}
         topPadding={20}
-        titleYPosition={140}
+        titleYPosition={280}
+        rightButtons={[
+          {
+            icon: <Share size={20} color={theme.text} />,
+            onPress: () => {
+              // TODO: Implement share functionality
+            },
+          },
+          {
+            icon: <MoreHorizontal size={20} color={theme.text} />,
+            onPress: () => {
+              // TODO: Implement more menu functionality
+            },
+          },
+        ]}
       />
 
       <Animated.ScrollView
-        style={styles.scrollView}
+        style={[
+          styles.scrollView,
+          { paddingTop: backdropUrl ? BACKDROP_HEIGHT - 72 : 72 },
+        ]}
         contentContainerStyle={[
           styles.scrollViewContent,
           { paddingBottom: safeAreaInsets.bottom },
@@ -273,7 +395,7 @@ const CollectionDetail = () => {
         onScroll={scrollHandler}
         scrollEventThrottle={1000 / 60}
       >
-        <View style={styles.content}>
+        <View style={[styles.content, { paddingHorizontal: 20 }]}>
           <Text style={[styles.title, { color: theme.text }]}>
             {collection.name}
           </Text>
@@ -337,7 +459,6 @@ export default CollectionDetail;
 const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
-    paddingTop: 72,
   },
   scrollViewContent: {},
   content: {},
