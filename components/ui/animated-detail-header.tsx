@@ -1,20 +1,72 @@
 import { router } from "expo-router";
 import { ChevronDown, ChevronLeft } from "lucide-react-native";
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
   SharedValue,
   useAnimatedStyle,
   useDerivedValue,
+  useSharedValue,
   withTiming,
 } from "react-native-reanimated";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 interface RightButton {
   icon: React.ReactNode;
   onPress: () => void;
 }
+
+// Component for animated right button with press scale effect
+const AnimatedRightButton: React.FC<{
+  button: RightButton;
+  style?: any;
+}> = ({ button, style }) => {
+  const pressScale = useSharedValue(1);
+
+  const pressAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          scale: withTiming(pressScale.value, {
+            duration: 200,
+          }),
+        },
+      ],
+    };
+  });
+
+  const handlePressIn = () => {
+    pressScale.value = 0.95;
+  };
+
+  const handlePressOut = () => {
+    pressScale.value = 1;
+  };
+
+  return (
+    <AnimatedPressable
+      onPress={button.onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      hitSlop={{ top: 12, bottom: 12 }}
+      style={[style, pressAnimatedStyle]}
+      accessibilityRole="button"
+    >
+      {button.icon}
+      <View
+        style={{
+          ...StyleSheet.absoluteFillObject,
+          backgroundColor: "rgba(10, 10, 10, 0.7)",
+          borderRadius: 20,
+          zIndex: -1,
+        }}
+      />
+    </AnimatedPressable>
+  );
+};
 
 interface AnimatedDetailHeaderProps {
   scrollY: SharedValue<number>;
@@ -69,6 +121,29 @@ export const AnimatedDetailHeader: React.FC<AnimatedDetailHeaderProps> = ({
     };
   });
 
+  // Back button press animation
+  const backPressScale = useSharedValue(1);
+
+  const backPressAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          scale: withTiming(backPressScale.value, {
+            duration: 200,
+          }),
+        },
+      ],
+    };
+  });
+
+  const handleBackPressIn = () => {
+    backPressScale.value = 0.95;
+  };
+
+  const handleBackPressOut = () => {
+    backPressScale.value = 1;
+  };
+
   return (
     <>
       {/* Animated Header Background */}
@@ -97,8 +172,11 @@ export const AnimatedDetailHeader: React.FC<AnimatedDetailHeaderProps> = ({
       </Animated.View>
 
       {/* Back Button Overlay - stays above header */}
-      <TouchableOpacity
+      <AnimatedPressable
         onPress={onBackPress || (() => router.back())}
+        onPressIn={handleBackPressIn}
+        onPressOut={handleBackPressOut}
+        hitSlop={{ top: 12, bottom: 12 }}
         style={[
           styles.backButton,
           {
@@ -106,6 +184,7 @@ export const AnimatedDetailHeader: React.FC<AnimatedDetailHeaderProps> = ({
             position: "absolute",
             zIndex: 20,
           },
+          backPressAnimatedStyle,
         ]}
         accessibilityRole="button"
         accessibilityLabel="Go back"
@@ -123,28 +202,17 @@ export const AnimatedDetailHeader: React.FC<AnimatedDetailHeaderProps> = ({
             zIndex: -1,
           }}
         />
-      </TouchableOpacity>
+      </AnimatedPressable>
 
       {/* Right Container */}
       {rightButtons && rightButtons.length > 0 && (
         <View style={[styles.rightContainer, { top: topPadding }]}>
           {rightButtons.map((button, index) => (
-            <TouchableOpacity
+            <AnimatedRightButton
               key={index}
-              onPress={button.onPress}
+              button={button}
               style={styles.rightButton}
-              accessibilityRole="button"
-            >
-              {button.icon}
-              <View
-                style={{
-                  ...StyleSheet.absoluteFillObject,
-                  backgroundColor: "rgba(10, 10, 10, 0.7)",
-                  borderRadius: 20,
-                  zIndex: -1,
-                }}
-              />
-            </TouchableOpacity>
+            />
           ))}
         </View>
       )}
