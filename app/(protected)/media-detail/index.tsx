@@ -25,6 +25,7 @@ import Button from "../../../components/ui/button";
 import Carousel from "../../../components/ui/carousel";
 import StatusButton from "../../../components/ui/status-button";
 import { AnimatedDetailHeader } from "../../../components/ui/animated-detail-header";
+import { TruncatedText } from "../../../components/ui/truncated-text";
 import { AuthContext } from "../../../contexts/auth-context";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { useMediaItem } from "../../../hooks/use-media-item";
@@ -314,13 +315,13 @@ const MediaDetailScreen = () => {
             }}
           />
           {media.description?.length > 0 && (
-            <Animated.View
-              layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
-            >
-              <Text style={[styles.descriptionText, { color: theme.text }]}>
-                {media.description}
-              </Text>
-            </Animated.View>
+            <TruncatedText
+              text={media.description}
+              numberOfLines={3}
+              textStyle={[styles.descriptionText, { color: theme.text }]}
+              animated={true}
+              backgroundColor={theme.background}
+            />
           )}
 
           {/* Optional metadata */}

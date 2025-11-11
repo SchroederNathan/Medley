@@ -23,10 +23,11 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AnimatedDetailHeader } from "../../../components/ui/animated-detail-header";
 import MediaCard from "../../../components/ui/media-card";
+import { TruncatedText } from "../../../components/ui/truncated-text";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { useCollection } from "../../../hooks/use-collection";
-import { fontFamily } from "../../../lib/fonts";
 import { useUserProfileById } from "../../../hooks/use-user-profile";
+import { fontFamily } from "../../../lib/fonts";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_SPACING = 12;
@@ -387,7 +388,7 @@ const CollectionDetail = () => {
         isModal={Platform.OS === "ios"}
         theme={theme}
         topPadding={20}
-        titleYPosition={280}
+        titleYPosition={352}
         rightButtons={[
           {
             icon: <Share size={20} color={theme.text} />,
@@ -466,9 +467,16 @@ const CollectionDetail = () => {
             {collection.name}
           </Text>
           {collection.description ? (
-            <Text style={{ color: theme.secondaryText, marginTop: 8 }}>
-              {collection.description}
-            </Text>
+            <TruncatedText
+              text={collection.description}
+              numberOfLines={5}
+              textStyle={[
+                styles.descriptionText,
+                { color: theme.secondaryText },
+              ]}
+              containerStyle={styles.descriptionContainer}
+              backgroundColor={theme.background}
+            />
           ) : null}
 
           {/* Items */}
@@ -565,5 +573,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 40,
     fontFamily: fontFamily.tanker.regular,
+  },
+  descriptionContainer: {
+    marginTop: 8,
+  },
+  descriptionText: {
+    fontSize: 14,
+    fontFamily: fontFamily.plusJakarta.regular,
+    lineHeight: 20,
   },
 });

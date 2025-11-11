@@ -22,7 +22,7 @@ type AuthState = {
   setUserName: (name: string) => void;
   setUserPreferredMedia: (media: ("Games" | "Movies" | "Books")[]) => void;
   completeOnboarding: (
-    mediaPreferences?: ("Games" | "Movies" | "Books")[]
+    mediaPreferences?: ("Games" | "Movies" | "Books")[],
   ) => Promise<void>;
   fetchUserProfile: (id: string) => Promise<any>;
   uploadProfileImage: (imageUri: string) => Promise<string>;
@@ -168,7 +168,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       ) {
         console.warn(
           "File exists after delete, using upsert:",
-          uploadResult.error.message
+          uploadResult.error.message,
         );
         const upsertResult = await supabase.storage
           .from("profile-images")
@@ -241,7 +241,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   };
 
   const completeOnboarding = async (
-    preferredMedia?: ("Games" | "Movies" | "Books")[]
+    preferredMedia?: ("Games" | "Movies" | "Books")[],
   ) => {
     if (!user.id || !user.name || !preferredMedia) {
       throw new Error("Missing required user information");
