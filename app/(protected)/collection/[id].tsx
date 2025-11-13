@@ -35,6 +35,9 @@ import { ThemeContext } from "../../../contexts/theme-context";
 import { useCollection } from "../../../hooks/use-collection";
 import { useUserProfileById } from "../../../hooks/use-user-profile";
 import { fontFamily } from "../../../lib/fonts";
+import { useToast } from "../../../contexts/toast-context";
+import { CollectionService } from "../../../services/collectionService";
+import { AuthContext } from "../../../contexts/auth-context";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_SPACING = 12;
@@ -154,11 +157,11 @@ const formatCollectionDate = (dateString: string): string => {
 const CollectionDetail = () => {
   const { theme } = useContext(ThemeContext);
   const safeAreaInsets = useSafeAreaInsets();
-
+  const { user } = useContext(AuthContext);
   // Route param
   const { id } = useLocalSearchParams();
   const collectionId = Array.isArray(id) ? id[0] : id;
-
+  const { showToast } = useToast();
   const [showActionMenu, setShowActionMenu] = useState(false);
 
   // Data
@@ -569,13 +572,28 @@ const CollectionDetail = () => {
             title: "Delete",
             destructive: true,
             icon: <Trash size={20} color={theme.destructive} />,
-            onPress: () => {
-              // TODO: Implement delete functionality
-              setShowActionMenu(false);
+            onPress: async () => {
+              try {
+                await CollectionService.deleteCollection(
+                  collectionId,
+                  user?.id || "",
+                );
+                setShowActionMenu(false);
+                router.back();
+                setTimeout(() => {
+                  showToast({
+                    message: `${collection.name} deleted`,
+                  });
+                }, 300);
+              } catch {
+                showToast({
+                  message: "Failed to delete collection. Please try again.",
+                });
+              }
             },
           },
         ]}
-      />{" "}
+      />
     </>
   );
 };

@@ -1,3 +1,5 @@
+import * as Haptics from "expo-haptics";
+import { useRouter } from "expo-router";
 import React, { useContext, useMemo, useRef } from "react";
 import { Alert, Share, StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -6,16 +8,15 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
-import { ShareIcon, EditIcon, DeleteIcon } from "./svg-icons";
-import * as Haptics from "expo-haptics";
-import { useRouter } from "expo-router";
-import { ThemeContext } from "../../contexts/theme-context";
 import { AuthContext } from "../../contexts/auth-context";
+import { ThemeContext } from "../../contexts/theme-context";
+import { useToast } from "../../contexts/toast-context";
+import { useRadialOverlay } from "../../hooks/use-radial-overlay";
 import { fontFamily } from "../../lib/fonts";
+import { CollectionService } from "../../services/collectionService";
 import { Media } from "../../types/media";
 import MediaCard from "./media-card";
-import { useRadialOverlay } from "../../hooks/use-radial-overlay";
-import { CollectionService } from "../../services/collectionService";
+import { DeleteIcon, EditIcon, ShareIcon } from "./svg-icons";
 
 const CollectionMediaGrid = ({ mediaItems }: { mediaItems: Media[] }) => {
   const { theme } = useContext(ThemeContext);
@@ -92,7 +93,7 @@ const CollectionCard = ({
   const { theme } = useContext(ThemeContext);
   const { user } = useContext(AuthContext);
   const router = useRouter();
-
+  const { showToast } = useToast();
   const cardRef = useRef<View>(null);
   const scale = useSharedValue(1);
 
@@ -121,7 +122,7 @@ const CollectionCard = ({
       { id: "delete", icon: DeleteIcon, title: "Delete" },
       { id: "share", icon: ShareIcon, title: "Share" },
     ],
-    [],
+    []
   );
 
   const { longPressGesture, panGesture, isLongPressed } = useRadialOverlay({
@@ -147,10 +148,17 @@ const CollectionCard = ({
               onPress: async () => {
                 try {
                   await CollectionService.deleteCollection(id, user?.id || "");
-                } catch {}
+                  showToast({
+                    message: `${title} deleted`,
+                  });
+                } catch {
+                  showToast({
+                    message: "Failed to delete collection. Please try again.",
+                  });
+                }
               },
             },
-          ],
+          ]
         );
       }
     },
@@ -203,7 +211,7 @@ const CollectionCard = ({
 
   const composedGesture = Gesture.Simultaneous(
     Gesture.Race(longPressWithScale, tapGesture),
-    panGesture,
+    panGesture
   );
 
   return (
