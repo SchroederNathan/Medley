@@ -1,5 +1,4 @@
 import { router } from "expo-router";
-import { ChevronDown, ChevronLeft } from "lucide-react-native";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
@@ -11,6 +10,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
+import { ChevronDown, ChevronLeft } from "./svg-icons";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 

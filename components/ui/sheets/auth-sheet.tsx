@@ -4,14 +4,14 @@ import { StyleSheet, Text, View } from "react-native";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { fontFamily } from "../../../lib/fonts";
 import Button from "../button";
-import Modal from "../modal";
+import Modal from "../sheet";
 
-interface AuthModalProps {
+interface AuthSheetProps {
   visible: boolean;
   onClose: () => void;
 }
 
-const AuthModal = ({ visible, onClose }: AuthModalProps) => {
+const AuthSheet = ({ visible, onClose }: AuthSheetProps) => {
   const { theme } = useContext(ThemeContext);
   const router = useRouter();
 
@@ -44,7 +44,7 @@ const AuthModal = ({ visible, onClose }: AuthModalProps) => {
   );
 };
 
-export default AuthModal;
+export default AuthSheet;
 
 const styles = StyleSheet.create({
   container: {

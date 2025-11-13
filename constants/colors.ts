@@ -8,6 +8,7 @@ export const themes = {
     primary: "#007AFF",
     secondary: "#5856D6",
     border: "#E5E5EA",
+    destructive: "#FF3B30",
     card: "#F2F2F7",
 
     modalBackground: "rgba(255, 255, 255, 1)",
@@ -36,7 +37,7 @@ export const themes = {
     background: "#0A0A0A",
     text: "#E5E5E5",
     secondaryText: "#737373",
-
+    destructive: "#FF3B30",
     primary: "#0A84FF",
     secondary: "#5E5CE6",
     border: "#262626",

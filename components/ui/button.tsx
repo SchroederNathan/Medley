@@ -7,6 +7,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
+  withTiming,
 } from "react-native-reanimated";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
@@ -40,11 +41,17 @@ const Button = ({
 
   // Shared value for scale animation
   const scale = useSharedValue(1);
+  const textSize = useSharedValue(16);
 
   // Animated style for the scale transformation
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [{ scale: scale.value }],
+    };
+  });
+  const animatedTextStyle = useAnimatedStyle(() => {
+    return {
+      fontSize: textSize.value,
     };
   });
 
@@ -74,13 +81,15 @@ const Button = ({
       <Pressable
         onPressIn={() => {
           if (!disabled) {
-            scale.value = withSpring(0.95);
+            scale.value = withTiming(0.95, { duration: 100 });
+            textSize.value = withTiming(15, { duration: 100 });
             Haptics.selectionAsync();
           }
         }}
         onPressOut={() => {
           if (!disabled) {
-            scale.value = withSpring(1);
+            scale.value = withTiming(1, { duration: 100 });
+            textSize.value = withTiming(16, { duration: 100 });
           }
         }}
         onPress={disabled ? undefined : onPress}
@@ -107,17 +116,18 @@ const Button = ({
             />
             <Animated.View style={styles.pressableContent}>
               {icon && icon}
-              <Text
+              <Animated.Text
                 style={[
                   styles.buttonText,
                   {
                     color:
                       variant === "secondary" ? theme.background : theme.text,
                   },
+                  animatedTextStyle,
                 ]}
               >
                 {title}
-              </Text>
+              </Animated.Text>
             </Animated.View>
           </Animated.View>
         </LinearGradient>

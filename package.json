@@ -8,7 +8,7 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint --fix"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",

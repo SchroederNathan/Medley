@@ -2,8 +2,7 @@ import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
-import { MoreHorizontal, Share } from "lucide-react-native";
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -23,6 +22,14 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AnimatedDetailHeader } from "../../../components/ui/animated-detail-header";
 import MediaCard from "../../../components/ui/media-card";
+import ActionMenu from "../../../components/ui/sheets/action-menu";
+import {
+  CopyIcon,
+  MoreVerticalIcon,
+  PencilIcon,
+  Share2Icon,
+  Trash,
+} from "../../../components/ui/svg-icons";
 import { TruncatedText } from "../../../components/ui/truncated-text";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { useCollection } from "../../../hooks/use-collection";
@@ -151,6 +158,8 @@ const CollectionDetail = () => {
   // Route param
   const { id } = useLocalSearchParams();
   const collectionId = Array.isArray(id) ? id[0] : id;
+
+  const [showActionMenu, setShowActionMenu] = useState(false);
 
   // Data
   const { data: collection, isLoading, error } = useCollection(collectionId);
@@ -375,156 +384,199 @@ const CollectionDetail = () => {
   const backdropUrl = firstMediaItem?.backdrop_url;
 
   return (
-    <View style={[{ flex: 1, backgroundColor: theme.background }]}>
-      {/* Parallax Backdrop */}
-      {backdropUrl && (
-        <ParallaxBackdropImage scrollY={scrollY} imageUri={backdropUrl} />
-      )}
+    <>
+      <View style={[{ flex: 1, backgroundColor: theme.background }]}>
+        {/* Parallax Backdrop */}
+        {backdropUrl && (
+          <ParallaxBackdropImage scrollY={scrollY} imageUri={backdropUrl} />
+        )}
 
-      {/* Animated Header */}
-      <AnimatedDetailHeader
-        scrollY={scrollY}
-        title={collection.name}
-        isModal={Platform.OS === "ios"}
-        theme={theme}
-        topPadding={20}
-        titleYPosition={352}
-        rightButtons={[
+        {/* Animated Header */}
+        <AnimatedDetailHeader
+          scrollY={scrollY}
+          title={collection.name}
+          isModal={Platform.OS === "ios"}
+          theme={theme}
+          topPadding={20}
+          titleYPosition={352}
+          rightButtons={[
+            {
+              icon: <Share2Icon size={20} color={theme.text} />,
+              onPress: () => {
+                // TODO: Implement share functionality
+              },
+            },
+            {
+              icon: <MoreVerticalIcon size={20} color={theme.text} />,
+              onPress: () => {
+                setShowActionMenu(true);
+              },
+            },
+          ]}
+        />
+
+        <Animated.ScrollView
+          style={[
+            styles.scrollView,
+            { paddingTop: backdropUrl ? BACKDROP_HEIGHT - 72 : 72 },
+          ]}
+          contentContainerStyle={[
+            styles.scrollViewContent,
+            { paddingBottom: safeAreaInsets.bottom },
+          ]}
+          showsVerticalScrollIndicator={false}
+          onScroll={scrollHandler}
+          scrollEventThrottle={1000 / 60}
+        >
+          <View style={[styles.content, { paddingHorizontal: 20 }]}>
+            {/* Owner Profile Section */}
+            {ownerProfile && (
+              <View style={styles.ownerSection}>
+                <View
+                  style={[
+                    styles.profileImageContainer,
+                    {
+                      backgroundColor: theme.buttonBackground,
+                      borderColor: theme.buttonBorder,
+                    },
+                  ]}
+                >
+                  {ownerProfile.avatar_url ? (
+                    <Image
+                      source={{ uri: ownerProfile.avatar_url }}
+                      contentFit="cover"
+                      cachePolicy="memory-disk"
+                      transition={200}
+                      style={StyleSheet.absoluteFill}
+                    />
+                  ) : (
+                    <Text
+                      style={[
+                        styles.profilePlaceholderText,
+                        { color: theme.text },
+                      ]}
+                    >
+                      {ownerProfile.name?.charAt(0)?.toUpperCase() || "?"}
+                    </Text>
+                  )}
+                </View>
+                <View style={styles.ownerNameContainer}>
+                  <Text style={[styles.ownerName, { color: theme.text }]}>
+                    {ownerProfile.name || "Unknown User"}
+                  </Text>
+                  <Text
+                    style={[styles.dateCreated, { color: theme.secondaryText }]}
+                  >
+                    {formatCollectionDate(collection.created_at)}
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            <Text style={[styles.title, { color: theme.text }]}>
+              {collection.name}
+            </Text>
+            {collection.description ? (
+              <TruncatedText
+                text={collection.description}
+                numberOfLines={5}
+                textStyle={[
+                  styles.descriptionText,
+                  { color: theme.secondaryText },
+                ]}
+                containerStyle={styles.descriptionContainer}
+                backgroundColor={theme.background}
+              />
+            ) : null}
+
+            {/* Items */}
+            <FlashList
+              data={collection.collection_items}
+              renderItem={({ item, index }) => (
+                <View
+                  style={{
+                    position: "relative",
+                    marginBottom: collection.ranked ? 20 : 0,
+                  }}
+                >
+                  <MediaCard
+                    media={item.media}
+                    width={CARD_WIDTH}
+                    height={CARD_HEIGHT}
+                  />
+                  {/* Temporarily force rank indicator for testing */}
+                  {collection.ranked && (
+                    <View
+                      style={{
+                        position: "absolute",
+                        bottom: -16,
+                        left: CARD_WIDTH / 2 - 16,
+                        zIndex: 10,
+                      }}
+                    >
+                      {renderRankIndicator(index + 1)}
+                    </View>
+                  )}
+                </View>
+              )}
+              masonry
+              numColumns={3}
+              keyExtractor={(item) => item.id}
+              ItemSeparatorComponent={() => (
+                <View style={{ height: CARD_SPACING }} />
+              )}
+              contentContainerStyle={{
+                paddingTop: 20,
+                paddingBottom: 120,
+              }}
+              scrollEnabled={false}
+              showsVerticalScrollIndicator={false}
+            />
+          </View>
+        </Animated.ScrollView>
+      </View>
+      <ActionMenu
+        visible={showActionMenu}
+        onClose={() => {
+          setShowActionMenu(false);
+        }}
+        actions={[
           {
-            icon: <Share size={20} color={theme.text} />,
+            title: "Share",
+            icon: <Share2Icon size={20} color={theme.text} />,
             onPress: () => {
               // TODO: Implement share functionality
+              setShowActionMenu(false);
             },
           },
           {
-            icon: <MoreHorizontal size={20} color={theme.text} />,
+            title: "Edit",
+            icon: <PencilIcon size={20} color={theme.text} />,
             onPress: () => {
-              // TODO: Implement more menu functionality
+              // TODO: Implement edit functionality
+              setShowActionMenu(false);
+            },
+          },
+          {
+            title: "Clone",
+            icon: <CopyIcon size={20} color={theme.text} />,
+            onPress: () => {
+              // TODO: Implement add to collection functionality
+              setShowActionMenu(false);
+            },
+          },
+          {
+            title: "Delete",
+            destructive: true,
+            icon: <Trash size={20} color={theme.destructive} />,
+            onPress: () => {
+              // TODO: Implement delete functionality
+              setShowActionMenu(false);
             },
           },
         ]}
-      />
-
-      <Animated.ScrollView
-        style={[
-          styles.scrollView,
-          { paddingTop: backdropUrl ? BACKDROP_HEIGHT - 72 : 72 },
-        ]}
-        contentContainerStyle={[
-          styles.scrollViewContent,
-          { paddingBottom: safeAreaInsets.bottom },
-        ]}
-        showsVerticalScrollIndicator={false}
-        onScroll={scrollHandler}
-        scrollEventThrottle={1000 / 60}
-      >
-        <View style={[styles.content, { paddingHorizontal: 20 }]}>
-          {/* Owner Profile Section */}
-          {ownerProfile && (
-            <View style={styles.ownerSection}>
-              <View
-                style={[
-                  styles.profileImageContainer,
-                  {
-                    backgroundColor: theme.buttonBackground,
-                    borderColor: theme.buttonBorder,
-                  },
-                ]}
-              >
-                {ownerProfile.avatar_url ? (
-                  <Image
-                    source={{ uri: ownerProfile.avatar_url }}
-                    contentFit="cover"
-                    cachePolicy="memory-disk"
-                    transition={200}
-                    style={StyleSheet.absoluteFill}
-                  />
-                ) : (
-                  <Text
-                    style={[
-                      styles.profilePlaceholderText,
-                      { color: theme.text },
-                    ]}
-                  >
-                    {ownerProfile.name?.charAt(0)?.toUpperCase() || "?"}
-                  </Text>
-                )}
-              </View>
-              <View style={styles.ownerNameContainer}>
-                <Text style={[styles.ownerName, { color: theme.text }]}>
-                  {ownerProfile.name || "Unknown User"}
-                </Text>
-                <Text
-                  style={[styles.dateCreated, { color: theme.secondaryText }]}
-                >
-                  {formatCollectionDate(collection.created_at)}
-                </Text>
-              </View>
-            </View>
-          )}
-
-          <Text style={[styles.title, { color: theme.text }]}>
-            {collection.name}
-          </Text>
-          {collection.description ? (
-            <TruncatedText
-              text={collection.description}
-              numberOfLines={5}
-              textStyle={[
-                styles.descriptionText,
-                { color: theme.secondaryText },
-              ]}
-              containerStyle={styles.descriptionContainer}
-              backgroundColor={theme.background}
-            />
-          ) : null}
-
-          {/* Items */}
-          <FlashList
-            data={collection.collection_items}
-            renderItem={({ item, index }) => (
-              <View
-                style={{
-                  position: "relative",
-                  marginBottom: collection.ranked ? 20 : 0,
-                }}
-              >
-                <MediaCard
-                  media={item.media}
-                  width={CARD_WIDTH}
-                  height={CARD_HEIGHT}
-                />
-                {/* Temporarily force rank indicator for testing */}
-                {collection.ranked && (
-                  <View
-                    style={{
-                      position: "absolute",
-                      bottom: -16,
-                      left: CARD_WIDTH / 2 - 16,
-                      zIndex: 10,
-                    }}
-                  >
-                    {renderRankIndicator(index + 1)}
-                  </View>
-                )}
-              </View>
-            )}
-            masonry
-            numColumns={3}
-            keyExtractor={(item) => item.id}
-            ItemSeparatorComponent={() => (
-              <View style={{ height: CARD_SPACING }} />
-            )}
-            contentContainerStyle={{
-              paddingTop: 20,
-              paddingBottom: 120,
-            }}
-            scrollEnabled={false}
-            showsVerticalScrollIndicator={false}
-          />
-        </View>
-      </Animated.ScrollView>
-    </View>
+      />{" "}
+    </>
   );
 };
 

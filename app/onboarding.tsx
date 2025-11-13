@@ -21,7 +21,7 @@ import Svg, {
   Stop,
 } from "react-native-svg";
 import Button from "../components/ui/button";
-import AuthModal from "../components/ui/modals/auth-modal";
+import AuthSheet from "../components/ui/sheets/auth-sheet";
 import { ThemeContext } from "../contexts/theme-context";
 import { fontFamily } from "../lib/fonts";
 
@@ -343,7 +343,7 @@ const GetStarted = () => {
           privacy policy.
         </Text>
       </Animated.View>
-      <AuthModal visible={showModal} onClose={() => setShowModal(false)} />
+      <AuthSheet visible={showModal} onClose={() => setShowModal(false)} />
     </View>
   );
 };

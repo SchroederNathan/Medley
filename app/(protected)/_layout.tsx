@@ -1,4 +1,4 @@
-import { Redirect, Stack, useRouter } from "expo-router";
+import { Redirect, Stack } from "expo-router";
 import React, { useContext } from "react";
 import { AuthContext } from "../../contexts/auth-context";
 import { ThemeContext } from "../../contexts/theme-context";
@@ -6,7 +6,7 @@ import { ThemeContext } from "../../contexts/theme-context";
 const ProtectedLayout = () => {
   const authState = useContext(AuthContext);
   const { theme } = useContext(ThemeContext);
-  const router = useRouter();
+
   if (!authState.isReady) {
     return null;
   }

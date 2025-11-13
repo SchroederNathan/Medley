@@ -1,6 +1,6 @@
 import { useSegments } from "expo-router";
 import { Check, X } from "lucide-react-native";
-import React, { useCallback, useContext, useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
@@ -61,14 +61,15 @@ const Toast: React.FC<ToastProps> = ({
   // Calculate bottom position based on tab bar presence
   const bottomOffset = hasTabBar ? 100 : insets.bottom;
 
-  const handleClose = useCallback(() => {
+  // Animation close function - React Compiler will optimize this automatically
+  const handleClose = () => {
     translateY.value = withTiming(200, { duration: 250 });
     scale.value = withTiming(0.7, { duration: 250 });
     opacity.value = withTiming(0, { duration: 250 });
     setTimeout(() => {
       onClose();
     }, 250);
-  }, [translateY, scale, opacity, onClose]);
+  };
 
   useEffect(() => {
     if (visible) {
@@ -79,7 +80,12 @@ const Toast: React.FC<ToastProps> = ({
 
       // Auto dismiss after 4 seconds
       const timer = setTimeout(() => {
-        handleClose();
+        translateY.value = withTiming(200, { duration: 250 });
+        scale.value = withTiming(0.7, { duration: 250 });
+        opacity.value = withTiming(0, { duration: 250 });
+        setTimeout(() => {
+          onClose();
+        }, 250);
       }, 4000);
 
       return () => clearTimeout(timer);
@@ -89,14 +95,14 @@ const Toast: React.FC<ToastProps> = ({
       scale.value = withTiming(0.7, { duration: 250 });
       opacity.value = withTiming(0, { duration: 250 });
     }
-  }, [visible, handleClose, translateY, scale, opacity]);
+  }, [visible, onClose, translateY, scale, opacity]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }, { scale: scale.value }],
     opacity: opacity.value,
   }));
 
-  if (!visible && opacity.value === 0) {
+  if (!visible) {
     return null;
   }
 
