@@ -65,5 +65,8 @@
     "supabase": "^2.54.11",
     "typescript": "~5.9.2"
   },
+  "trustedDependencies": [
+    "@sentry/cli"
+  ],
   "private": true
 }
