@@ -186,7 +186,7 @@ const LibraryScreen = () => {
                   <AddCollection
                     title="Add Collection"
                     onPress={() => {
-                      router.push("/collection/create");
+                      router.push("/collection/form");
                     }}
                   />
                   {unrankedCollections.length === 0 ? (
@@ -224,7 +224,7 @@ const LibraryScreen = () => {
                   <AddCollection
                     title="Add Ranking"
                     onPress={() => {
-                      router.push("/collection/create");
+                      router.push("/collection/form");
                     }}
                   />
                   {rankedCollections.length === 0 ? (

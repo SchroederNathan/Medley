@@ -31,13 +31,13 @@ import {
   Trash,
 } from "../../../components/ui/svg-icons";
 import { TruncatedText } from "../../../components/ui/truncated-text";
+import { AuthContext } from "../../../contexts/auth-context";
 import { ThemeContext } from "../../../contexts/theme-context";
+import { useToast } from "../../../contexts/toast-context";
 import { useCollection } from "../../../hooks/use-collection";
 import { useUserProfileById } from "../../../hooks/use-user-profile";
 import { fontFamily } from "../../../lib/fonts";
-import { useToast } from "../../../contexts/toast-context";
 import { CollectionService } from "../../../services/collectionService";
-import { AuthContext } from "../../../contexts/auth-context";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_SPACING = 12;
@@ -100,7 +100,7 @@ const ParallaxBackdropImage: React.FC<ParallaxBackdropImageProps> = ({
             scrollY.value,
             [-TOP_OFFSET, 0, BACKDROP_HEIGHT], // Input: pull-down, start, full scroll
             [TOP_OFFSET, 0, -BACKDROP_HEIGHT], // Output: move down, neutral, move up
-            Extrapolation.CLAMP,
+            Extrapolation.CLAMP
           ),
         },
         {
@@ -110,7 +110,7 @@ const ParallaxBackdropImage: React.FC<ParallaxBackdropImageProps> = ({
             scrollY.value,
             [-BACKDROP_HEIGHT, -TOP_OFFSET, 0], // Input: max overscroll, minor pull, normal
             [2, 1, 1], // Output: 200% zoom, normal, normal
-            Extrapolation.CLAMP,
+            Extrapolation.CLAMP
           ),
         },
       ],
@@ -557,7 +557,8 @@ const CollectionDetail = () => {
             icon: <PencilIcon size={20} color={theme.text} />,
             onPress: () => {
               setShowActionMenu(false);
-              router.push(`/collection/create?id=${collectionId}`);
+              router.back();
+              router.push(`/collection/form?id=${collectionId}`);
             },
           },
           {

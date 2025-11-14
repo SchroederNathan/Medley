@@ -134,7 +134,7 @@ const CollectionCard = ({
           await Share.share({ message: shareMessage });
         } catch {}
       } else if (actionId === "edit") {
-        router.push(`/collection/create?id=${id}`);
+        router.push(`/collection/form?id=${id}`);
       } else if (actionId === "delete") {
         if (!user?.id) return;
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);

@@ -115,7 +115,7 @@ const SaveMedia = () => {
             <AddCollection
               title="Create Collection"
               onPress={() => {
-                router.push("/collection/create");
+                router.push("/collection/form");
               }}
             />
             {allCollections.length === 0 ? (

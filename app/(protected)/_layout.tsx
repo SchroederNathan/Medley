@@ -23,7 +23,7 @@ const ProtectedLayout = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="collection/create"
+        name="collection/form"
         options={{
           headerShown: false,
           presentation: "formSheet",

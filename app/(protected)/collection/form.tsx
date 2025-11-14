@@ -1,4 +1,4 @@
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { ArrowLeft, Plus, Trophy } from "lucide-react-native";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import {
@@ -32,13 +32,13 @@ import Search from "../../../components/ui/search";
 import { Switch } from "../../../components/ui/switch";
 import { AuthContext } from "../../../contexts/auth-context";
 import { ThemeContext } from "../../../contexts/theme-context";
-import { useCollectionSearch } from "../../../hooks/use-collection-search";
 import { useCollection } from "../../../hooks/use-collection";
+import { useCollectionSearch } from "../../../hooks/use-collection-search";
 import { fontFamily } from "../../../lib/fonts";
 import { CollectionService } from "../../../services/collectionService";
 import { Media } from "../../../types/media";
 
-const CreateCollection = () => {
+const CollectionForm = () => {
   const { theme } = useContext(ThemeContext);
   const { user } = useContext(AuthContext);
   const router = useRouter();
@@ -48,7 +48,7 @@ const CreateCollection = () => {
 
   // Load collection data if in edit mode
   const { data: collection, isLoading: isLoadingCollection } = useCollection(
-    isEditMode ? collectionId : undefined,
+    isEditMode ? collectionId : undefined
   );
 
   const [collectionName, setCollectionName] = useState("");
@@ -109,7 +109,7 @@ const CreateCollection = () => {
     Keyboard.dismiss();
   };
 
-  const handleCreateCollection = async () => {
+  const handleCollectionForm = async () => {
     // Validation
     if (!collectionName.trim()) {
       Alert.alert("Name Required", "Please enter a name for your collection.");
@@ -136,11 +136,12 @@ const CreateCollection = () => {
             description: trimmedDescription,
             ranked: isRanked,
             items: selectedMedia,
-          },
+          }
         );
 
         // Success! Navigate back to the collection detail page
         router.back();
+        router.push(`/collection/${collectionId}`);
       } else {
         // Create new collection
         const collection = await CollectionService.createCollection({
@@ -163,7 +164,7 @@ const CreateCollection = () => {
         "Error",
         error instanceof Error
           ? error.message
-          : `Failed to ${actionVerb} collection. Please try again.`,
+          : `Failed to ${actionVerb} collection. Please try again.`
       );
     }
   };
@@ -184,7 +185,7 @@ const CreateCollection = () => {
         />
       );
     },
-    [isRanked, renderCounter, removeMediaFromCollection],
+    [isRanked, renderCounter, removeMediaFromCollection]
   );
 
   const handleEditEntries = () => {
@@ -207,11 +208,11 @@ const CreateCollection = () => {
       headerNewTranslateY.value = withSpring(10, { duration: 300 });
       headerSearchOpacity.value = withDelay(
         100,
-        withSpring(1, { duration: 300 }),
+        withSpring(1, { duration: 300 })
       );
       headerSearchTranslateY.value = withDelay(
         100,
-        withSpring(0, { duration: 300 }),
+        withSpring(0, { duration: 300 })
       );
     } else {
       // Fade out search and fade in content
@@ -232,7 +233,7 @@ const CreateCollection = () => {
       headerNewOpacity.value = withDelay(100, withSpring(1, { duration: 300 }));
       headerNewTranslateY.value = withDelay(
         100,
-        withSpring(0, { duration: 300 }),
+        withSpring(0, { duration: 300 })
       );
     }
   };
@@ -425,7 +426,7 @@ const CreateCollection = () => {
                       ? "Update Collection"
                       : "Create Collection"
                 }
-                onPress={handleCreateCollection}
+                onPress={handleCollectionForm}
                 styles={styles.button}
                 variant="secondary"
                 disabled={isCreating}
@@ -555,7 +556,7 @@ const CreateCollection = () => {
   );
 };
 
-export default CreateCollection;
+export default CollectionForm;
 
 const styles = StyleSheet.create({
   container: {
