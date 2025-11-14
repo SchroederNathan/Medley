@@ -36,7 +36,7 @@ export class CollectionService {
 
     if (collectionError) {
       throw new Error(
-        `Failed to create collection: ${collectionError.message}`,
+        `Failed to create collection: ${collectionError.message}`
       );
     }
 
@@ -78,7 +78,7 @@ export class CollectionService {
           *,
           media (*)
         )
-      `,
+      `
       )
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
@@ -100,7 +100,7 @@ export class CollectionService {
           *,
           media (*)
         )
-      `,
+      `
       )
       .eq("id", collectionId)
       .single();
@@ -119,7 +119,7 @@ export class CollectionService {
       name?: string;
       description?: string;
       ranked?: boolean;
-    },
+    }
   ) {
     const { data, error } = await supabase
       .from("collections")
@@ -180,7 +180,7 @@ export class CollectionService {
 
     if (insertError) {
       throw new Error(
-        `Failed to add media to collection: ${insertError.message}`,
+        `Failed to add media to collection: ${insertError.message}`
       );
     }
 
@@ -188,6 +188,72 @@ export class CollectionService {
     queryClient.invalidateQueries({ queryKey: ["collection", collectionId] });
     // Also invalidate user collections to update the save-media screen
     queryClient.invalidateQueries({ queryKey: ["collections"] });
+
+    return { success: true };
+  }
+
+  /**
+   * Updates a collection with its items (name, description, ranked status, and items)
+   * This replaces all existing items with the new items in the specified order
+   */
+  static async updateCollectionWithItems(
+    collectionId: string,
+    userId: string,
+    updates: {
+      name: string;
+      description?: string;
+      ranked: boolean;
+      items: Media[]; // Array of media in order
+    }
+  ) {
+    // Step 1: Update the collection metadata
+    const { error: collectionError } = await supabase
+      .from("collections")
+      .update({
+        name: updates.name,
+        description: updates.description || null,
+        ranked: updates.ranked,
+      })
+      .eq("id", collectionId);
+
+    if (collectionError) {
+      throw new Error(
+        `Failed to update collection: ${collectionError.message}`
+      );
+    }
+
+    // Step 2: Delete all existing collection items
+    const { error: deleteError } = await supabase
+      .from("collection_items")
+      .delete()
+      .eq("collection_id", collectionId);
+
+    if (deleteError) {
+      throw new Error(
+        `Failed to delete existing items: ${deleteError.message}`
+      );
+    }
+
+    // Step 3: Insert new collection items if there are any
+    if (updates.items.length > 0) {
+      const collectionItems = updates.items.map((media, index) => ({
+        collection_id: collectionId,
+        media_id: media.id,
+        position: index + 1, // positions are 1-indexed
+      }));
+
+      const { error: itemsError } = await supabase
+        .from("collection_items")
+        .insert(collectionItems);
+
+      if (itemsError) {
+        throw new Error(`Failed to add items: ${itemsError.message}`);
+      }
+    }
+
+    // Invalidate relevant queries
+    queryClient.invalidateQueries({ queryKey: ["collection", collectionId] });
+    queryClient.invalidateQueries({ queryKey: ["collections", userId] });
 
     return { success: true };
   }

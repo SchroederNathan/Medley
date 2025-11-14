@@ -122,18 +122,19 @@ const CollectionCard = ({
       { id: "delete", icon: DeleteIcon, title: "Delete" },
       { id: "share", icon: ShareIcon, title: "Share" },
     ],
-    []
+    [],
   );
 
   const { longPressGesture, panGesture, isLongPressed } = useRadialOverlay({
     actions,
     onSelect: async (actionId) => {
       if (actionId === "share") {
+        const shareMessage = title || "Share";
         try {
-          await Share.share({ message: title || "Share" });
+          await Share.share({ message: shareMessage });
         } catch {}
       } else if (actionId === "edit") {
-        router.push(`/collection/${id}`);
+        router.push(`/collection/create?id=${id}`);
       } else if (actionId === "delete") {
         if (!user?.id) return;
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -146,8 +147,9 @@ const CollectionCard = ({
               text: "Delete",
               style: "destructive",
               onPress: async () => {
+                const userId = user?.id || "";
                 try {
-                  await CollectionService.deleteCollection(id, user?.id || "");
+                  await CollectionService.deleteCollection(id, userId);
                   showToast({
                     message: `${title} deleted`,
                   });
@@ -158,7 +160,7 @@ const CollectionCard = ({
                 }
               },
             },
-          ]
+          ],
         );
       }
     },
@@ -211,7 +213,7 @@ const CollectionCard = ({
 
   const composedGesture = Gesture.Simultaneous(
     Gesture.Race(longPressWithScale, tapGesture),
-    panGesture
+    panGesture,
   );
 
   return (

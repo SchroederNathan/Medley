@@ -556,8 +556,8 @@ const CollectionDetail = () => {
             title: "Edit",
             icon: <PencilIcon size={20} color={theme.text} />,
             onPress: () => {
-              // TODO: Implement edit functionality
               setShowActionMenu(false);
+              router.push(`/collection/create?id=${collectionId}`);
             },
           },
           {
@@ -573,11 +573,9 @@ const CollectionDetail = () => {
             destructive: true,
             icon: <Trash size={20} color={theme.destructive} />,
             onPress: async () => {
+              const userId = user?.id || "";
               try {
-                await CollectionService.deleteCollection(
-                  collectionId,
-                  user?.id || "",
-                );
+                await CollectionService.deleteCollection(collectionId, userId);
                 setShowActionMenu(false);
                 router.back();
                 setTimeout(() => {

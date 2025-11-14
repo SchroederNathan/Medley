@@ -1,7 +1,8 @@
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { ArrowLeft, Plus, Trophy } from "lucide-react-native";
-import React, { useCallback, useContext, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Keyboard,
   ScrollView,
@@ -32,6 +33,7 @@ import { Switch } from "../../../components/ui/switch";
 import { AuthContext } from "../../../contexts/auth-context";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { useCollectionSearch } from "../../../hooks/use-collection-search";
+import { useCollection } from "../../../hooks/use-collection";
 import { fontFamily } from "../../../lib/fonts";
 import { CollectionService } from "../../../services/collectionService";
 import { Media } from "../../../types/media";
@@ -40,13 +42,33 @@ const CreateCollection = () => {
   const { theme } = useContext(ThemeContext);
   const { user } = useContext(AuthContext);
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const collectionId = Array.isArray(params.id) ? params.id[0] : params.id;
+  const isEditMode = !!collectionId;
+
+  // Load collection data if in edit mode
+  const { data: collection, isLoading: isLoadingCollection } = useCollection(
+    isEditMode ? collectionId : undefined,
+  );
+
   const [collectionName, setCollectionName] = useState("");
   const [description, setDescription] = useState("");
-  const [isRanked, setIsRanked] = useState(false);
+  // Initialize isRanked from collection if available, otherwise default to false
+  const [isRanked, setIsRanked] = useState(() => collection?.ranked ?? false);
   const [isEditingEntries, setIsEditingEntries] = useState(false);
   const [renderCounter, setRenderCounter] = useState(0);
   const [isCreating, setIsCreating] = useState(false);
   const insets = useSafeAreaInsets();
+
+  // Extract media items from collection if in edit mode
+  const initialMedia = React.useMemo(() => {
+    if (collection?.collection_items) {
+      return collection.collection_items
+        .sort((a, b) => (a.position || 0) - (b.position || 0))
+        .map((item) => item.media);
+    }
+    return undefined;
+  }, [collection]);
 
   const {
     query: searchQuery,
@@ -56,8 +78,18 @@ const CreateCollection = () => {
     isError: searchError,
     handleSearchChange,
     addMediaToCollection,
+    removeMediaFromCollection,
     reorderMedia,
-  } = useCollectionSearch();
+  } = useCollectionSearch(initialMedia);
+
+  // Populate form fields when collection loads (edit mode)
+  useEffect(() => {
+    if (collection) {
+      setCollectionName(collection.name || "");
+      setDescription(collection.description || "");
+      setIsRanked(collection.ranked ?? false);
+    }
+  }, [collection]);
 
   // Animation values
   const contentOpacity = useSharedValue(1);
@@ -90,29 +122,49 @@ const CreateCollection = () => {
     }
 
     setIsCreating(true);
+    const shouldUpdate = isEditMode && collectionId;
+    const trimmedDescription = description.trim() || undefined;
+    const actionVerb = isEditMode ? "update" : "create";
     try {
-      const collection = await CollectionService.createCollection({
-        userId: user.id,
-        name: collectionName.trim(),
-        description: description.trim() || undefined,
-        ranked: isRanked,
-        items: selectedMedia,
-      });
+      if (shouldUpdate) {
+        // Update existing collection
+        await CollectionService.updateCollectionWithItems(
+          collectionId!,
+          user.id,
+          {
+            name: collectionName.trim(),
+            description: trimmedDescription,
+            ranked: isRanked,
+            items: selectedMedia,
+          },
+        );
 
-      // Success! Navigate to the collection detail page
-      router.back();
+        // Success! Navigate back to the collection detail page
+        router.back();
+      } else {
+        // Create new collection
+        const collection = await CollectionService.createCollection({
+          userId: user.id,
+          name: collectionName.trim(),
+          description: trimmedDescription,
+          ranked: isRanked,
+          items: selectedMedia,
+        });
 
-      router.push(`/collection/${collection.id}`);
+        // Success! Navigate to the collection detail page
+        router.back();
+        router.push(`/collection/${collection.id}`);
+      }
+      setIsCreating(false);
     } catch (error) {
-      console.error("Failed to create collection:", error);
+      setIsCreating(false);
+      console.error(`Failed to ${actionVerb} collection:`, error);
       Alert.alert(
         "Error",
         error instanceof Error
           ? error.message
-          : "Failed to create collection. Please try again.",
+          : `Failed to ${actionVerb} collection. Please try again.`,
       );
-    } finally {
-      setIsCreating(false);
     }
   };
 
@@ -128,10 +180,11 @@ const CreateCollection = () => {
           isDraggable={true}
           drag={drag}
           isActive={isActive}
+          onRemove={() => removeMediaFromCollection(item.id)}
         />
       );
     },
-    [isRanked, renderCounter],
+    [isRanked, renderCounter, removeMediaFromCollection],
   );
 
   const handleEditEntries = () => {
@@ -220,6 +273,22 @@ const CreateCollection = () => {
     };
   });
 
+  // Show loading state while fetching collection data
+  if (isEditMode && isLoadingCollection) {
+    return (
+      <View
+        style={[
+          styles.container,
+          { backgroundColor: theme.background, justifyContent: "center" },
+        ]}
+      >
+        <ActivityIndicator size="large" color={theme.text} />
+      </View>
+    );
+  }
+
+  const headerTitle = isEditMode ? "Edit Collection" : "New Collection";
+
   return (
     <>
       {/* Header */}
@@ -235,7 +304,7 @@ const CreateCollection = () => {
         <View style={styles.headerTitleContainer}>
           {/* Invisible placeholder to preserve layout/spacing */}
           <Text style={[styles.headerTitle, { color: "transparent" }]}>
-            New Collection
+            {headerTitle}
           </Text>
           <Animated.Text
             style={[
@@ -245,7 +314,7 @@ const CreateCollection = () => {
               headerNewAnimatedStyle,
             ]}
           >
-            New Collection
+            {headerTitle}
           </Animated.Text>
           <Animated.Text
             style={[
@@ -347,7 +416,15 @@ const CreateCollection = () => {
                 )}
               </View>
               <Button
-                title={isCreating ? "Creating..." : "Create Collection"}
+                title={
+                  isCreating
+                    ? isEditMode
+                      ? "Updating..."
+                      : "Creating..."
+                    : isEditMode
+                      ? "Update Collection"
+                      : "Create Collection"
+                }
                 onPress={handleCreateCollection}
                 styles={styles.button}
                 variant="secondary"

@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import { GripVertical } from "lucide-react-native";
+import { GripVertical, X } from "lucide-react-native";
 import React, { useContext } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { ScaleDecorator } from "react-native-draggable-flatlist";
@@ -14,6 +14,7 @@ interface CollectionItemProps {
   isDraggable?: boolean;
   drag?: () => void;
   isActive?: boolean;
+  onRemove?: () => void;
 }
 
 const CollectionItem = ({
@@ -23,6 +24,7 @@ const CollectionItem = ({
   isDraggable = false,
   drag,
   isActive = false,
+  onRemove,
 }: CollectionItemProps) => {
   const { theme } = useContext(ThemeContext);
 
@@ -240,8 +242,28 @@ const CollectionItem = ({
         </Text>
       </View>
 
-      {/* Right side: GripVertical only for draggable items */}
-      {isDraggable && <GripVertical color={theme.text} />}
+      {/* Right side: Remove button and GripVertical for draggable items */}
+      {isDraggable && (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          {onRemove && (
+            // Temp removal UI
+            <TouchableOpacity
+              onPress={onRemove}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: theme.buttonBackground,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <X size={18} color={theme.destructive || theme.text} />
+            </TouchableOpacity>
+          )}
+          <GripVertical color={theme.text} />
+        </View>
+      )}
     </View>
   );
 
