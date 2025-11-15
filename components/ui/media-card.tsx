@@ -63,7 +63,7 @@ const MediaCard = ({
       { id: "bookmark", icon: BookmarkIcon, title: "Save" },
       { id: "share", icon: ShareIcon, title: "Share" },
     ],
-    [],
+    []
   );
 
   const { longPressGesture, panGesture, isLongPressed } = useRadialOverlay({
@@ -150,7 +150,7 @@ const MediaCard = ({
   // Simultaneous allows pan to track alongside tap/long-press without blocking
   const composedGesture = Gesture.Simultaneous(
     Gesture.Race(longPressWithScale, tapGesture),
-    pan,
+    pan
   );
 
   useEffect(() => {
@@ -158,10 +158,10 @@ const MediaCard = ({
     pulse.value = withRepeat(
       withSequence(
         withTiming(1, { duration: 800, easing: Easing.inOut(Easing.ease) }),
-        withTiming(0.4, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0.4, { duration: 800, easing: Easing.inOut(Easing.ease) })
       ),
       -1,
-      false,
+      false
     );
     return () => {
       cancelAnimation(pulse);
@@ -237,7 +237,7 @@ export default MediaCard;
 const styles = StyleSheet.create({
   container: {
     borderRadius: 4,
-    borderCurve: "continuous",
+    boxShadow: "rgba(204, 219, 232, 0.3) 0 1px 4px -0.5px inset",
     overflow: "hidden",
   },
   image: {
