@@ -431,8 +431,9 @@ const styles = StyleSheet.create({
   posterImage: {
     width: 120,
     aspectRatio: 2 / 3,
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: 4,
+    boxShadow: "rgba(204, 219, 232, 0.3) 0 1px 4px -0.5px inset",
+
   },
   posterDetails: {
     flex: 1,
