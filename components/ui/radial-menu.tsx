@@ -14,6 +14,7 @@ import Animated, {
   SharedValue,
   useAnimatedReaction,
   useAnimatedStyle,
+  useDerivedValue,
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
@@ -72,16 +73,18 @@ const ButtonItem: FC<ButtonItemProps> = ({
     const dx = cx - button.pos.x;
     const dy = cy - button.pos.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    const maxProximityDistance = BUTTON_RADIUS * 2;
+    const hoverThreshold = BUTTON_RADIUS * 2;
+    const maxProximityDistance = hoverThreshold;
     const normalized = Math.max(
       0,
-      Math.min(1, 1 - dist / maxProximityDistance),
+      Math.min(1, 1 - dist / maxProximityDistance)
     );
     const proximity = 1 + normalized * 0.4; // 1.0 to 1.4
     const scale = progress * proximity; // Combined entrance + proximity scale
     const opacity = progress;
 
     // Nudge button slightly away from initial press when finger nears center
+    // Translation triggers at the same distance as hover threshold
     const vx = endX - startX;
     const vy = endY - startY;
     const vlen = Math.max(1, Math.sqrt(vx * vx + vy * vy));
@@ -94,13 +97,42 @@ const ButtonItem: FC<ButtonItemProps> = ({
     const adjX = currentX + ux * offset;
     const adjY = currentY + uy * offset;
 
+    const baseSize = BUTTON_RADIUS * 2;
     return {
       left: adjX,
       top: adjY,
       opacity,
-      transform: [{ scale }],
+      width: baseSize * scale,
+      height: baseSize * scale,
     };
   });
+
+  const iconSize = useDerivedValue(() => {
+    const progress = animationProgress.value;
+    const cx = cursorX?.value ?? pressX;
+    const cy = cursorY?.value ?? pressY;
+    const dx = cx - button.pos.x;
+    const dy = cy - button.pos.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const hoverThreshold = BUTTON_RADIUS * 2;
+    const maxProximityDistance = hoverThreshold;
+    const normalized = Math.max(
+      0,
+      Math.min(1, 1 - dist / maxProximityDistance)
+    );
+    const proximity = 1 + normalized * 0.4; // 1.0 to 1.4
+    const scale = progress * proximity; // Combined entrance + proximity scale
+    return BASE_ICON_SIZE * scale;
+  });
+
+  const [currentIconSize, setCurrentIconSize] = useState(BASE_ICON_SIZE);
+
+  useAnimatedReaction(
+    () => iconSize.value,
+    (size) => {
+      runOnJS(setCurrentIconSize)(size);
+    }
+  );
 
   const activeIconStyle = useAnimatedStyle(() => {
     const isActive = hoveredId.value === button.id;
@@ -126,10 +158,10 @@ const ButtonItem: FC<ButtonItemProps> = ({
       pointerEvents={isTracking ? "auto" : "none"}
     >
       <Animated.View style={activeIconStyle}>
-        <Icon size={BASE_ICON_SIZE} color="#000000" />
+        <Icon size={currentIconSize} color="#000000" />
       </Animated.View>
       <Animated.View style={inactiveIconStyle}>
-        <Icon size={BASE_ICON_SIZE} color="#FFFFFF" />
+        <Icon size={currentIconSize} color="#FFFFFF" />
       </Animated.View>
     </Animated.View>
   );
@@ -225,7 +257,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({
         y: pressY + radius * Math.sin(rad),
       };
     },
-    [pressX, pressY, radius],
+    [pressX, pressY, radius]
   );
 
   const buttons = useMemo(
@@ -235,13 +267,13 @@ export const RadialMenu: FC<RadialMenuProps> = ({
         icon: a.icon,
         pos: toXY(anglesDeg[i]),
       })),
-    [actions, anglesDeg, toXY],
+    [actions, anglesDeg, toXY]
   );
 
   // Centers used inside worklets (simple serializable objects only)
   const buttonCenters = useMemo(
     () => buttons.map((b) => ({ id: b.id, x: b.pos.x, y: b.pos.y })),
-    [buttons],
+    [buttons]
   );
 
   const hoveredId = useSharedValue<string | null>(null);
@@ -266,7 +298,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({
     let active: string | null = null;
     let nearestId: string | null = null;
     let nearestDist2 = Number.POSITIVE_INFINITY;
-    const hoverThreshold2 = BUTTON_RADIUS * 1.4 * (BUTTON_RADIUS * 1.4);
+    const hoverThreshold2 = BUTTON_RADIUS * 3 * (BUTTON_RADIUS * 3);
 
     for (let i = 0; i < buttonCenters.length; i++) {
       const b = buttonCenters[i];
@@ -301,7 +333,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({
     (pos) => {
       if (!pos) return;
       checkButtonHover(pos.x, pos.y);
-    },
+    }
   );
 
   // Mirror hoveredId into React state to read title string safely
@@ -310,7 +342,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({
     (val, prev) => {
       if (val === prev) return;
       runOnJS(setHoveredActionId)(val);
-    },
+    }
   );
 
   // React to release signal from parent
@@ -328,7 +360,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({
       }
       hoveredId.value = null;
       lastHapticId.value = null;
-    },
+    }
   );
 
   // Determine if we're actively tracking a gesture

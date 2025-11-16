@@ -5,6 +5,7 @@ import { Alert, Share, StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   runOnJS,
+  runOnUI,
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
@@ -122,82 +123,98 @@ const CollectionCard = ({
       { id: "delete", icon: DeleteIcon, title: "Delete" },
       { id: "share", icon: ShareIcon, title: "Share" },
     ],
-    [],
+    []
   );
 
-  const { longPressGesture, panGesture, isLongPressed } = useRadialOverlay({
-    actions,
-    onSelect: async (actionId) => {
-      if (actionId === "share") {
-        const shareMessage = title || "Share";
-        try {
-          await Share.share({ message: shareMessage });
-        } catch {}
-      } else if (actionId === "edit") {
-        router.push(`/collection/form?id=${id}`);
-      } else if (actionId === "delete") {
-        if (!user?.id) return;
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        Alert.alert(
-          "Delete collection",
-          "Are you sure you want to delete this collection?",
-          [
-            { text: "Cancel", style: "cancel" },
-            {
-              text: "Delete",
-              style: "destructive",
-              onPress: async () => {
-                const userId = user?.id || "";
-                try {
-                  await CollectionService.deleteCollection(id, userId);
-                  showToast({
-                    message: `${title} deleted`,
-                  });
-                } catch {
-                  showToast({
-                    message: "Failed to delete collection. Please try again.",
-                  });
-                }
+  const { longPressGesture, panGesture, isLongPressed, overlayOpen } =
+    useRadialOverlay({
+      actions,
+      onSelect: async (actionId) => {
+        if (actionId === "share") {
+          const shareMessage = title || "Share";
+          try {
+            await Share.share({ message: shareMessage });
+          } catch {}
+        } else if (actionId === "edit") {
+          router.push(`/collection/form?id=${id}`);
+        } else if (actionId === "delete") {
+          if (!user?.id) return;
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          Alert.alert(
+            "Delete collection",
+            "Are you sure you want to delete this collection?",
+            [
+              { text: "Cancel", style: "cancel" },
+              {
+                text: "Delete",
+                style: "destructive",
+                onPress: async () => {
+                  const userId = user?.id || "";
+                  try {
+                    await CollectionService.deleteCollection(id, userId);
+                    showToast({
+                      message: `${title} deleted`,
+                    });
+                  } catch {
+                    showToast({
+                      message: "Failed to delete collection. Please try again.",
+                    });
+                  }
+                },
               },
-            },
-          ],
-        );
-      }
-    },
-    targetRef: cardRef as React.RefObject<View>,
-    renderClone: ({ x, y, width, height }) => (
-      <View style={{ position: "absolute", top: y, left: x, width, height }}>
-        <View
-          style={[
-            styles.container,
-            {
-              width,
-              height,
-              overflow: "visible",
-            },
-          ]}
-        >
-          {content}
+            ]
+          );
+        }
+        // Reset scale when overlay closes
+        runOnUI(() => {
+          "worklet";
+          scale.value = withSpring(1);
+        })();
+      },
+      onCancel: () => {
+        // Reset scale when overlay is cancelled/dismissed
+        runOnUI(() => {
+          "worklet";
+          scale.value = withSpring(1);
+        })();
+      },
+      targetRef: cardRef as React.RefObject<View>,
+      renderClone: ({ x, y, width, height }) => (
+        <View style={{ position: "absolute", top: y, left: x, width, height }}>
+          <View
+            style={[
+              styles.container,
+              {
+                width,
+                height,
+                overflow: "visible",
+              },
+            ]}
+          >
+            {content}
+          </View>
         </View>
-      </View>
-    ),
-  });
+      ),
+    });
 
   const longPressWithScale = longPressGesture
     .onBegin(() => {
       "worklet";
-      scale.value = withSpring(0.97);
+      scale.value = withSpring(0.98);
     })
     .onFinalize(() => {
       "worklet";
-      scale.value = withSpring(1);
+      // Only reset scale if overlay didn't open (user released before long press completed)
+      if (overlayOpen.value === 0) {
+        scale.value = withSpring(1);
+      }
     });
 
   const tapGesture = Gesture.Tap()
     .maxDuration(500)
     .onBegin(() => {
       "worklet";
-      scale.value = withSpring(0.97);
+      scale.value = withSpring(0.98);
     })
     .onEnd(() => {
       "worklet";
@@ -211,9 +228,19 @@ const CollectionCard = ({
       scale.value = withSpring(1);
     });
 
+  // Pan gesture to track finger movement during and after long press
+  // Reset scale if user drags away without opening overlay
+  const pan = panGesture.onFinalize(() => {
+    "worklet";
+    // Reset scale if overlay is not open (user dragged away without opening menu)
+    if (overlayOpen.value === 0) {
+      scale.value = withSpring(1);
+    }
+  });
+
   const composedGesture = Gesture.Simultaneous(
     Gesture.Race(longPressWithScale, tapGesture),
-    panGesture,
+    pan
   );
 
   return (

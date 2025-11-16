@@ -14,6 +14,7 @@ import Animated, {
   cancelAnimation,
   Easing,
   runOnJS,
+  runOnUI,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
@@ -66,72 +67,94 @@ const MediaCard = ({
     []
   );
 
-  const { longPressGesture, panGesture, isLongPressed } = useRadialOverlay({
-    actions,
-    onSelect: async (actionId) => {
-      if (actionId === "share") {
-        try {
-          await Share.share({ message: media.title || "Share" });
-        } catch {}
-      } else if (actionId === "bookmark") {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        router.push(`/save-media?id=${media.id}`);
-      } else if (actionId === "star") {
-        // no-op for now
-      }
-    },
-    targetRef: cardRef as React.RefObject<View>,
-    renderClone: ({ x, y, width: cardWidth, height: cardHeight }) => (
-      <View
-        style={{
-          position: "absolute",
-          top: y,
-          left: x,
-          width: cardWidth,
-          height: cardHeight,
-        }}
-      >
+  const { longPressGesture, panGesture, isLongPressed, overlayOpen } =
+    useRadialOverlay({
+      actions,
+      onSelect: async (actionId) => {
+        if (actionId === "share") {
+          try {
+            await Share.share({ message: media.title || "Share" });
+          } catch {}
+        } else if (actionId === "bookmark") {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          router.push(`/save-media?id=${media.id}`);
+        } else if (actionId === "star") {
+          // no-op for now
+        }
+        // Reset scale when overlay closes
+        runOnUI(() => {
+          "worklet";
+          scale.value = withSpring(1);
+        })();
+      },
+      onCancel: () => {
+        // Reset scale when overlay is cancelled/dismissed
+        runOnUI(() => {
+          "worklet";
+          scale.value = withSpring(1);
+        })();
+      },
+      targetRef: cardRef as React.RefObject<View>,
+      renderClone: ({ x, y, width: cardWidth, height: cardHeight }) => (
         <View
-          style={[
-            styles.container,
-            {
-              width: cardWidth,
-              height: cardHeight,
-              backgroundColor: theme.buttonBackground,
-            },
-          ]}
+          style={{
+            position: "absolute",
+            top: y,
+            left: x,
+            width: cardWidth,
+            height: cardHeight,
+          }}
         >
-          {cardContent}
-          <GradientSweepOverlay
-            width={cardWidth}
-            height={cardHeight}
-            isAnimating
-          />
+          <View
+            style={[
+              styles.container,
+              {
+                width: cardWidth,
+                height: cardHeight,
+                backgroundColor: theme.buttonBackground,
+              },
+            ]}
+          >
+            {cardContent}
+            <GradientSweepOverlay
+              width={cardWidth}
+              height={cardHeight}
+              isAnimating
+            />
+          </View>
         </View>
-      </View>
-    ),
-  });
+      ),
+    });
 
   const longPressWithScale = longPressGesture
     .onBegin(() => {
       "worklet";
-      scale.value = withSpring(0.95);
+      scale.value = withSpring(0.98);
     })
     .onFinalize(() => {
       "worklet";
-      scale.value = withSpring(1);
+      // Only reset scale if overlay didn't open (user released before long press completed)
+      if (overlayOpen.value === 0) {
+        scale.value = withSpring(1);
+      }
     });
 
   // Pan gesture to track finger movement during and after long press
   // Only activates after long press duration, so it doesn't interfere with scrolling
-  const pan = panGesture;
+  const pan = panGesture.onFinalize(() => {
+    "worklet";
+    // Reset scale if overlay is not open (user dragged away without opening menu)
+    if (overlayOpen.value === 0) {
+      scale.value = withSpring(1);
+    }
+  });
 
   const tapGesture = Gesture.Tap()
     .maxDuration(500)
     .onBegin(() => {
       // Scale down on press
       "worklet";
-      scale.value = withSpring(0.95);
+      scale.value = withSpring(0.98);
     })
     .onEnd(() => {
       // Scale back up

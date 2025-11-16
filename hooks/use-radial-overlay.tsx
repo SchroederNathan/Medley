@@ -59,11 +59,13 @@ export function useRadialOverlay({
                   await onSelect(id);
                 } finally {
                   overlayOpen.value = 0;
+                  isLongPressed.value = false;
                   hideOverlay();
                 }
               }}
               onCancel={() => {
                 overlayOpen.value = 0;
+                isLongPressed.value = false;
                 hideOverlay();
                 if (onCancel) onCancel();
               }}

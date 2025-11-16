@@ -81,7 +81,7 @@ const Button = ({
       <Pressable
         onPressIn={() => {
           if (!disabled) {
-            scale.value = withTiming(0.95, { duration: 100 });
+            scale.value = withTiming(0.98, { duration: 100 });
             textSize.value = withTiming(15, { duration: 100 });
             Haptics.selectionAsync();
           }
