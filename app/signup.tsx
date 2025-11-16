@@ -95,7 +95,7 @@ export default function Signup() {
         }),
       ]).start();
     },
-    [errorOpacity, errorTranslateY],
+    [errorOpacity, errorTranslateY]
   );
 
   const hideError = useCallback(() => {
@@ -133,7 +133,7 @@ export default function Signup() {
         }),
       ]).start();
     },
-    [passwordErrorOpacity, passwordErrorTranslateY],
+    [passwordErrorOpacity, passwordErrorTranslateY]
   );
 
   const hidePasswordError = useCallback(() => {
@@ -180,7 +180,7 @@ export default function Signup() {
       setEmail(text);
       if (emailError) hideError();
     },
-    [emailError, hideError],
+    [emailError, hideError]
   );
 
   const handlePasswordChange = useCallback(
@@ -188,7 +188,7 @@ export default function Signup() {
       setPassword(text);
       if (passwordError) hidePasswordError();
     },
-    [passwordError, hidePasswordError],
+    [passwordError, hidePasswordError]
   );
 
   const handleConfirmPasswordChange = useCallback(
@@ -196,7 +196,7 @@ export default function Signup() {
       setConfirmPassword(text);
       if (passwordError) hidePasswordError();
     },
-    [passwordError, hidePasswordError],
+    [passwordError, hidePasswordError]
   );
 
   async function signUpWithEmail() {
