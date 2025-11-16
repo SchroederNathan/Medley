@@ -50,7 +50,7 @@ const AuthScreenLayout = forwardRef<
   AuthScreenLayoutProps
 >(function AuthScreenLayout(
   { title, children, showBackButton = true }: AuthScreenLayoutProps,
-  ref,
+  ref
 ) {
   const { theme } = useContext(ThemeContext);
   const router = useRouter();
@@ -66,13 +66,13 @@ const AuthScreenLayout = forwardRef<
       translateX.value = 24;
       opacity.value = withDelay(
         delayMs,
-        withTiming(1, { duration: 260, easing: Easing.out(Easing.cubic) }),
+        withTiming(1, { duration: 260, easing: Easing.out(Easing.cubic) })
       );
       translateX.value = withDelay(
         delayMs,
-        withTiming(0, { duration: 260, easing: Easing.out(Easing.cubic) }),
+        withTiming(0, { duration: 260, easing: Easing.out(Easing.cubic) })
       );
-    }, [opacity, translateX]),
+    }, [opacity, translateX])
   );
 
   const animateOut = (onDone?: () => void) => {
@@ -87,7 +87,7 @@ const AuthScreenLayout = forwardRef<
         if (finished && onDone) {
           runOnJS(onDone)();
         }
-      },
+      }
     );
   };
 

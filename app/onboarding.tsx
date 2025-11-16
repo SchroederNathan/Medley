@@ -63,51 +63,51 @@ const GetStarted = () => {
     // Title animation - fade in up
     titleOpacity.value = withDelay(
       200,
-      withTiming(1, { duration: 800, easing: Easing.out(Easing.cubic) }),
+      withTiming(1, { duration: 800, easing: Easing.out(Easing.cubic) })
     );
     titleTranslateY.value = withDelay(
       200,
-      withTiming(0, { duration: 800, easing: Easing.out(Easing.cubic) }),
+      withTiming(0, { duration: 800, easing: Easing.out(Easing.cubic) })
     );
 
     // Subtitle and spotlight animation - fade in together
     subtitleOpacity.value = withDelay(
       600,
-      withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) }),
+      withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) })
     );
     spotlightOpacity.value = withDelay(
       600,
-      withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) }),
+      withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) })
     );
     spotlightTranslateX.value = withDelay(
       600,
-      withTiming(0, { duration: 600, easing: Easing.out(Easing.cubic) }),
+      withTiming(0, { duration: 600, easing: Easing.out(Easing.cubic) })
     );
     spotlightTranslateY.value = withDelay(
       600,
-      withTiming(0, { duration: 600, easing: Easing.out(Easing.cubic) }),
+      withTiming(0, { duration: 600, easing: Easing.out(Easing.cubic) })
     );
 
     // Poster carousel animation - fade in from bottom
     posterOpacity.value = withDelay(
       1000,
-      withTiming(1, { duration: 700, easing: Easing.out(Easing.cubic) }),
+      withTiming(1, { duration: 700, easing: Easing.out(Easing.cubic) })
     );
     posterTranslateY.value = withDelay(
       1000,
-      withTiming(0, { duration: 700, easing: Easing.out(Easing.cubic) }),
+      withTiming(0, { duration: 700, easing: Easing.out(Easing.cubic) })
     );
 
     // Button and text animation - fade in last
     buttonOpacity.value = withDelay(
       1400,
-      withTiming(1, { duration: 500, easing: Easing.out(Easing.cubic) }),
+      withTiming(1, { duration: 500, easing: Easing.out(Easing.cubic) })
     );
 
     // Bottom gradient animation - fade in after button
     bottomGradientOpacity.value = withDelay(
       1600,
-      withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) }),
+      withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) })
     );
   }, []);
 
@@ -116,7 +116,7 @@ const GetStarted = () => {
     offset.value = withRepeat(
       withTiming(TRACK_WIDTH, { duration: 45000, easing: Easing.linear }),
       -1,
-      false,
+      false
     );
   }, []);
 
@@ -167,7 +167,7 @@ const GetStarted = () => {
         const translateY = Math.round(rand(2) * 20 - 10); // -10 to 10
         return { rotate: `${rotate}deg`, translateY };
       }),
-    [],
+    []
   );
 
   return (

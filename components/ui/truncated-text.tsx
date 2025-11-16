@@ -88,7 +88,7 @@ export const TruncatedText: FC<TruncatedTextProps> = ({
     // If already rgba format, extract and reuse
     if (backgroundColor.startsWith("rgba(")) {
       const rgbaMatch = backgroundColor.match(
-        /rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)/,
+        /rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)/
       );
       if (rgbaMatch) {
         const [, r, g, b] = rgbaMatch;

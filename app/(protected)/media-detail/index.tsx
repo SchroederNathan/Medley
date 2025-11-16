@@ -101,7 +101,7 @@ const ParallaxBackdropImage: React.FC<ParallaxBackdropImageProps> = ({
             scrollY.value,
             [-TOP_OFFSET, 0, BACKDROP_HEIGHT], // Input: pull-down, start, full scroll
             [TOP_OFFSET, 0, -BACKDROP_HEIGHT], // Output: move down, neutral, move up
-            Extrapolation.CLAMP,
+            Extrapolation.CLAMP
           ),
         },
         {
@@ -111,7 +111,7 @@ const ParallaxBackdropImage: React.FC<ParallaxBackdropImageProps> = ({
             scrollY.value,
             [-BACKDROP_HEIGHT, -TOP_OFFSET, 0], // Input: max overscroll, minor pull, normal
             [2, 1, 1], // Output: 200% zoom, normal, normal
-            Extrapolation.CLAMP,
+            Extrapolation.CLAMP
           ),
         },
       ],
@@ -169,7 +169,7 @@ const MediaDetailScreen = () => {
           user?.id || "",
           mediaId,
           undefined,
-          { limit: 20 },
+          { limit: 20 }
         );
 
         console.log("results", results[0]);
@@ -293,7 +293,7 @@ const MediaDetailScreen = () => {
             title={
               "Save " +
               mediaTypeToTitle(
-                media.media_type as "movie" | "tv_show" | "book" | "game",
+                media.media_type as "movie" | "tv_show" | "book" | "game"
               )
             }
             mediaId={mediaId!}
@@ -310,7 +310,7 @@ const MediaDetailScreen = () => {
                   const list = Array.isArray(prev) ? prev : [];
                   if (list.some((m) => m.id === media.id)) return list;
                   return [media, ...list];
-                },
+                }
               );
             }}
           />

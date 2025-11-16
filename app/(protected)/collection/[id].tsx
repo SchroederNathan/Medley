@@ -100,7 +100,7 @@ const ParallaxBackdropImage: React.FC<ParallaxBackdropImageProps> = ({
             scrollY.value,
             [-TOP_OFFSET, 0, BACKDROP_HEIGHT], // Input: pull-down, start, full scroll
             [TOP_OFFSET, 0, -BACKDROP_HEIGHT], // Output: move down, neutral, move up
-            Extrapolation.CLAMP,
+            Extrapolation.CLAMP
           ),
         },
         {
@@ -110,7 +110,7 @@ const ParallaxBackdropImage: React.FC<ParallaxBackdropImageProps> = ({
             scrollY.value,
             [-BACKDROP_HEIGHT, -TOP_OFFSET, 0], // Input: max overscroll, minor pull, normal
             [2, 1, 1], // Output: 200% zoom, normal, normal
-            Extrapolation.CLAMP,
+            Extrapolation.CLAMP
           ),
         },
       ],

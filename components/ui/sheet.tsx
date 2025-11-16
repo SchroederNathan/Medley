@@ -97,7 +97,7 @@ const Sheet = ({
           ? CANCEL_BUTTON_HEIGHT + BUTTON_GAP
           : 0;
         translateY.value = withSpring(
-          modalHeight.value + buttonOffset + insets.bottom,
+          modalHeight.value + buttonOffset + insets.bottom
         );
         runOnJS(onClose)();
       } else {
@@ -143,7 +143,7 @@ const Sheet = ({
       translateY.value,
       [0, closePosition],
       [20, 8],
-      "clamp",
+      "clamp"
     );
 
     return {
@@ -163,7 +163,7 @@ const Sheet = ({
       translateY.value,
       [closePosition, 0],
       [0, 1],
-      "clamp",
+      "clamp"
     );
 
     return {

@@ -59,7 +59,7 @@ const Button = ({
   // Handle rgba format (e.g., "rgba(64, 64, 64, 0.5)" -> "rgba(64, 64, 64, 0)")
   let transparentBorder = buttonBorder;
   const rgbaMatch = buttonBorder.match(
-    /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/,
+    /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/
   );
   if (rgbaMatch) {
     transparentBorder = `rgba(${rgbaMatch[1]}, ${rgbaMatch[2]}, ${rgbaMatch[3]}, 0)`;

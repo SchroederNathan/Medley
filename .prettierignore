@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+bun.lock
+
+# Build outputs
+dist/
+build/
+.expo/
+.expo-shared/
+
+# Native builds
+android/
+ios/
+*.pbxproj
+*.xcworkspace
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.local
+
+# Generated files
+*.generated.*
+

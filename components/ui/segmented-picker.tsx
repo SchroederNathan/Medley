@@ -47,7 +47,7 @@ const SegmentedPicker = ({
 
   const selectedIndex = Math.max(
     0,
-    items.findIndex((item) => item === value),
+    items.findIndex((item) => item === value)
   );
 
   // Keep track of animated index for smooth thumb transitions

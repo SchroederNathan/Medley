@@ -57,7 +57,7 @@ export default function NameScreen() {
         }),
       ]).start();
     },
-    [errorOpacity, errorTranslateY],
+    [errorOpacity, errorTranslateY]
   );
 
   const hideError = useCallback(() => {
@@ -92,7 +92,7 @@ export default function NameScreen() {
       setFirstName(text);
       if (error) hideError();
     },
-    [error, hideError],
+    [error, hideError]
   );
 
   return (
