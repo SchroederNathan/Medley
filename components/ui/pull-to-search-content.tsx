@@ -80,7 +80,7 @@ export const PullToSearchContent: FC<PullToSearchContentProps> = ({
           offsetYValue,
           [0, FULL_DRAG_DISTANCE],
           [0, 100],
-          Extrapolation.CLAMP,
+          Extrapolation.CLAMP
         );
       }
     },
@@ -110,7 +110,7 @@ export const PullToSearchContent: FC<PullToSearchContentProps> = ({
               offsetY.value,
               [FULL_DRAG_DISTANCE * 0.2, FULL_DRAG_DISTANCE],
               [0, 1],
-              Extrapolation.CLAMP,
+              Extrapolation.CLAMP
             ),
       transform: [{ translateY: -offsetY.value }],
       pointerEvents: screenView.value === "commands" ? "auto" : "none",

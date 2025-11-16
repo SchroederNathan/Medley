@@ -1,22 +1,29 @@
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import { X as ClearIcon, Search as SearchIcon } from "lucide-react-native";
-import React, { FC, useContext } from "react";
-import { StyleSheet, TextInput, TouchableOpacity } from "react-native";
+import React, { FC, useContext, useEffect } from "react";
+import {
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  useWindowDimensions,
+} from "react-native";
 import Animated, {
   runOnJS,
   useAnimatedReaction,
   useAnimatedStyle,
+  useDerivedValue,
   useSharedValue,
   withSpring,
   withTiming,
 } from "react-native-reanimated";
 import {
-  SEARCHBAR_COMMANDS_WIDTH,
-  SEARCHBAR_FAVORITES_WIDTH,
   SEARCHBAR_HEIGHT,
   TRIGGER_DRAG_DISTANCE,
   useHomeAnimation,
+  EDIT_HOME_CONTAINER_WIDTH,
+  SETTINGS_CONTAINER_WIDTH,
+  CANCEL_BUTTON_GAP,
 } from "../../contexts/home-animation-context";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
@@ -34,10 +41,42 @@ export const AnimatedSearchBar: FC<AnimatedSearchBarProps> = ({
   onClear,
   placeholder = "Search for media...",
 }) => {
-  const { screenView, offsetY, isListDragging, inputRef, onGoToCommands } =
-    useHomeAnimation();
+  const {
+    screenView,
+    offsetY,
+    isListDragging,
+    inputRef,
+    onGoToCommands,
+    cancelButtonWidth,
+  } = useHomeAnimation();
   const { theme } = useContext(ThemeContext);
+  const { width: screenWidth } = useWindowDimensions();
   const isHapticTriggered = useSharedValue(false);
+
+  // Store screen width as shared value for reactive calculations
+  const screenWidthValue = useSharedValue(screenWidth);
+
+  // Update screen width shared value when dimensions change
+  useEffect(() => {
+    screenWidthValue.value = screenWidth;
+  }, [screenWidth, screenWidthValue]);
+
+  const LEFT_PADDING = 16;
+
+  // Derive favorites width (static, doesn't depend on cancel button)
+  const favoritesWidth = useDerivedValue(() => {
+    return (
+      screenWidthValue.value -
+      EDIT_HOME_CONTAINER_WIDTH -
+      SETTINGS_CONTAINER_WIDTH
+    );
+  });
+
+  // Derive commands width based on measured cancel button width + gap
+  const commandsWidth = useDerivedValue(() => {
+    const totalCancelSpace = cancelButtonWidth.value + CANCEL_BUTTON_GAP;
+    return screenWidthValue.value - totalCancelSpace - LEFT_PADDING;
+  });
 
   // Raycast-style haptic feedback: trigger once when crossing trigger threshold during pull
   const handleHaptics = () => {
@@ -52,7 +91,7 @@ export const AnimatedSearchBar: FC<AnimatedSearchBarProps> = ({
       if (!dragging) {
         isHapticTriggered.value = false;
       }
-    },
+    }
   );
 
   // Trigger haptic when pulling past trigger distance
@@ -67,7 +106,7 @@ export const AnimatedSearchBar: FC<AnimatedSearchBarProps> = ({
       ) {
         runOnJS(handleHaptics)();
       }
-    },
+    }
   );
 
   // Search width animates between two target widths based on view
@@ -82,16 +121,19 @@ export const AnimatedSearchBar: FC<AnimatedSearchBarProps> = ({
       return {
         transformOrigin: "center",
         transform: [{ scale: withTiming(1.05) }],
+        marginRight: withSpring(screenView.value === "favorites" ? -4 : 0),
       };
     }
 
+    const targetWidth =
+      screenView.value === "favorites"
+        ? favoritesWidth.value
+        : commandsWidth.value;
+
     return {
-      width: withSpring(
-        screenView.value === "favorites"
-          ? SEARCHBAR_FAVORITES_WIDTH
-          : SEARCHBAR_COMMANDS_WIDTH,
-      ),
+      width: withSpring(targetWidth),
       transform: [{ scale: withTiming(1) }],
+      marginRight: withSpring(screenView.value === "favorites" ? -4 : 0),
       // While dragging center the origin to avoid noticeable skew
       // Otherwise anchor to the right so width change feels like Cancel button appears
       transformOrigin: isListDragging.value ? "center" : "right",
@@ -162,7 +204,6 @@ export const AnimatedSearchBar: FC<AnimatedSearchBarProps> = ({
 const styles = StyleSheet.create({
   container: {
     justifyContent: "center",
-    marginRight: 0,
     zIndex: 101, // Higher than search results but part of header
   },
   touchableContent: {

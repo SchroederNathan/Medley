@@ -5,7 +5,10 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
 } from "react-native-reanimated";
-import { useHomeAnimation } from "../../contexts/home-animation-context";
+import {
+  CANCEL_BUTTON_GAP,
+  useHomeAnimation,
+} from "../../contexts/home-animation-context";
 import { ThemeContext } from "../../contexts/theme-context";
 import { useHeaderHeight } from "../../hooks/use-header-height";
 import { fontFamily } from "../../lib/fonts";
@@ -35,7 +38,8 @@ export const SharedHeader: FC<SharedHeaderProps> = ({
   searchPlaceholder,
 }) => {
   const { insetTop, netHeight } = useHeaderHeight();
-  const { offsetY, screenView, onGoToFavorites } = useHomeAnimation();
+  const { offsetY, screenView, onGoToFavorites, cancelButtonWidth } =
+    useHomeAnimation();
   const { theme } = useContext(ThemeContext);
 
   // Side buttons stay visible but become untappable during pull-down and in commands view
@@ -107,7 +111,14 @@ export const SharedHeader: FC<SharedHeaderProps> = ({
         />
 
         {showCancelButton && (
-          <Animated.View style={[styles.cancelButton, rCancelButtonStyle]}>
+          <Animated.View
+            style={[styles.cancelButton, rCancelButtonStyle]}
+            onLayout={(event) => {
+              const { width } = event.nativeEvent.layout;
+              // eslint-disable-next-line react-compiler/react-compiler
+              cancelButtonWidth.value = width;
+            }}
+          >
             <Pressable
               onPress={() => {
                 onSearchClear && onSearchClear();
@@ -115,6 +126,7 @@ export const SharedHeader: FC<SharedHeaderProps> = ({
                 onGoToFavorites();
               }}
               style={styles.cancelPressable}
+              hitSlop={{ top: 10, bottom: 20, left: 20 }}
             >
               <Text
                 numberOfLines={1}
@@ -178,13 +190,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cancelButton: {
-    width: 75,
     alignItems: "center",
     justifyContent: "center",
   },
   cancelPressable: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingRight: 20,
+    marginLeft: CANCEL_BUTTON_GAP, // Gap between search bar and cancel button
   },
   cancelText: {
     fontSize: 16,

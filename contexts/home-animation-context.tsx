@@ -19,6 +19,7 @@ export const SEARCHBAR_HEIGHT = 52;
 export const EDIT_HOME_CONTAINER_WIDTH = 65;
 export const SETTINGS_CONTAINER_WIDTH = 65;
 export const CANCEL_CONTAINER_WIDTH = 75;
+export const CANCEL_BUTTON_GAP = 4; // Gap between search bar and cancel button
 const LEFT_PADDING = 16;
 
 // Search field width differs between views
@@ -41,6 +42,7 @@ type ContextValue = {
   isListDragging: SharedValue<boolean>;
   offsetY: SharedValue<number>;
   blurIntensity: SharedValue<number>;
+  cancelButtonWidth: SharedValue<number>;
   onGoToCommands: () => void;
   onGoToFavorites: () => void;
 };
@@ -55,6 +57,7 @@ export const HomeAnimationProvider: FC<PropsWithChildren> = ({ children }) => {
   const offsetY = useSharedValue(0);
   const isListDragging = useSharedValue(false);
   const blurIntensity = useSharedValue(0);
+  const cancelButtonWidth = useSharedValue(0); // Measured cancel button width
 
   // Transition into command mode focuses input and increases blur
   const onGoToCommands = useCallback(() => {
@@ -79,6 +82,7 @@ export const HomeAnimationProvider: FC<PropsWithChildren> = ({ children }) => {
     isListDragging,
     offsetY,
     blurIntensity,
+    cancelButtonWidth,
     onGoToCommands,
     onGoToFavorites,
   };
