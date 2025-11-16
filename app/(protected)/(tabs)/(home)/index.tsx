@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, {
@@ -18,6 +18,7 @@ import ProfileButton from "../../../../components/ui/profile-button";
 import { PullToSearchContent } from "../../../../components/ui/pull-to-search-content";
 import { SharedHeader } from "../../../../components/ui/shared-header";
 import { AuthContext } from "../../../../contexts/auth-context";
+import { ContentReadyContext } from "../../../../contexts/content-ready-context";
 import { ThemeContext } from "../../../../contexts/theme-context";
 import { useRecommendations } from "../../../../hooks/use-recommendations";
 import { useSharedSearch } from "../../../../hooks/use-shared-search";
@@ -27,6 +28,7 @@ import { sendPushNotification } from "../../../../lib/notifications";
 const IndexScreen = () => {
   const { theme } = useContext(ThemeContext);
   const { user } = useContext(AuthContext);
+  const { setContentReady } = useContext(ContentReadyContext);
   const {
     query,
     searchResults,
@@ -48,6 +50,23 @@ const IndexScreen = () => {
     kind: "type",
     mediaType: "tv_show",
   });
+
+  // Mark content as ready when all recommendations have loaded (successfully or with error)
+  useEffect(() => {
+    const allQueriesFinished =
+      !recommendedGames.isLoading &&
+      !recommendedMovies.isLoading &&
+      !recommendedTvShows.isLoading;
+
+    if (allQueriesFinished) {
+      setContentReady(true);
+    }
+  }, [
+    recommendedGames.isLoading,
+    recommendedMovies.isLoading,
+    recommendedTvShows.isLoading,
+    setContentReady,
+  ]);
 
   // const getTimeBasedGreeting = () => {
   //   const hour = new Date().getHours();

@@ -108,7 +108,7 @@ export default function Login() {
         }),
       ]).start();
     },
-    [errorOpacity, errorTranslateY],
+    [errorOpacity, errorTranslateY]
   );
 
   // Hide error animation
@@ -167,7 +167,7 @@ export default function Login() {
         hideError();
       }
     },
-    [emailError, hideError],
+    [emailError, hideError]
   );
 
   return (
@@ -190,7 +190,7 @@ export default function Login() {
       </Animated.View>
 
       <Input
-        placeholder="email@address.com"
+        placeholder="Email"
         value={email}
         onChangeText={handleEmailChange}
         style={{ marginBottom: 12 }}

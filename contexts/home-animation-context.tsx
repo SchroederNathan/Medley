@@ -8,7 +8,11 @@ import {
   useRef,
 } from "react";
 import { Dimensions, TextInput } from "react-native";
-import { SharedValue, useSharedValue, withTiming } from "react-native-reanimated";
+import {
+  SharedValue,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 
 // Core sizing constants used across header/search transitions
 export const SEARCHBAR_HEIGHT = 52;
@@ -19,7 +23,9 @@ const LEFT_PADDING = 16;
 
 // Search field width differs between views
 export const SEARCHBAR_FAVORITES_WIDTH =
-  Dimensions.get("window").width - EDIT_HOME_CONTAINER_WIDTH - SETTINGS_CONTAINER_WIDTH;
+  Dimensions.get("window").width -
+  EDIT_HOME_CONTAINER_WIDTH -
+  SETTINGS_CONTAINER_WIDTH;
 export const SEARCHBAR_COMMANDS_WIDTH =
   Dimensions.get("window").width - CANCEL_CONTAINER_WIDTH - LEFT_PADDING;
 
@@ -77,14 +83,20 @@ export const HomeAnimationProvider: FC<PropsWithChildren> = ({ children }) => {
     onGoToFavorites,
   };
 
-  return <HomeAnimationContext.Provider value={value}>{children}</HomeAnimationContext.Provider>;
+  return (
+    <HomeAnimationContext.Provider value={value}>
+      {children}
+    </HomeAnimationContext.Provider>
+  );
 };
 
 export const useHomeAnimation = () => {
   const context = useContext(HomeAnimationContext);
 
   if (!context) {
-    throw new Error("useHomeAnimation must be used within an HomeAnimationProvider");
+    throw new Error(
+      "useHomeAnimation must be used within an HomeAnimationProvider"
+    );
   }
 
   return context;

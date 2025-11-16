@@ -47,17 +47,33 @@ const Input = ({
   const [isFocused, setIsFocused] = useState(false);
   const [contentHeight, setContentHeight] = useState(minHeight);
 
-  // Animation values
-  const labelScale = useSharedValue(1);
+  // Constants for consistent positioning - all in pixels, no percentages
+  const BLUR_VIEW_PADDING_LEFT = 16;
+  const INPUT_TEXT_PADDING_TOP = 8;
+  const FLOATING_PADDING_TOP = 6; // Exactly 4px from container top edge
+
+  // Font sizes
+  const INITIAL_FONT_SIZE = 16;
+  const FLOATING_FONT_SIZE = 12; // Smaller font when floating
+
+  // Animation values - only vertical translation and fontSize
   const labelTranslateY = useSharedValue(0);
-  const labelTranslateX = useSharedValue(0);
+  const labelFontSize = useSharedValue(INITIAL_FONT_SIZE);
   const labelOpacity = useSharedValue(0.6);
-  const multilineLabelScale = useSharedValue(1);
-  const multilineLabelTranslateY = useSharedValue(0);
-  const multilineLabelTranslateX = useSharedValue(0);
-  const multilineLabelOpacity = useSharedValue(0.6);
 
   const isActive = isFocused || (value && value.length > 0);
+
+  // Calculate initial vertical position
+  // For single-line: center vertically to match TextInput text (BlurView centers content)
+  // For multiline: use padding top
+  const initialLabelLeft = BLUR_VIEW_PADDING_LEFT; // Aligned with text input start
+  const initialLabelTop = multiline
+    ? INPUT_TEXT_PADDING_TOP // Multiline: top-aligned with padding
+    : minHeight / 2 - INITIAL_FONT_SIZE / 2 - 6; // Single-line: vertically centered with slight upward adjustment
+
+  // Floating position: translate up, keep same left position
+  const floatingLabelTop = FLOATING_PADDING_TOP; // 4px from container top
+  const translateYOffset = floatingLabelTop - initialLabelTop; // How much to move up
 
   const handlePress = () => {
     textInputRef.current?.focus();
@@ -67,7 +83,7 @@ const Input = ({
     if (multiline) {
       const newHeight = Math.max(
         minHeight,
-        Math.min(maxHeight, event.nativeEvent.contentSize.height + 16),
+        Math.min(maxHeight, event.nativeEvent.contentSize.height + 16)
       );
       setContentHeight(newHeight);
     }
@@ -75,53 +91,28 @@ const Input = ({
 
   const handleFocus = () => {
     setIsFocused(true);
-    labelScale.value = withSpring(0.8);
-    labelTranslateY.value = withSpring(-18);
-    labelTranslateX.value = withSpring(-15);
+    // Translate up only, no horizontal movement
+    labelTranslateY.value = withSpring(translateYOffset);
+    // Reduce font size (not scale)
+    labelFontSize.value = withSpring(FLOATING_FONT_SIZE);
     labelOpacity.value = withTiming(1, { duration: 100 });
-  };
-
-  const handleMultilineFocus = () => {
-    setIsFocused(true);
-    multilineLabelScale.value = withSpring(0.8);
-    multilineLabelTranslateY.value = withSpring(-18);
-    multilineLabelTranslateX.value = withSpring(-10);
-    multilineLabelOpacity.value = withTiming(1, { duration: 100 });
   };
 
   const handleBlur = () => {
     setIsFocused(false);
     if (!value || value.length === 0) {
-      labelScale.value = withSpring(1);
+      // Return to initial position
       labelTranslateY.value = withSpring(0);
-      labelTranslateX.value = withSpring(0);
+      labelFontSize.value = withSpring(INITIAL_FONT_SIZE);
       labelOpacity.value = withTiming(0.6, { duration: 100 });
-      multilineLabelScale.value = withSpring(1);
-      multilineLabelTranslateY.value = withSpring(0);
-      multilineLabelTranslateX.value = withSpring(0);
-      multilineLabelOpacity.value = withTiming(0.6, { duration: 100 });
     }
   };
 
   const animatedLabelStyle = useAnimatedStyle(() => {
     return {
-      transform: [
-        { scale: labelScale.value },
-        { translateY: labelTranslateY.value },
-        { translateX: labelTranslateX.value },
-      ],
+      transform: [{ translateY: labelTranslateY.value }],
+      fontSize: labelFontSize.value,
       opacity: labelOpacity.value,
-    };
-  });
-
-  const animatedMultilineLabelStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        { scale: multilineLabelScale.value },
-        { translateY: multilineLabelTranslateY.value },
-        { translateX: multilineLabelTranslateX.value },
-      ],
-      opacity: multilineLabelOpacity.value,
     };
   });
 
@@ -146,19 +137,22 @@ const Input = ({
 
   return (
     <Pressable style={containerStyle} onPress={handlePress}>
+      {placeholder && (
+        <Animated.Text
+          style={[
+            styles.floatingLabel,
+            {
+              color: theme.inputPlaceholderText,
+              top: initialLabelTop,
+              left: initialLabelLeft,
+            },
+            animatedLabelStyle,
+          ]}
+        >
+          {placeholder}
+        </Animated.Text>
+      )}
       <BlurView intensity={20} tint="default" style={blurViewStyle}>
-        {placeholder && (
-          <Animated.Text
-            style={[
-              styles.floatingLabel,
-              multiline && styles.multilineFloatingLabel,
-              { color: theme.inputPlaceholderText },
-              multiline ? animatedMultilineLabelStyle : animatedLabelStyle,
-            ]}
-          >
-            {placeholder}
-          </Animated.Text>
-        )}
         {multiline && placeholder && (
           <View style={styles.gradientContainer}>
             <MaskedView
@@ -171,11 +165,13 @@ const Input = ({
               }
               style={[StyleSheet.absoluteFill]}
             >
-              {/* Dark tint matches app theme; actual blur amount is handled externally when needed. */}
-              <BlurView
-                tint="dark"
-                style={[StyleSheet.absoluteFill, { right: 32 }]}
+              <LinearGradient
+                locations={[0.5, 1]}
+                colors={["rgba(10, 10, 10, 0.5)", "transparent"]}
+                style={StyleSheet.absoluteFill}
               />
+              {/* Dark tint matches app theme; actual blur amount is handled externally when needed. */}
+              <BlurView tint="dark" style={[StyleSheet.absoluteFill]} />
             </MaskedView>
           </View>
         )}
@@ -189,7 +185,7 @@ const Input = ({
           secureTextEntry={secureTextEntry}
           multiline={multiline}
           onContentSizeChange={handleContentSizeChange}
-          onFocus={multiline ? handleMultilineFocus : handleFocus}
+          onFocus={handleFocus}
           onBlur={handleBlur}
           {...otherProps}
         />
@@ -206,6 +202,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     borderRadius: 16,
     borderWidth: 1,
+    boxShadow: "rgba(204, 219, 232, 0.01) 0 1px 8px 0 inset",
     position: "relative",
     overflow: "hidden",
     borderCurve: "continuous",
@@ -228,8 +225,6 @@ const styles = StyleSheet.create({
   },
   floatingLabel: {
     position: "absolute",
-    left: 16,
-    fontSize: 16,
     fontFamily: fontFamily.plusJakarta.medium,
     zIndex: 3,
   },
@@ -237,9 +232,6 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
     paddingTop: 24,
     paddingBottom: 8,
-  },
-  multilineFloatingLabel: {
-    top: 19,
   },
   gradientContainer: {
     position: "absolute",

@@ -5,6 +5,10 @@ import React, { useContext } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { QueryProvider } from "../components/providers/query-provider";
 import { AuthContext, AuthProvider } from "../contexts/auth-context";
+import {
+  ContentReadyProvider,
+  ContentReadyContext,
+} from "../contexts/content-ready-context";
 import { OverlayProvider } from "../contexts/overlay-context";
 import { ThemeContext, ThemeProvider } from "../contexts/theme-context";
 import { ToastProvider } from "../contexts/toast-context";
@@ -55,73 +59,79 @@ const AuthProviderWithSplash = () => {
 
   return (
     <AuthProvider>
-      <SplashController>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <OverlayProvider>
-            <ToastProvider>
-              <NotificationsProvider>
-                <StatusBar style="auto" />
-                <Stack
-                  screenOptions={{
-                    headerShown: false,
-                    contentStyle: { backgroundColor: theme.background },
-                  }}
-                >
-                  <Stack.Screen
-                    name="(protected)"
-                    options={{
+      <ContentReadyProvider>
+        <SplashController>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <OverlayProvider>
+              <ToastProvider>
+                <NotificationsProvider>
+                  <StatusBar style="auto" />
+                  <Stack
+                    screenOptions={{
                       headerShown: false,
+                      contentStyle: { backgroundColor: theme.background },
                     }}
-                  />
-                  <Stack.Screen
-                    name="onboarding"
-                    options={{
-                      animation: "none",
-                    }}
-                  />
-                  <Stack.Screen
-                    name="login"
-                    options={{
-                      animation: "none",
-                    }}
-                  />
-                  <Stack.Screen
-                    name="name"
-                    options={{
-                      animation: "none",
-                    }}
-                  />
-                  <Stack.Screen
-                    name="media-preferences"
-                    options={{
-                      animation: "none",
-                    }}
-                  />
-                  <Stack.Screen
-                    name="signup"
-                    options={{
-                      animation: "none",
-                    }}
-                  />
-                </Stack>
-              </NotificationsProvider>
-            </ToastProvider>
-          </OverlayProvider>
-        </GestureHandlerRootView>
-      </SplashController>
+                  >
+                    <Stack.Screen
+                      name="(protected)"
+                      options={{
+                        headerShown: false,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="onboarding"
+                      options={{
+                        animation: "none",
+                      }}
+                    />
+                    <Stack.Screen
+                      name="login"
+                      options={{
+                        animation: "none",
+                      }}
+                    />
+                    <Stack.Screen
+                      name="name"
+                      options={{
+                        animation: "none",
+                      }}
+                    />
+                    <Stack.Screen
+                      name="media-preferences"
+                      options={{
+                        animation: "none",
+                      }}
+                    />
+                    <Stack.Screen
+                      name="signup"
+                      options={{
+                        animation: "none",
+                      }}
+                    />
+                  </Stack>
+                </NotificationsProvider>
+              </ToastProvider>
+            </OverlayProvider>
+          </GestureHandlerRootView>
+        </SplashController>
+      </ContentReadyProvider>
     </AuthProvider>
   );
 };
 
 const SplashController = ({ children }: { children: React.ReactNode }) => {
-  const { isReady } = useContext(AuthContext);
+  const { isReady, isLoggedIn } = useContext(AuthContext);
+  const { isContentReady } = useContext(ContentReadyContext);
 
   React.useEffect(() => {
     if (isReady) {
-      // Hide splash screen after both fonts and auth are ready
-      SplashScreen.hideAsync();
+      // If user is not logged in (onboarding/login screens), hide splash immediately
+      // Otherwise, wait for content to be ready
+      if (!isLoggedIn || isContentReady) {
+        SplashScreen.hideAsync();
+      }
     }
-  }, [isReady]);
+  }, [isReady, isLoggedIn, isContentReady]);
 
   return <>{children}</>;
 };
