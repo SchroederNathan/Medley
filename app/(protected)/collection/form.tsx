@@ -48,7 +48,7 @@ const CollectionForm = () => {
 
   // Load collection data if in edit mode
   const { data: collection, isLoading: isLoadingCollection } = useCollection(
-    isEditMode ? collectionId : undefined
+    isEditMode ? collectionId : undefined,
   );
 
   const [collectionName, setCollectionName] = useState("");
@@ -136,7 +136,7 @@ const CollectionForm = () => {
             description: trimmedDescription,
             ranked: isRanked,
             items: selectedMedia,
-          }
+          },
         );
 
         // Success! Navigate back to the collection detail page
@@ -164,7 +164,7 @@ const CollectionForm = () => {
         "Error",
         error instanceof Error
           ? error.message
-          : `Failed to ${actionVerb} collection. Please try again.`
+          : `Failed to ${actionVerb} collection. Please try again.`,
       );
     }
   };
@@ -185,7 +185,7 @@ const CollectionForm = () => {
         />
       );
     },
-    [isRanked, renderCounter, removeMediaFromCollection]
+    [isRanked, renderCounter, removeMediaFromCollection],
   );
 
   const handleEditEntries = () => {
@@ -208,11 +208,11 @@ const CollectionForm = () => {
       headerNewTranslateY.value = withSpring(10, { duration: 300 });
       headerSearchOpacity.value = withDelay(
         100,
-        withSpring(1, { duration: 300 })
+        withSpring(1, { duration: 300 }),
       );
       headerSearchTranslateY.value = withDelay(
         100,
-        withSpring(0, { duration: 300 })
+        withSpring(0, { duration: 300 }),
       );
     } else {
       // Fade out search and fade in content
@@ -233,7 +233,7 @@ const CollectionForm = () => {
       headerNewOpacity.value = withDelay(100, withSpring(1, { duration: 300 }));
       headerNewTranslateY.value = withDelay(
         100,
-        withSpring(0, { duration: 300 })
+        withSpring(0, { duration: 300 }),
       );
     }
   };

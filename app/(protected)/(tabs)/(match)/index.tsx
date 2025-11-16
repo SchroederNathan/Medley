@@ -18,12 +18,15 @@ import Svg, {
   Path,
 } from "react-native-svg";
 import Button from "../../../../components/ui/button";
+import SegmentedPicker from "../../../../components/ui/segmented-picker";
 import { ThemeContext } from "../../../../contexts/theme-context";
 import { fontFamily } from "../../../../lib/fonts";
 
 const MatchScreen = () => {
   const { theme } = useContext(ThemeContext);
   const insets = useSafeAreaInsets();
+
+  const [selectedCategory, setSelectedCategory] = React.useState("Movies");
   const imageOpacity = useSharedValue(0);
   const translateY = useSharedValue(252);
   const translateYSideImages = useSharedValue(300);
@@ -151,6 +154,17 @@ const MatchScreen = () => {
       <View
         style={[styles.contentContainer, { paddingBottom: insets.bottom + 72 }]}
       >
+        <SegmentedPicker
+          items={["All", "Movies", "Shows", "Games", "Books"]}
+          value={selectedCategory}
+          style={StyleSheet.flatten([
+            styles.segmentedPickerContainer,
+            { marginTop: insets.top + 32 },
+          ])}
+          onChange={(value) => {
+            setSelectedCategory(value);
+          }}
+        />
         <View style={[styles.imageContainer]}>
           <Animated.View
             style={[imageLeftContainerStyle, styles.imageLeftContainer]}
@@ -237,10 +251,16 @@ const styles = StyleSheet.create({
     height: "100%",
     zIndex: 0,
   },
-
+  segmentedPickerContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    width: "100%",
+  },
   contentContainer: {
     flex: 1,
-
     justifyContent: "center",
     alignItems: "center",
     width: "100%",
