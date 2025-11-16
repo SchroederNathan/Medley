@@ -10,6 +10,7 @@ type User = {
   id?: string;
   name?: string;
   preferred_media?: ("Games" | "Movies" | "Books")[];
+  avatar_url?: string;
 };
 
 type AuthState = {
@@ -22,7 +23,7 @@ type AuthState = {
   setUserName: (name: string) => void;
   setUserPreferredMedia: (media: ("Games" | "Movies" | "Books")[]) => void;
   completeOnboarding: (
-    mediaPreferences?: ("Games" | "Movies" | "Books")[],
+    mediaPreferences?: ("Games" | "Movies" | "Books")[]
   ) => Promise<void>;
   fetchUserProfile: (id: string) => Promise<any>;
   uploadProfileImage: (imageUri: string) => Promise<string>;
@@ -66,6 +67,18 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
     if (error) {
       throw error;
+    }
+
+    // Update user object with profile data including avatar_url
+    if (data) {
+      setUser((prevUser) => ({
+        ...prevUser,
+        id: prevUser.id || data.id,
+        name: data.name || prevUser.name,
+        avatar_url: data.avatar_url || prevUser.avatar_url,
+        preferred_media:
+          data.media_preferences?.preferred_media || prevUser.preferred_media,
+      }));
     }
 
     return data;
@@ -168,7 +181,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       ) {
         console.warn(
           "File exists after delete, using upsert:",
-          uploadResult.error.message,
+          uploadResult.error.message
         );
         const upsertResult = await supabase.storage
           .from("profile-images")
@@ -181,7 +194,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         if (upsertResult.error) {
           console.error(
             "Error uploading image (with upsert):",
-            upsertResult.error,
+            upsertResult.error
           );
           const uploadError = upsertResult.error;
           throw uploadError;
@@ -215,6 +228,12 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       throw updateError;
     }
 
+    // Update user object with new avatar_url immediately
+    setUser((prevUser) => ({
+      ...prevUser,
+      avatar_url: cacheBustUrl,
+    }));
+
     // Force refetch the profile immediately to update UI
     await queryClient.invalidateQueries({
       queryKey: ["userProfile", user.id],
@@ -241,7 +260,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   };
 
   const completeOnboarding = async (
-    preferredMedia?: ("Games" | "Movies" | "Books")[],
+    preferredMedia?: ("Games" | "Movies" | "Books")[]
   ) => {
     if (!user.id || !user.name || !preferredMedia) {
       throw new Error("Missing required user information");
@@ -297,14 +316,20 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       throw dbError;
     }
 
-    logIn(user.id);
+    await logIn(user.id);
     router.replace("/(tabs)");
   };
 
-  const logIn = (id: string) => {
+  const logIn = async (id: string) => {
     setIsLoggedIn(true);
     storeAuthState({ isLoggedIn: true });
     setUserId(id);
+    // Fetch profile data including avatar_url
+    try {
+      await fetchUserProfile(id);
+    } catch (error) {
+      console.warn("Failed to fetch user profile on login:", error);
+    }
   };
 
   const logOut = async () => {
@@ -341,6 +366,12 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         setUser({ id: userId });
         setIsLoggedIn(true);
         storeAuthState({ isLoggedIn: true });
+        // Fetch profile data including avatar_url
+        try {
+          await fetchUserProfile(userId);
+        } catch (error) {
+          console.warn("Failed to fetch user profile on init:", error);
+        }
       } else {
         let authStorageValue: string | null = null;
         try {
