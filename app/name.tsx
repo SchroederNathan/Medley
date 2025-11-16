@@ -112,7 +112,7 @@ export default function NameScreen() {
         ) : null}
       </Animated.View>
       <Input
-        placeholder="Your first name"
+        placeholder="First Name"
         value={firstName}
         onChangeText={onChangeFirstName}
         autoCapitalize="words"

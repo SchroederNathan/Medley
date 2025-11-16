@@ -257,7 +257,7 @@ export default function Signup() {
       </Animated.View>
 
       <Input
-        placeholder="email@address.com"
+        placeholder="Email"
         value={email}
         onChangeText={handleEmailChange}
         style={{ marginBottom: 12 }}

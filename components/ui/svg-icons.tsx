@@ -589,3 +589,108 @@ export const ChevronLeft: React.FC<IconProps> = ({
     />
   </Svg>
 );
+
+export const ClapperboardIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#000000",
+  strokeWidth = 2,
+  style,
+}) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+    <Path
+      d="M21.5 11H4V20C4 21.1046 4.89543 22 6 22H19.5C20.6046 22 21.5 21.1046 21.5 20V11Z"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M3.99827 11L20.5 7L19.5604 3.86797C19.2486 2.82879 18.1652 2.22767 17.1185 2.51314L4.53899 5.94391C3.43154 6.24594 2.80502 7.41612 3.16764 8.50524L3.99827 11Z"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinejoin="round"
+    />
+    <Path d="M8 10L9 4.5" stroke={color} strokeWidth={strokeWidth} />
+    <Path d="M14 8.5L15 3" stroke={color} strokeWidth={strokeWidth} />
+    <Path
+      d="M8 18H12"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+    />
+  </Svg>
+);
+
+export const GameControllerIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#000000",
+  strokeWidth = 2,
+  style,
+}) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+    <Path
+      d="M2.00431 15.8088C2.22729 12.3152 2.88376 9.75874 3.44004 8.27375C3.72088 7.52405 4.32509 6.96576 5.09865 6.77866C9.39117 5.74045 14.6084 5.74045 18.9009 6.77866C19.6744 6.96576 20.2787 7.52405 20.5595 8.27375C21.1158 9.75874 21.7722 12.3152 21.9952 15.8088C22.1274 17.8797 19.1918 19.148 17.5 20L15.7878 17.0038C15.6097 16.6923 15.2784 16.5 14.9196 16.5H9.08019C8.72133 16.5 8.38999 16.6923 8.21194 17.0039L6.49986 20C4.80811 19.148 1.87214 17.8797 2.00431 15.8088Z"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M5 4.5L6.96285 4M19 4.5L17 4"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M9 13L7.5 11.5M7.5 11.5L6 10M7.5 11.5L6 13M7.5 11.5L9 10"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M15.9883 10H15.9973"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M17.9883 13H17.9973"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+export const BookOpenIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#000000",
+  strokeWidth = 2,
+  style,
+}) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+    <Path
+      d="M12 7.5V22C13.8315 20.3871 16.2062 19.4966 18.6667 19.5C19.8356 19.5 20.9578 19.6963 22 20.0585V5.55847C20.9578 5.19634 20.1689 5 19 5"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M19 2C13 2 12 7.5 12 7.5V22C12 22 13 16.5 19 16.5V2Z"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M5.33333 5.00001C7.79379 4.99657 10.1685 5.88709 12 7.5V22C10.1685 20.3871 7.79379 19.4966 5.33333 19.5C4.16444 19.5 3.04222 19.6963 2 20.0585V5.55847C3.04222 5.19634 4.16444 5.00001 5.33333 5.00001Z"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);

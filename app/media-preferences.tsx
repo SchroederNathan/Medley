@@ -1,5 +1,4 @@
 import { useRouter } from "expo-router";
-import { BookOpen, Clapperboard, Gamepad2 } from "lucide-react-native";
 import React, { useContext, useMemo, useRef, useState } from "react";
 import { Alert } from "react-native";
 import AuthScreenLayout, {
@@ -7,6 +6,11 @@ import AuthScreenLayout, {
 } from "../components/ui/auth-screen-layout";
 import Button from "../components/ui/button";
 import RadioCard from "../components/ui/radio-card";
+import {
+  ClapperboardIcon,
+  GameControllerIcon,
+  BookOpenIcon,
+} from "../components/ui/svg-icons";
 import { AuthContext } from "../contexts/auth-context";
 
 type Preference = "Movies" | "Games" | "Books";
@@ -21,21 +25,21 @@ export default function MediaPreferences() {
       {
         key: "Movies" as Preference,
         title: "Movies",
-        icon: <Clapperboard color="#fff" size={32} strokeWidth={1.5} />,
+        icon: <ClapperboardIcon color="#fff" size={32} strokeWidth={1.5} />,
       },
       {
         key: "Games" as Preference,
         title: "Games",
-        icon: <Gamepad2 color="#fff" size={32} strokeWidth={1.5} />,
+        icon: <GameControllerIcon color="#fff" size={32} strokeWidth={1.5} />,
       },
       {
         key: "Books" as Preference,
         title: "Books",
-        icon: <BookOpen color="#fff" size={32} strokeWidth={1.5} />,
+        icon: <BookOpenIcon color="#fff" size={32} strokeWidth={1.5} />,
       },
     ],
 
-    [],
+    []
   );
 
   const toggle = (key: Preference) => {
