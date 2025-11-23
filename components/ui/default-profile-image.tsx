@@ -1,7 +1,7 @@
 import React, { FC, useContext } from "react";
-import { StyleSheet, Pressable, Text } from "react-native";
+import { StyleSheet, Pressable, Text, useWindowDimensions } from "react-native";
 import Animated, { useAnimatedStyle } from "react-native-reanimated";
-import { useProfileImageAnimation } from "../../contexts/profile-image-animation-context";
+import { useZoomAnimation } from "../../contexts/zoom-animation-context";
 import { Image } from "expo-image";
 import { useUserProfile } from "../../hooks/use-user-profile";
 import { ThemeContext } from "../../contexts/theme-context";
@@ -14,21 +14,26 @@ export const DefaultProfileImage: FC = () => {
   const { theme } = useContext(ThemeContext);
   const { data: profile } = useUserProfile();
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
+  const defaultProfileImageSize = 100;
+
   const {
     targetRef,
     onTargetLayout,
     handleMeasurement,
-    defaultProfileImageSize,
-    imageState,
+    zoomState: imageState,
     open,
-  } = useProfileImageAnimation();
+  } = useZoomAnimation();
 
   const handleOpen = () => {
     // Ensure we have the latest measurement before opening
     handleMeasurement();
     // Small delay to ensure measurement completes
     requestAnimationFrame(() => {
-      open();
+      open({
+        targetWidth: screenWidth * 0.65,
+        aspectRatio: 1,
+      });
     });
   };
 

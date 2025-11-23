@@ -21,13 +21,18 @@ import Animated, {
   useSharedValue,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { AnimatedDetailHeader } from "../../../components/ui/animated-detail-header";
 import Button from "../../../components/ui/button";
 import Carousel from "../../../components/ui/carousel";
+import {
+  MediaZoomOverlay,
+  ZoomablePoster,
+} from "../../../components/ui/media-zoom";
 import StatusButton from "../../../components/ui/status-button";
-import { AnimatedDetailHeader } from "../../../components/ui/animated-detail-header";
 import { TruncatedText } from "../../../components/ui/truncated-text";
 import { AuthContext } from "../../../contexts/auth-context";
 import { ThemeContext } from "../../../contexts/theme-context";
+import { ZoomAnimationProvider } from "../../../contexts/zoom-animation-context";
 import { useMediaItem } from "../../../hooks/use-media-item";
 import { fontFamily } from "../../../lib/fonts";
 import { RecommendationService } from "../../../services/recommendationService";
@@ -232,126 +237,136 @@ const MediaDetailScreen = () => {
   }
 
   return (
-    <View style={[{ flex: 1, backgroundColor: theme.background }]}>
-      {/* Parallax Backdrop */}
-      <ParallaxBackdropImage scrollY={scrollY} imageUri={media.backdrop_url} />
+    <ZoomAnimationProvider>
+      <View style={[{ flex: 1, backgroundColor: theme.background }]}>
+        {/* Parallax Backdrop */}
+        <ParallaxBackdropImage
+          scrollY={scrollY}
+          imageUri={media.backdrop_url}
+        />
 
-      {/* Animated Header */}
-      <AnimatedDetailHeader
-        scrollY={scrollY}
-        title={media.title}
-        theme={theme}
-        topPadding={topPadding}
-      />
+        {/* Animated Header */}
+        <AnimatedDetailHeader
+          scrollY={scrollY}
+          title={media.title}
+          theme={theme}
+          topPadding={topPadding}
+        />
 
-      <Animated.ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollViewContent,
-          { paddingTop: BACKDROP_HEIGHT - POSTER_PADDING },
-        ]}
-        showsVerticalScrollIndicator={false}
-        onScroll={scrollHandler}
-        scrollEventThrottle={1000 / 60}
-      >
-        {/* Poster + Core Details Row */}
-        <View style={[styles.posterRow, { marginTop: POSTER_PADDING }]}>
-          <Image
-            source={{ uri: media.poster_url }}
-            contentFit="cover"
-            cachePolicy="memory-disk"
-            transition={200}
-            style={[styles.posterImage, { borderColor: theme.buttonBorder }]}
-          />
-          <View style={styles.posterDetails}>
-            <Text
-              style={[styles.titleText, { color: theme.text }]}
-              numberOfLines={3}
-            >
-              {media.title}
-            </Text>
-            <Text style={[styles.subtitleText, { color: theme.secondaryText }]}>
-              {media.genres[0]} · {media.year}
-              {typeof media.duration_minutes === "number" &&
-              media.duration_minutes > 0
-                ? `  ·  ${media.duration_minutes} min`
-                : ""}
-              {typeof media.rating_average === "number" &&
-              media.rating_count > 0
-                ? `  ·  ${media.rating_average.toFixed(1)}`
-                : ""}
-            </Text>
-          </View>
-        </View>
-
-        {/* Body Content */}
-        <Animated.View
-          style={styles.bodyContent}
-          layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
+        <Animated.ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[
+            styles.scrollViewContent,
+            { paddingTop: BACKDROP_HEIGHT - POSTER_PADDING },
+          ]}
+          showsVerticalScrollIndicator={false}
+          onScroll={scrollHandler}
+          scrollEventThrottle={1000 / 60}
         >
-          <StatusButton
-            title={
-              "Save " +
-              mediaTypeToTitle(
-                media.media_type as "movie" | "tv_show" | "book" | "game"
-              )
-            }
-            mediaId={mediaId!}
-            mediaType={
-              media.media_type as "movie" | "tv_show" | "book" | "game"
-            }
-            styles={styles.button}
-            onStatusSaved={() => {
-              if (!user?.id) return;
-              // Optimistically update cached library list
-              queryClient.setQueryData<any[]>(
-                ["userLibrary", user.id],
-                (prev) => {
-                  const list = Array.isArray(prev) ? prev : [];
-                  if (list.some((m) => m.id === media.id)) return list;
-                  return [media, ...list];
-                }
-              );
-            }}
-          />
-          {media.description?.length > 0 && (
-            <TruncatedText
-              text={media.description}
-              numberOfLines={3}
-              textStyle={[styles.descriptionText, { color: theme.text }]}
-              animated={true}
-              backgroundColor={theme.background}
+          {/* Poster + Core Details Row */}
+          <View style={[styles.posterRow, { marginTop: POSTER_PADDING }]}>
+            <ZoomablePoster
+              imageUri={media.poster_url}
+              style={[styles.posterImage]}
+              width={120}
+              height={180}
             />
-          )}
+            <View style={styles.posterDetails}>
+              <Text
+                style={[styles.titleText, { color: theme.text }]}
+                numberOfLines={3}
+              >
+                {media.title}
+              </Text>
+              <Text
+                style={[styles.subtitleText, { color: theme.secondaryText }]}
+              >
+                {media.genres[0]} · {media.year}
+                {typeof media.duration_minutes === "number" &&
+                media.duration_minutes > 0
+                  ? `  ·  ${media.duration_minutes} min`
+                  : ""}
+                {typeof media.rating_average === "number" &&
+                media.rating_count > 0
+                  ? `  ·  ${media.rating_average.toFixed(1)}`
+                  : ""}
+              </Text>
+            </View>
+          </View>
 
-          {/* Optional metadata */}
+          {/* Body Content */}
           <Animated.View
-            style={styles.metadataContainer}
+            style={styles.bodyContent}
             layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
           >
-            {media.metadata?.original_title &&
-              media.metadata.original_title !== media.title && (
-                <Text
-                  style={[styles.metadataText, { color: theme.secondaryText }]}
-                >
-                  Original title:{" "}
-                  <Text style={{ color: theme.text }}>
-                    {media.metadata.original_title}
-                  </Text>
-                </Text>
-              )}
-          </Animated.View>
-          {recs.length > 0 && (
+            <StatusButton
+              title={
+                "Save " +
+                mediaTypeToTitle(
+                  media.media_type as "movie" | "tv_show" | "book" | "game"
+                )
+              }
+              mediaId={mediaId!}
+              mediaType={
+                media.media_type as "movie" | "tv_show" | "book" | "game"
+              }
+              styles={styles.button}
+              onStatusSaved={() => {
+                if (!user?.id) return;
+                // Optimistically update cached library list
+                queryClient.setQueryData<any[]>(
+                  ["userLibrary", user.id],
+                  (prev) => {
+                    const list = Array.isArray(prev) ? prev : [];
+                    if (list.some((m) => m.id === media.id)) return list;
+                    return [media, ...list];
+                  }
+                );
+              }}
+            />
+            {media.description?.length > 0 && (
+              <TruncatedText
+                text={media.description}
+                numberOfLines={3}
+                textStyle={[styles.descriptionText, { color: theme.text }]}
+                animated={true}
+                backgroundColor={theme.background}
+              />
+            )}
+
+            {/* Optional metadata */}
             <Animated.View
+              style={styles.metadataContainer}
               layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
-              style={{ marginTop: 24 }}
             >
-              <Carousel title="You might also like" media={recs as any} />
+              {media.metadata?.original_title &&
+                media.metadata.original_title !== media.title && (
+                  <Text
+                    style={[
+                      styles.metadataText,
+                      { color: theme.secondaryText },
+                    ]}
+                  >
+                    Original title:{" "}
+                    <Text style={{ color: theme.text }}>
+                      {media.metadata.original_title}
+                    </Text>
+                  </Text>
+                )}
             </Animated.View>
-          )}
-        </Animated.View>
-      </Animated.ScrollView>
-    </View>
+            {recs.length > 0 && (
+              <Animated.View
+                layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
+                style={{ marginTop: 24 }}
+              >
+                <Carousel title="You might also like" media={recs as any} />
+              </Animated.View>
+            )}
+          </Animated.View>
+        </Animated.ScrollView>
+        <MediaZoomOverlay imageUri={media.poster_url} />
+      </View>
+    </ZoomAnimationProvider>
   );
 };
 
@@ -433,6 +448,7 @@ const styles = StyleSheet.create({
     aspectRatio: 2 / 3,
     borderRadius: 4,
     boxShadow: "rgba(204, 219, 232, 0.3) 0 1px 4px -0.5px inset",
+    zIndex: 1000,
   },
   posterDetails: {
     flex: 1,

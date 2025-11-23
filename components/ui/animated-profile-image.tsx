@@ -21,8 +21,8 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   _timingConfig,
-  useProfileImageAnimation,
-} from "../../contexts/profile-image-animation-context";
+  useZoomAnimation,
+} from "../../contexts/zoom-animation-context";
 import { ThemeContext } from "../../contexts/theme-context";
 import {
   useUploadProfileImage,
@@ -41,20 +41,23 @@ export const AnimatedProfileImage: FC = () => {
   const { theme } = useContext(ThemeContext);
   const uploadMutation = useUploadProfileImage();
   const [isPickingImage, setIsPickingImage] = useState(false);
+
+  // Profile specific dimension
+  const expandedProfileImageSize = screenWidth * 0.65;
+
   const {
-    expandedProfileImageSize,
     handleMeasurement,
-    imageState,
-    imageXCoord,
-    imageYCoord,
-    imageSize,
+    zoomState: imageState,
+    x: imageXCoord,
+    y: imageYCoord,
+    width: imageSize,
     blurIntensity,
-    closeBtnOpacity,
-    changeImageRowOpacity,
+    dimOpacity: closeBtnOpacity,
+    extraContentOpacity: changeImageRowOpacity,
     open,
     close,
     snapToCenter,
-  } = useProfileImageAnimation();
+  } = useZoomAnimation();
 
   const handleClose = () => {
     // Ensure we have the latest measurement before closing

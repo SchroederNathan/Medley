@@ -26,7 +26,7 @@ import Button from "../../../../components/ui/button";
 import { DefaultProfileImage } from "../../../../components/ui/default-profile-image";
 import { SettingsIcon } from "../../../../components/ui/svg-icons";
 import TabPager from "../../../../components/ui/tab-pager";
-import { ProfileImageAnimationProvider } from "../../../../contexts/profile-image-animation-context";
+import { ZoomAnimationProvider } from "../../../../contexts/zoom-animation-context";
 import { ThemeContext } from "../../../../contexts/theme-context";
 import { useUserProfile } from "../../../../hooks/use-user-profile";
 import { fontFamily } from "../../../../lib/fonts";
@@ -72,9 +72,9 @@ const ProfileScreen = () => {
               // We need to account for the scroll position and padding
               const scrollContentY = y - insets.top - 20; // Subtract paddingTop
               setTabPagerHeaderY(scrollContentY);
-            },
+            }
           );
-        },
+        }
       );
     }
   };
@@ -105,7 +105,7 @@ const ProfileScreen = () => {
               });
             }
           }, 50);
-        },
+        }
       );
     }
   };
@@ -131,7 +131,7 @@ const ProfileScreen = () => {
   }
 
   return (
-    <ProfileImageAnimationProvider>
+    <ZoomAnimationProvider>
       <View style={styles.container}>
         <Svg
           width="150%"
@@ -253,7 +253,7 @@ const ProfileScreen = () => {
         </Animated.ScrollView>
       </View>
       <AnimatedProfileImage />
-    </ProfileImageAnimationProvider>
+    </ZoomAnimationProvider>
   );
 };
 
