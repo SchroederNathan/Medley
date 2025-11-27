@@ -28,7 +28,6 @@ import {
   MediaZoomOverlay,
   ZoomablePoster,
 } from "../../../components/ui/media-zoom";
-import StatusButton from "../../../components/ui/status-button";
 import { TruncatedText } from "../../../components/ui/truncated-text";
 import { AuthContext } from "../../../contexts/auth-context";
 import { ThemeContext } from "../../../contexts/theme-context";
@@ -278,19 +277,31 @@ const MediaDetailScreen = () => {
               >
                 {media.title}
               </Text>
-              <Text
-                style={[styles.subtitleText, { color: theme.secondaryText }]}
-              >
-                {media.genres[0]} · {media.year}
-                {typeof media.duration_minutes === "number" &&
-                media.duration_minutes > 0
-                  ? `  ·  ${media.duration_minutes} min`
-                  : ""}
-                {typeof media.rating_average === "number" &&
-                media.rating_count > 0
-                  ? `  ·  ${media.rating_average.toFixed(1)}`
-                  : ""}
-              </Text>
+              <View style={styles.titleDetailsContainer}>
+                <Image
+                  source={
+                    media.media_type === "movie"
+                      ? require("../../../assets/rating-logos/imdb.png")
+                      : media.media_type === "game"
+                        ? require("../../../assets/rating-logos/metacritic.png")
+                        : null
+                  }
+                  style={[
+                    styles.titleDetailsIcon,
+                    { aspectRatio: media.media_type === "game" ? 1 : 2 },
+                  ]}
+                />
+                <Text
+                  style={[styles.subtitleText, { color: theme.secondaryText }]}
+                >
+                  {media.rating_average} {" ·  "}
+                  {media.year}
+                  {typeof media.duration_minutes === "number" &&
+                  media.duration_minutes > 0
+                    ? `  ·  ${media.duration_minutes} mins`
+                    : ""}
+                </Text>
+              </View>
             </View>
           </View>
 
@@ -299,31 +310,6 @@ const MediaDetailScreen = () => {
             style={styles.bodyContent}
             layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
           >
-            <StatusButton
-              title={
-                "Save " +
-                mediaTypeToTitle(
-                  media.media_type as "movie" | "tv_show" | "book" | "game"
-                )
-              }
-              mediaId={mediaId!}
-              mediaType={
-                media.media_type as "movie" | "tv_show" | "book" | "game"
-              }
-              styles={styles.button}
-              onStatusSaved={() => {
-                if (!user?.id) return;
-                // Optimistically update cached library list
-                queryClient.setQueryData<any[]>(
-                  ["userLibrary", user.id],
-                  (prev) => {
-                    const list = Array.isArray(prev) ? prev : [];
-                    if (list.some((m) => m.id === media.id)) return list;
-                    return [media, ...list];
-                  }
-                );
-              }}
-            />
             {media.description?.length > 0 && (
               <TruncatedText
                 text={media.description}
@@ -483,5 +469,14 @@ const styles = StyleSheet.create({
   },
   metadataText: {
     // Colors are applied inline
+  },
+  titleDetailsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  titleDetailsIcon: {
+    height: 16,
+    marginRight: 2,
   },
 });
