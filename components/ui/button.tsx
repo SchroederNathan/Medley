@@ -41,17 +41,11 @@ const Button = ({
 
   // Shared value for scale animation
   const scale = useSharedValue(1);
-  const textSize = useSharedValue(16);
 
   // Animated style for the scale transformation
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [{ scale: scale.value }],
-    };
-  });
-  const animatedTextStyle = useAnimatedStyle(() => {
-    return {
-      fontSize: textSize.value,
     };
   });
 
@@ -82,14 +76,12 @@ const Button = ({
         onPressIn={() => {
           if (!disabled) {
             scale.value = withTiming(0.98, { duration: 100 });
-            textSize.value = withTiming(15, { duration: 100 });
             Haptics.selectionAsync();
           }
         }}
         onPressOut={() => {
           if (!disabled) {
             scale.value = withTiming(1, { duration: 100 });
-            textSize.value = withTiming(16, { duration: 100 });
           }
         }}
         onPress={disabled ? undefined : onPress}
@@ -123,7 +115,6 @@ const Button = ({
                     color:
                       variant === "secondary" ? theme.background : theme.text,
                   },
-                  animatedTextStyle,
                 ]}
               >
                 {title}
@@ -140,14 +131,14 @@ export default Button;
 
 const styles = StyleSheet.create({
   gradientBorder: {
-    borderRadius: 16,
+    borderRadius: 12,
     padding: 1,
     borderCurve: "continuous",
   },
   buttonContainer: {
     height: 52,
     paddingHorizontal: 32,
-    borderRadius: 15,
+    borderRadius: 11,
     position: "relative",
     overflow: "hidden",
     borderCurve: "continuous",
