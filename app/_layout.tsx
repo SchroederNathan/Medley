@@ -3,6 +3,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import React, { useContext } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 import { QueryProvider } from "../components/providers/query-provider";
 import { AuthContext, AuthProvider } from "../contexts/auth-context";
 import {
@@ -62,56 +63,58 @@ const AuthProviderWithSplash = () => {
       <ContentReadyProvider>
         <SplashController>
           <GestureHandlerRootView style={{ flex: 1 }}>
-            <OverlayProvider>
-              <ToastProvider>
-                <NotificationsProvider>
-                  <StatusBar style="auto" />
-                  <Stack
-                    screenOptions={{
-                      headerShown: false,
-                      contentStyle: { backgroundColor: theme.background },
-                    }}
-                  >
-                    <Stack.Screen
-                      name="(protected)"
-                      options={{
+            <KeyboardProvider>
+              <OverlayProvider>
+                <ToastProvider>
+                  <NotificationsProvider>
+                    <StatusBar style="auto" />
+                    <Stack
+                      screenOptions={{
                         headerShown: false,
+                        contentStyle: { backgroundColor: theme.background },
                       }}
-                    />
-                    <Stack.Screen
-                      name="onboarding"
-                      options={{
-                        animation: "none",
-                      }}
-                    />
-                    <Stack.Screen
-                      name="login"
-                      options={{
-                        animation: "none",
-                      }}
-                    />
-                    <Stack.Screen
-                      name="name"
-                      options={{
-                        animation: "none",
-                      }}
-                    />
-                    <Stack.Screen
-                      name="media-preferences"
-                      options={{
-                        animation: "none",
-                      }}
-                    />
-                    <Stack.Screen
-                      name="signup"
-                      options={{
-                        animation: "none",
-                      }}
-                    />
-                  </Stack>
-                </NotificationsProvider>
-              </ToastProvider>
-            </OverlayProvider>
+                    >
+                      <Stack.Screen
+                        name="(protected)"
+                        options={{
+                          headerShown: false,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="onboarding"
+                        options={{
+                          animation: "none",
+                        }}
+                      />
+                      <Stack.Screen
+                        name="login"
+                        options={{
+                          animation: "none",
+                        }}
+                      />
+                      <Stack.Screen
+                        name="name"
+                        options={{
+                          animation: "none",
+                        }}
+                      />
+                      <Stack.Screen
+                        name="media-preferences"
+                        options={{
+                          animation: "none",
+                        }}
+                      />
+                      <Stack.Screen
+                        name="signup"
+                        options={{
+                          animation: "none",
+                        }}
+                      />
+                    </Stack>
+                  </NotificationsProvider>
+                </ToastProvider>
+              </OverlayProvider>
+            </KeyboardProvider>
           </GestureHandlerRootView>
         </SplashController>
       </ContentReadyProvider>

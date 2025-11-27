@@ -24,6 +24,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AnimatedDetailHeader } from "../../../components/ui/animated-detail-header";
 import Button from "../../../components/ui/button";
 import Carousel from "../../../components/ui/carousel";
+import CastCarousel from "../../../components/ui/cast-carousel";
 import {
   MediaZoomOverlay,
   ZoomablePoster,
@@ -35,7 +36,7 @@ import { ZoomAnimationProvider } from "../../../contexts/zoom-animation-context"
 import { useMediaItem } from "../../../hooks/use-media-item";
 import { fontFamily } from "../../../lib/fonts";
 import { RecommendationService } from "../../../services/recommendationService";
-import CastCarousel from "../../../components/ui/cast-carousel";
+import ReviewInput from "../../../components/ui/review-input";
 
 const mediaTypeToTitle = (mediaType: "movie" | "tv_show" | "book" | "game") => {
   switch (mediaType) {
@@ -341,12 +342,12 @@ const MediaDetailScreen = () => {
                   </Text>
                 )}
             </Animated.View>
-              <Animated.View
-                layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
-                style={{ marginTop: 24 }}
-              >
-                <CastCarousel title="Cast" cast={[]} />
-              </Animated.View>
+            <Animated.View
+              layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
+              style={{ marginTop: 24 }}
+            >
+              <CastCarousel title="Cast" cast={[]} />
+            </Animated.View>
             {recs.length > 0 && (
               <Animated.View
                 layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
@@ -357,6 +358,15 @@ const MediaDetailScreen = () => {
             )}
           </Animated.View>
         </Animated.ScrollView>
+        <ReviewInput
+          style={{ position: "absolute", bottom: 0, left: 0, right: 0 }}
+          mediaTitle={media.title}
+          onSubmit={(review, rating) => {
+            console.log("Review:", review, "Rating:", rating);
+            // Handle review submission
+          }}
+        />
+        
         <MediaZoomOverlay imageUri={media.poster_url} />
       </View>
     </ZoomAnimationProvider>
