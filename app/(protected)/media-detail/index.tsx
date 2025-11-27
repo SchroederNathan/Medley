@@ -35,6 +35,7 @@ import { ZoomAnimationProvider } from "../../../contexts/zoom-animation-context"
 import { useMediaItem } from "../../../hooks/use-media-item";
 import { fontFamily } from "../../../lib/fonts";
 import { RecommendationService } from "../../../services/recommendationService";
+import CastCarousel from "../../../components/ui/cast-carousel";
 
 const mediaTypeToTitle = (mediaType: "movie" | "tv_show" | "book" | "game") => {
   switch (mediaType) {
@@ -340,6 +341,12 @@ const MediaDetailScreen = () => {
                   </Text>
                 )}
             </Animated.View>
+              <Animated.View
+                layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
+                style={{ marginTop: 24 }}
+              >
+                <CastCarousel title="Cast" cast={[]} />
+              </Animated.View>
             {recs.length > 0 && (
               <Animated.View
                 layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
