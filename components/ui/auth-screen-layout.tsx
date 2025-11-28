@@ -8,14 +8,13 @@ import React, {
   useImperativeHandle,
 } from "react";
 import {
-  KeyboardAvoidingView,
   Platform,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import Animated, {
   Easing,
   runOnJS,
@@ -135,24 +134,18 @@ const AuthScreenLayout = forwardRef<
           filter="url(#filter0_f_2_34)"
         />
       </Svg>
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? -150 : 0}
+      <KeyboardAwareScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        bottomOffset={20}
       >
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-          keyboardDismissMode="interactive"
-        >
-          <Animated.View style={[styles.content, contentAnimatedStyle]}>
-            <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
-            {children}
-          </Animated.View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        <Animated.View style={[styles.content, contentAnimatedStyle]}>
+          <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
+          {children}
+        </Animated.View>
+      </KeyboardAwareScrollView>
       {showBackButton && (
         <TouchableOpacity
           style={styles.backButton}
@@ -171,9 +164,6 @@ const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
     position: "relative",
-  },
-  keyboardAvoidingView: {
-    flex: 1,
   },
   scrollView: {
     flex: 1,
