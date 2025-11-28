@@ -1,11 +1,13 @@
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
+import { useRouter } from "expo-router";
 import React, { useContext, useRef, useState } from "react";
 import {
   Dimensions,
   Keyboard,
   Platform,
   Pressable,
+  ScrollView,
   StyleProp,
   StyleSheet,
   Text,
@@ -24,21 +26,23 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
-import { BookmarkIcon, SentIcon } from "./svg-icons";
+import { Media } from "../../types/media";
 import { BottomGradient } from "./bottom-gradient";
+import MediaCard from "./media-card";
 import { StarRating } from "./star-rating";
+import { BookmarkIcon, SentIcon } from "./svg-icons";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 
 // Base geometry
 const MIN_HEIGHT = 56;
-const EXPANDED_HEIGHT = 280;
 const BOOKMARK_BTN_SIZE = MIN_HEIGHT;
 const INPUT_GAP = 10;
+const KEYBOARD_APPROX = 336; // Approx keyboard height to start with
 
 interface ReviewInputProps {
-  mediaTitle: string;
+  item: Media;
   onSubmit?: (review: string, rating: number) => void;
   style?: StyleProp<ViewStyle>;
 }
@@ -58,21 +62,23 @@ const SubmitButton = ({ handleSubmit }: { handleSubmit: () => void }) => {
   );
 };
 
-const ReviewInput: React.FC<ReviewInputProps> = ({
-  mediaTitle,
-  onSubmit,
-  style,
-}) => {
+const ReviewInput: React.FC<ReviewInputProps> = ({ item, onSubmit, style }) => {
   const { theme } = useContext(ThemeContext);
   const [value, setValue] = useState("");
   const [rating, setRating] = useState(0);
-
+  const [isHeightMaxed, setIsHeightMaxed] = useState(false);
+  const router = useRouter();
   const textInputRef = useRef<TextInput>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
   const insets = useSafeAreaInsets();
+
+  // Calculate max available height (Screen - Insets - Keyboard - Margins)
+  const maxAvailableHeight = SCREEN_HEIGHT - insets.top - KEYBOARD_APPROX - 20;
 
   // Focus progress: 0 = collapsed, 1 = expanded
   const focusProgress = useSharedValue(0);
   const maxWidth = useSharedValue(0);
+  const contentHeight = useSharedValue(300); // Default expanded height before measure
 
   // Backdrop animation
   const rBackdropStyle = useAnimatedStyle(() => {
@@ -104,11 +110,16 @@ const ReviewInput: React.FC<ReviewInputProps> = ({
       [0, 1],
       [maxWidth.get() - BOOKMARK_BTN_SIZE - INPUT_GAP, maxWidth.get()]
     );
+
+    // Target height is content height clamped to available space
+    const targetHeight = Math.min(contentHeight.value, maxAvailableHeight);
+
     const height = interpolate(
       focusProgress.get(),
       [0, 1],
-      [MIN_HEIGHT, EXPANDED_HEIGHT]
+      [MIN_HEIGHT, targetHeight]
     );
+
     const borderRadius = interpolate(
       focusProgress.get(),
       [0, 1],
@@ -159,6 +170,7 @@ const ReviewInput: React.FC<ReviewInputProps> = ({
   const handleFocus = () => {
     focusProgress.set(withSpring(1));
     textInputRef.current?.focus();
+    scrollViewRef.current?.scrollTo({ y: 0, animated: false });
   };
 
   const handleBlur = () => {
@@ -181,7 +193,7 @@ const ReviewInput: React.FC<ReviewInputProps> = ({
   };
 
   return (
-    <View style={[style]}>
+    <View style={[styles.container, style]}>
       {/* Bottom gradient (behind input) */}
       <BottomGradient />
 
@@ -249,35 +261,63 @@ const ReviewInput: React.FC<ReviewInputProps> = ({
 
               {/* Expanded state: header + input + button */}
               <Animated.View style={[styles.expanded, rExpandedStyle]}>
-                {/* Header */}
-                <View style={styles.header}>
-                  <Text
-                    style={[styles.title, { color: theme.text }]}
-                    numberOfLines={1}
+                <ScrollView
+                  ref={scrollViewRef}
+                  bounces={isHeightMaxed}
+                  style={{ flex: 1 }}
+                  contentContainerStyle={{ flexGrow: 1 }}
+                  showsVerticalScrollIndicator={false}
+                  keyboardShouldPersistTaps="handled"
+                >
+                  <View
+                    style={styles.contentContainer}
+                    onLayout={(e) => {
+                      // Update content height + padding
+                      const newContentHeight = e.nativeEvent.layout.height + 32; // 16 top + 16 bottom padding
+                      contentHeight.value = newContentHeight;
+                      // Only disable bounces when content exceeds max available height
+                      setIsHeightMaxed(newContentHeight >= maxAvailableHeight);
+                    }}
                   >
-                    Write a review
-                  </Text>
-                  <StarRating rating={rating} onRatingChange={setRating} />
-                </View>
+                    {/* Header */}
+                    <View style={styles.header}>
+                      <View style={styles.titleContainer}>
+                        <MediaCard
+                          media={item}
+                          width={50}
+                          height={75}
+                          isTouchable={false}
+                        />
+                        <Text
+                          style={[styles.title, { color: theme.text }]}
+                          numberOfLines={2}
+                        >
+                          {item.title}
+                        </Text>
+                      </View>
+                      <StarRating
+                        rating={rating}
+                        onRatingChange={setRating}
+                        style={{ justifyContent: "center" }}
+                      />
+                    </View>
 
-                {/* Text Input */}
-                <TextInput
-                  ref={textInputRef}
-                  value={value}
-                  onChangeText={setValue}
-                  placeholder="What did you think?"
-                  placeholderTextColor={theme.inputPlaceholderText}
-                  selectionColor={theme.text}
-                  style={[styles.input, { color: theme.inputText }]}
-                  multiline
-                  numberOfLines={4}
-                  onBlur={handleBlur}
-                />
-
-                {/* Submit button */}
-                <View style={styles.submitRow}>
-                  <SubmitButton handleSubmit={handleSubmit} />
-                </View>
+                    {/* Text Input */}
+                    <TextInput
+                      ref={textInputRef}
+                      value={value}
+                      onChangeText={setValue}
+                      placeholder="What did you think?"
+                      placeholderTextColor={theme.inputPlaceholderText}
+                      selectionColor={theme.text}
+                      style={[styles.input, { color: theme.inputText }]}
+                      multiline
+                      scrollEnabled={false} // Allow it to grow
+                      onBlur={handleBlur}
+                    />
+                  </View>
+                </ScrollView>
+                <SubmitButton handleSubmit={handleSubmit} />
               </Animated.View>
             </Animated.View>
 
@@ -288,10 +328,13 @@ const ReviewInput: React.FC<ReviewInputProps> = ({
                 { borderColor: theme.inputBorder },
                 rBookmarkStyle,
               ]}
-              onPress={() => Haptics.selectionAsync()}
+              onPress={() => {
+                Haptics.selectionAsync();
+                router.push(`/save-media?id=${item.id}`);
+              }}
             >
               <BlurView
-                intensity={20}
+                intensity={30}
                 tint="dark"
                 style={[
                   styles.blur,
@@ -312,13 +355,21 @@ export default ReviewInput;
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
+  container: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    flexDirection: "column",
+  },
   backdrop: {
     position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
     height: SCREEN_HEIGHT,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
     zIndex: 0,
   },
   root: {
@@ -356,23 +407,36 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     fontSize: 16,
+    lineHeight: 16,
     fontFamily: fontFamily.plusJakarta.medium,
   },
   // Expanded state
   expanded: {
     flex: 1,
-    padding: 16,
+    paddingHorizontal: 16,
   },
   header: {
+    marginTop: 16,
     marginBottom: 12,
     gap: 8,
+    alignItems: "center",
+  },
+  titleContainer: {
+    alignItems: "center",
+    maxWidth: 300,
+    gap: 8,
+  },
+  titleImage: {
+    borderRadius: 12,
   },
   title: {
-    fontSize: 18,
+    fontSize: 16,
+    textAlign: "center",
     fontFamily: fontFamily.plusJakarta.semiBold,
   },
   input: {
-    flex: 1,
+    minHeight: 100, // Ensure minimum height for input
+    paddingBottom: 68,
     fontSize: 16,
     fontFamily: fontFamily.plusJakarta.regular,
     textAlignVertical: "top",
@@ -386,6 +450,9 @@ const styles = StyleSheet.create({
   submitBtn: {
     width: 44,
     height: 44,
+    position: "absolute",
+    right: 12,
+    bottom: 12,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
@@ -398,5 +465,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
+  },
+  contentContainer: {
+    gap: 20,
   },
 });

@@ -1,6 +1,14 @@
 import * as Haptics from "expo-haptics";
 import React, { useContext, useRef, useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import {
+  Dimensions,
+  Pressable,
+  StyleProp,
+  StyleSheet,
+  Text,
+  View,
+  ViewStyle,
+} from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   runOnJS,
@@ -12,11 +20,13 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { ThemeContext } from "../../contexts/theme-context";
+import { fontFamily } from "../../lib/fonts";
 import { StarOutlineIcon, StarSolidIcon } from "./svg-icons";
 
 // Star rating geometry
-const STAR_SIZE = 32;
-const STAR_SIZE_MAX = 52;
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const STAR_SIZE_BASE = Math.min(SCREEN_WIDTH * 0.12, 52); // 12% of screen width, max 52
+const STAR_SIZE_MAX = 72;
 const STAR_GAP = 6;
 const PROXIMITY_RADIUS = 72;
 
@@ -34,7 +44,14 @@ const StarContent: React.FC<StarContentProps> = ({
   emptyColor,
 }) => {
   if (fillPercentage <= 0) {
-    return <StarOutlineIcon size={size} color={emptyColor} strokeWidth={1.5} />;
+    return (
+      <StarOutlineIcon
+        size={size + 2}
+        color={emptyColor}
+        strokeWidth={1}
+        style={{ marginBottom: 1 }}
+      />
+    );
   }
 
   if (fillPercentage >= 1) {
@@ -45,10 +62,10 @@ const StarContent: React.FC<StarContentProps> = ({
   return (
     <View style={{ width: size, height: size }}>
       <StarOutlineIcon
-        size={size}
+        size={size + 2}
         color={emptyColor}
-        strokeWidth={1.5}
-        style={{ position: "absolute" }}
+        strokeWidth={1}
+        style={{ position: "absolute", bottom: 1 }}
       />
       <View
         style={{
@@ -85,13 +102,13 @@ const AnimatedStar: React.FC<AnimatedStarProps> = ({
   const getStarCenterX = () => {
     "worklet";
     // Approximate center based on base size
-    return index * (STAR_SIZE + STAR_GAP) + STAR_SIZE / 2;
+    return index * (STAR_SIZE_BASE + STAR_GAP) + STAR_SIZE_BASE / 2;
   };
 
   // Derive animated size based on proximity to cursor
   const animatedSize = useDerivedValue(() => {
     if (!isSliding.value) {
-      return withSpring(STAR_SIZE);
+      return withSpring(STAR_SIZE_BASE);
     }
 
     const starCenterX = getStarCenterX();
@@ -99,7 +116,8 @@ const AnimatedStar: React.FC<AnimatedStarProps> = ({
     const normalized = Math.max(0, 1 - distance / PROXIMITY_RADIUS);
     // Ease the proximity for smoother falloff
     const eased = normalized * normalized;
-    const targetSize = STAR_SIZE + (STAR_SIZE_MAX - STAR_SIZE) * eased;
+    const targetSize =
+      STAR_SIZE_BASE + (STAR_SIZE_MAX - STAR_SIZE_BASE) * eased;
 
     return withSpring(targetSize);
   });
@@ -112,7 +130,7 @@ const AnimatedStar: React.FC<AnimatedStarProps> = ({
   });
 
   // Sync animated size to React state for rendering
-  const [currentSize, setCurrentSize] = useState(STAR_SIZE);
+  const [currentSize, setCurrentSize] = useState(STAR_SIZE_BASE);
 
   useAnimatedReaction(
     () => animatedSize.value,
@@ -148,6 +166,8 @@ export interface StarRatingProps {
   starCount?: number;
   filledColor?: string;
   emptyColor?: string;
+  style?: StyleProp<ViewStyle>;
+  size?: number;
 }
 
 export const StarRating: React.FC<StarRatingProps> = ({
@@ -156,9 +176,11 @@ export const StarRating: React.FC<StarRatingProps> = ({
   starCount = 5,
   filledColor,
   emptyColor,
+  style,
+  size = STAR_SIZE_BASE,
 }) => {
   const { theme } = useContext(ThemeContext);
-  const resolvedFilledColor = filledColor ?? theme.gold;
+  const resolvedFilledColor = filledColor ?? theme.text;
   const resolvedEmptyColor = emptyColor ?? theme.secondaryText;
 
   const lastSlideRating = useRef(0);
@@ -186,13 +208,13 @@ export const StarRating: React.FC<StarRatingProps> = ({
 
   const calculateRatingFromX = (x: number) => {
     "worklet";
-    // Each star takes up STAR_SIZE width + STAR_GAP (except last star)
-    const starWithGap = STAR_SIZE + STAR_GAP;
+    // Each star takes up STAR_SIZE_BASE width + STAR_GAP (except last star)
+    const starWithGap = STAR_SIZE_BASE + STAR_GAP;
     const starIndex = Math.floor(x / starWithGap);
     const withinStar = x - starIndex * starWithGap;
 
     // Calculate fill within the current star (0-1)
-    const starFill = Math.min(1, Math.max(0, withinStar / STAR_SIZE));
+    const starFill = Math.min(1, Math.max(0, withinStar / STAR_SIZE_BASE));
 
     return Math.min(starCount, Math.max(0, starIndex + starFill));
   };
@@ -224,25 +246,30 @@ export const StarRating: React.FC<StarRatingProps> = ({
   const stars = Array.from({ length: starCount }, (_, i) => i);
 
   return (
-    <GestureDetector gesture={panGesture}>
-      <View style={styles.container}>
-        {stars.map((i) => {
-          const fillPercentage = Math.min(1, Math.max(0, rating - i));
-          return (
-            <Pressable key={i} onPress={() => handleStarPress(i)}>
-              <AnimatedStar
-                index={i}
-                fillPercentage={fillPercentage}
-                filledColor={resolvedFilledColor}
-                emptyColor={resolvedEmptyColor}
-                cursorX={cursorX}
-                isSliding={isSliding}
-              />
-            </Pressable>
-          );
-        })}
-      </View>
-    </GestureDetector>
+    <>
+      <GestureDetector gesture={panGesture}>
+        <View style={[styles.container, style]}>
+          {stars.map((i) => {
+            const fillPercentage = Math.min(1, Math.max(0, rating - i));
+            return (
+              <Pressable key={i} onPress={() => handleStarPress(i)}>
+                <AnimatedStar
+                  index={i}
+                  fillPercentage={fillPercentage}
+                  filledColor={resolvedFilledColor}
+                  emptyColor={resolvedEmptyColor}
+                  cursorX={cursorX}
+                  isSliding={isSliding}
+                />
+              </Pressable>
+            );
+          })}
+        </View>
+      </GestureDetector>
+      <Text style={[styles.ratingText, { color: theme.secondaryText }]}>
+        {rating ? `Thank you for rating.` : "Tap to rate."}
+      </Text>
+    </>
   );
 };
 
@@ -252,7 +279,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 2,
   },
+  ratingText: {
+    fontSize: 16,
+    marginTop: -8,
+    fontFamily: fontFamily.plusJakarta.regular,
+  },
 });
 
 export default StarRating;
-

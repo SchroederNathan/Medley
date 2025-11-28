@@ -1,8 +1,7 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useContext } from "react";
+import React, { FC, useContext, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -29,6 +28,13 @@ import {
   MediaZoomOverlay,
   ZoomablePoster,
 } from "../../../components/ui/media-zoom";
+import ReviewInput from "../../../components/ui/review-input";
+import ActionMenu from "../../../components/ui/sheets/action-menu";
+import {
+  BookmarkIcon,
+  MoreVerticalIcon,
+  Share2Icon,
+} from "../../../components/ui/svg-icons";
 import { TruncatedText } from "../../../components/ui/truncated-text";
 import { AuthContext } from "../../../contexts/auth-context";
 import { ThemeContext } from "../../../contexts/theme-context";
@@ -36,20 +42,6 @@ import { ZoomAnimationProvider } from "../../../contexts/zoom-animation-context"
 import { useMediaItem } from "../../../hooks/use-media-item";
 import { fontFamily } from "../../../lib/fonts";
 import { RecommendationService } from "../../../services/recommendationService";
-import ReviewInput from "../../../components/ui/review-input";
-
-const mediaTypeToTitle = (mediaType: "movie" | "tv_show" | "book" | "game") => {
-  switch (mediaType) {
-    case "movie":
-      return "Movie";
-    case "tv_show":
-      return "TV Show";
-    case "book":
-      return "Book";
-    case "game":
-      return "Game";
-  }
-};
 
 // Parallax animation constants
 const BACKDROP_WIDTH = Dimensions.get("window").width;
@@ -60,7 +52,7 @@ interface BackdropImageProps {
   imageUri: string;
 }
 
-const BackdropImage: React.FC<BackdropImageProps> = ({ imageUri }) => {
+const BackdropImage: FC<BackdropImageProps> = ({ imageUri }) => {
   return (
     <View style={{ width: BACKDROP_WIDTH, height: BACKDROP_HEIGHT }}>
       {/* Base crisp image layer */}
@@ -89,7 +81,7 @@ interface ParallaxBackdropImageProps {
   imageUri: string;
 }
 
-const ParallaxBackdropImage: React.FC<ParallaxBackdropImageProps> = ({
+const ParallaxBackdropImage: FC<ParallaxBackdropImageProps> = ({
   scrollY,
   imageUri,
 }) => {
@@ -148,7 +140,8 @@ const POSTER_PADDING = 72;
 const MediaDetailScreen = () => {
   const { theme } = useContext(ThemeContext);
   const { user } = useContext(AuthContext);
-  const queryClient = useQueryClient();
+
+  const [showActionMenu, setShowActionMenu] = useState(false);
   const { id } = useLocalSearchParams();
   const topPadding = useSafeAreaInsets().top;
   const mediaId = Array.isArray(id) ? id[0] : id;
@@ -165,8 +158,9 @@ const MediaDetailScreen = () => {
   });
 
   const { data: media, isLoading, error } = useMediaItem(mediaId);
-  const [recs, setRecs] = React.useState<any[]>([]);
-  React.useEffect(() => {
+  const [recs, setRecs] = useState<any[]>([]);
+
+  useEffect(() => {
     let mounted = true;
     (async () => {
       if (!mediaId) return;
@@ -251,6 +245,20 @@ const MediaDetailScreen = () => {
           scrollY={scrollY}
           title={media.title}
           theme={theme}
+          rightButtons={[
+            {
+              icon: <Share2Icon size={20} color={theme.text} />,
+              onPress: () => {
+                // TODO: Implement share functionality
+              },
+            },
+            {
+              icon: <MoreVerticalIcon size={20} color={theme.text} />,
+              onPress: () => {
+                setShowActionMenu(true);
+              },
+            },
+          ]}
           topPadding={topPadding}
         />
 
@@ -360,15 +368,39 @@ const MediaDetailScreen = () => {
         </Animated.ScrollView>
         <ReviewInput
           style={{ position: "absolute", bottom: 0, left: 0, right: 0 }}
-          mediaTitle={media.title}
+          item={media}
           onSubmit={(review, rating) => {
             console.log("Review:", review, "Rating:", rating);
             // Handle review submission
           }}
         />
-        
+
         <MediaZoomOverlay imageUri={media.poster_url} />
       </View>
+      <ActionMenu
+        visible={showActionMenu}
+        onClose={() => {
+          setShowActionMenu(false);
+        }}
+        actions={[
+          {
+            title: "Share",
+            icon: <Share2Icon size={20} color={theme.text} />,
+            onPress: () => {
+              // TODO: Implement share functionality
+              setShowActionMenu(false);
+            },
+          },
+          {
+            title: "Save",
+            icon: <BookmarkIcon size={20} color={theme.text} />,
+            onPress: () => {
+              setShowActionMenu(false);
+              router.push(`/save-media?id=${media.id}`);
+            },
+          },
+        ]}
+      />
     </ZoomAnimationProvider>
   );
 };
@@ -413,7 +445,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollViewContent: {
-    paddingBottom: 24,
+    paddingBottom: 118,
   },
 
   // Backdrop section
