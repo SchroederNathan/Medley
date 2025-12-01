@@ -42,6 +42,7 @@ import { ZoomAnimationProvider } from "../../../contexts/zoom-animation-context"
 import { useMediaItem } from "../../../hooks/use-media-item";
 import { fontFamily } from "../../../lib/fonts";
 import { RecommendationService } from "../../../services/recommendationService";
+import WhereToWatchCarousel from "../../../components/ui/where-to-watch-carousel";
 
 // Parallax animation constants
 const BACKDROP_WIDTH = Dimensions.get("window").width;
@@ -350,6 +351,12 @@ const MediaDetailScreen = () => {
                   </Text>
                 )}
             </Animated.View>
+            {/* <Animated.View
+              layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
+              style={{ marginTop: 24 }}
+            >
+              <WhereToWatchCarousel title="Where to watch" platforms={[]} />
+            </Animated.View> */}
             <Animated.View
               layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
               style={{ marginTop: 24 }}
