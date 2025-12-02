@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   Dimensions,
   Pressable,
+  RefreshControl,
   StyleSheet,
   Text,
   View,
@@ -26,12 +27,30 @@ import Button from "../../../../components/ui/button";
 import { DefaultProfileImage } from "../../../../components/ui/default-profile-image";
 import { SettingsIcon } from "../../../../components/ui/svg-icons";
 import TabPager from "../../../../components/ui/tab-pager";
+import UserReviewCard from "../../../../components/ui/user-review-card";
 import { ThemeContext } from "../../../../contexts/theme-context";
 import { ZoomAnimationProvider } from "../../../../contexts/zoom-animation-context";
 import { useUserProfile } from "../../../../hooks/use-user-profile";
+import { useUserReviews } from "../../../../hooks/use-user-reviews";
 import { fontFamily } from "../../../../lib/fonts";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+
+// Helper function to format review date
+const formatReviewDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  const currentYear = new Date().getFullYear();
+  const year = date.getFullYear();
+  const month = date.toLocaleDateString("en-US", { month: "short" });
+  const day = date.getDate();
+
+  // Include year only if it's not the current year
+  if (year === currentYear) {
+    return `${month} ${day}`;
+  } else {
+    return `${month} ${day}, ${year}`;
+  }
+};
 
 const tabs = [
   { key: "reviews", title: "Reviews" },
@@ -49,6 +68,13 @@ const ProfileScreen = () => {
   const [tabPagerHeaderY, setTabPagerHeaderY] = useState(0);
 
   const { isLoading, error, data: profile } = useUserProfile();
+  const {
+    data: reviews,
+    isLoading: reviewsLoading,
+    isFetching: reviewsFetching,
+    error: reviewsError,
+    refetch: refetchReviews,
+  } = useUserReviews();
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -174,6 +200,13 @@ const ProfileScreen = () => {
           onScroll={scrollHandler}
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={reviewsFetching}
+              onRefresh={() => refetchReviews()}
+              tintColor={theme.text}
+            />
+          }
           contentContainerStyle={{
             paddingTop: insets.top + 20,
             paddingHorizontal: 20,
@@ -245,8 +278,64 @@ const ProfileScreen = () => {
               style={{ marginHorizontal: -20 }}
               centerTabs={true}
               pages={[
-                <View key="reviews" style={{ flex: 1 }}></View>,
-                <View key="collections" style={{ flex: 1 }}></View>,
+                <View key="reviews" style={{ flex: 1, paddingTop: 20 }}>
+                  {reviewsLoading ? (
+                    <View style={styles.loadingContainer}>
+                      <ActivityIndicator size="small" />
+                      <Text
+                        style={{ color: theme.secondaryText, marginTop: 8 }}
+                      >
+                        Loading reviews...
+                      </Text>
+                    </View>
+                  ) : reviewsError ? (
+                    <View style={styles.errorContainer}>
+                      <Text
+                        style={[
+                          styles.errorText,
+                          { color: theme.secondaryText },
+                        ]}
+                      >
+                        Failed to load reviews
+                      </Text>
+                    </View>
+                  ) : reviews && reviews.length > 0 ? (
+                    reviews.map((review, index) => (
+                      <View
+                        key={review.id}
+                        style={
+                          index < reviews.length - 1
+                            ? styles.reviewCardContainer
+                            : undefined
+                        }
+                      >
+                        <UserReviewCard
+                          title={review.media.title}
+                          posterUrl={review.media.poster_url}
+                          review={review.review}
+                          rating={review.rating}
+                          mediaId={review.media.id}
+                          createdAt={formatReviewDate(review.createdAt)}
+                        />
+                      </View>
+                    ))
+                  ) : (
+                    <View style={styles.emptyContainer}>
+                      <Text
+                        style={[
+                          styles.emptyText,
+                          { color: theme.secondaryText },
+                        ]}
+                      >
+                        No reviews yet
+                      </Text>
+                    </View>
+                  )}
+                </View>,
+                <View
+                  key="collections"
+                  style={{ flex: 1, paddingTop: 20 }}
+                ></View>,
               ]}
             />
           </View>
@@ -332,5 +421,27 @@ const styles = StyleSheet.create({
   },
   editProfileButton: {
     marginTop: 24,
+  },
+  loadingContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+  },
+  errorContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+  },
+  emptyContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+  },
+  emptyText: {
+    fontFamily: fontFamily.plusJakarta.regular,
+    fontSize: 16,
+  },
+  reviewCardContainer: {
+    marginBottom: 32,
   },
 });
