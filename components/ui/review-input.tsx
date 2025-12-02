@@ -1,7 +1,8 @@
+import { useQuery } from "@tanstack/react-query";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import React, { useContext, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   Dimensions,
   Keyboard,
@@ -24,13 +25,15 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { AuthContext } from "../../contexts/auth-context";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
+import { UserMediaService } from "../../services/userMediaService";
 import { Media } from "../../types/media";
 import { BottomGradient } from "./bottom-gradient";
 import MediaCard from "./media-card";
 import { StarRating } from "./star-rating";
-import { BookmarkIcon, SentIcon } from "./svg-icons";
+import { BookmarkIcon, ArrowUpIcon } from "./svg-icons";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
@@ -43,34 +46,81 @@ const KEYBOARD_APPROX = 336; // Approx keyboard height to start with
 
 interface ReviewInputProps {
   item: Media;
-  onSubmit?: (review: string, rating: number) => void;
   style?: StyleProp<ViewStyle>;
 }
 
-const SubmitButton = ({ handleSubmit }: { handleSubmit: () => void }) => {
+const SubmitButton = ({
+  handleSubmit,
+  disabled,
+}: {
+  handleSubmit: () => void;
+  disabled?: boolean;
+}) => {
   const { theme } = useContext(ThemeContext);
   return (
     <Pressable
       style={[
         styles.submitBtn,
         { backgroundColor: theme.secondaryButtonBackground },
+        disabled && { opacity: 0.5 },
       ]}
       onPress={() => handleSubmit()}
+      disabled={disabled}
     >
-      <SentIcon size={24} color={theme.background} />
+      <ArrowUpIcon size={24} color={theme.background} />
     </Pressable>
   );
 };
 
-const ReviewInput: React.FC<ReviewInputProps> = ({ item, onSubmit, style }) => {
+const ReviewInput: React.FC<ReviewInputProps> = ({ item, style }) => {
   const { theme } = useContext(ThemeContext);
+  const { user } = useContext(AuthContext);
   const [value, setValue] = useState("");
   const [rating, setRating] = useState(0);
   const [isHeightMaxed, setIsHeightMaxed] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
   const textInputRef = useRef<TextInput>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const insets = useSafeAreaInsets();
+
+  // Fetch existing review data
+  const { data: existingReview } = useQuery({
+    queryKey: ["userMediaReview", user?.id, item.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      return await UserMediaService.getUserMediaItem(user.id, item.id);
+    },
+    enabled: !!user?.id,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  // Check if user has already reviewed (has rating or review text)
+  const hasExistingReview =
+    existingReview?.user_rating || existingReview?.review;
+
+  // Track the last media ID we loaded data for
+  const lastLoadedMediaId = useRef<string | null>(null);
+
+  // Load existing review data when it's fetched or when item changes
+  useEffect(() => {
+    // Only load if this is a new media item or if we haven't loaded yet
+    if (item.id !== lastLoadedMediaId.current) {
+      if (existingReview) {
+        if (existingReview.user_rating) {
+          setRating(existingReview.user_rating);
+        }
+        if (existingReview.review) {
+          setValue(existingReview.review);
+        }
+      } else {
+        // Reset form for new media item with no review
+        setRating(0);
+        setValue("");
+      }
+      lastLoadedMediaId.current = item.id;
+    }
+  }, [existingReview, item.id]);
 
   // Calculate max available height (Screen - Insets - Keyboard - Margins)
   const maxAvailableHeight = SCREEN_HEIGHT - insets.top - KEYBOARD_APPROX - 20;
@@ -167,6 +217,14 @@ const ReviewInput: React.FC<ReviewInputProps> = ({ item, onSubmit, style }) => {
     };
   });
 
+  // Modal background opacity animation
+  const rModalBackgroundStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(focusProgress.get(), [0, 1], [0.5, 1]);
+    return {
+      opacity,
+    };
+  });
+
   const handleFocus = () => {
     focusProgress.set(withSpring(1));
     textInputRef.current?.focus();
@@ -183,12 +241,42 @@ const ReviewInput: React.FC<ReviewInputProps> = ({ item, onSubmit, style }) => {
     handleBlur();
   };
 
-  const handleSubmit = () => {
-    if (onSubmit && value.trim()) {
-      onSubmit(value, rating);
-      setValue("");
-      setRating(0);
+  const handleSubmit = async () => {
+    if (!user?.id) {
+      console.error("User not logged in");
+      return;
+    }
+
+    if (rating === 0) {
+      // Optionally show an error message or just return
+      return;
+    }
+
+    setIsSubmitting(true);
+    Haptics.selectionAsync();
+
+    try {
+      // Convert rating to integer (round to nearest whole number)
+      // StarRating can return decimals like 1.5, 2.5, etc., but DB expects integer
+      // Clamp to valid range (1-5) as per database constraint
+      const integerRating = Math.max(1, Math.min(5, Math.round(rating)));
+      await UserMediaService.submitReview(
+        user.id,
+        item.id,
+        integerRating,
+        value
+      );
+
+      // Reset the loaded media ID so the form reloads fresh data
+      lastLoadedMediaId.current = null;
+      // Close the form
       textInputRef.current?.blur();
+      handleBlur();
+    } catch (error) {
+      console.error("Error submitting review:", error);
+      // Optionally show an error toast here
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -231,14 +319,14 @@ const ReviewInput: React.FC<ReviewInputProps> = ({ item, onSubmit, style }) => {
                 rCardStyle,
               ]}
             >
-              <BlurView
-                intensity={30}
-                tint="dark"
+              <Animated.View
                 style={[
-                  styles.blur,
-                  { backgroundColor: theme.inputBackground },
+                  StyleSheet.absoluteFill,
+                  { backgroundColor: theme.modalBackground },
+                  rModalBackgroundStyle,
                 ]}
               />
+              <BlurView intensity={30} tint="dark" style={[styles.blur]} />
 
               {/* Collapsed state: placeholder trigger */}
               <Animated.View
@@ -254,7 +342,7 @@ const ReviewInput: React.FC<ReviewInputProps> = ({ item, onSubmit, style }) => {
                       { color: theme.inputPlaceholderText },
                     ]}
                   >
-                    Write a review...
+                    {hasExistingReview ? "Edit review..." : "Write a review..."}
                   </Text>
                 </Pressable>
               </Animated.View>
@@ -317,7 +405,10 @@ const ReviewInput: React.FC<ReviewInputProps> = ({ item, onSubmit, style }) => {
                     />
                   </View>
                 </ScrollView>
-                <SubmitButton handleSubmit={handleSubmit} />
+                <SubmitButton
+                  handleSubmit={handleSubmit}
+                  disabled={isSubmitting || rating === 0}
+                />
               </Animated.View>
             </Animated.View>
 
@@ -333,14 +424,13 @@ const ReviewInput: React.FC<ReviewInputProps> = ({ item, onSubmit, style }) => {
                 router.push(`/save-media?id=${item.id}`);
               }}
             >
-              <BlurView
-                intensity={30}
-                tint="dark"
+              <View
                 style={[
-                  styles.blur,
-                  { backgroundColor: theme.inputBackground },
+                  StyleSheet.absoluteFill,
+                  { backgroundColor: theme.modalBackground, opacity: 0.5 },
                 ]}
               />
+              <BlurView intensity={30} tint="dark" style={[styles.blur]} />
               <BookmarkIcon size={20} color={theme.text} />
             </AnimatedPressable>
           </View>

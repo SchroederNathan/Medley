@@ -26,23 +26,23 @@ import Button from "../../../../components/ui/button";
 import { DefaultProfileImage } from "../../../../components/ui/default-profile-image";
 import { SettingsIcon } from "../../../../components/ui/svg-icons";
 import TabPager from "../../../../components/ui/tab-pager";
-import { ZoomAnimationProvider } from "../../../../contexts/zoom-animation-context";
 import { ThemeContext } from "../../../../contexts/theme-context";
+import { ZoomAnimationProvider } from "../../../../contexts/zoom-animation-context";
 import { useUserProfile } from "../../../../hooks/use-user-profile";
 import { fontFamily } from "../../../../lib/fonts";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const tabs = [
-  { key: "media", title: "Media" },
-  { key: "favorites", title: "Favorites" },
+  { key: "reviews", title: "Reviews" },
+  { key: "collections", title: "Collections" },
 ];
 
 const ProfileScreen = () => {
   const { theme } = useContext(ThemeContext);
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [activeTab, setActiveTab] = useState<string>("media");
+  const [activeTab, setActiveTab] = useState<string>("reviews");
   const scrollViewRef = useRef<Animated.ScrollView>(null);
   const tabPagerContainerRef = useRef<View>(null);
   const scrollY = useSharedValue(0);
@@ -245,8 +245,8 @@ const ProfileScreen = () => {
               style={{ marginHorizontal: -20 }}
               centerTabs={true}
               pages={[
-                <View key="media" style={{ flex: 1 }}></View>,
-                <View key="favorites" style={{ flex: 1 }}></View>,
+                <View key="reviews" style={{ flex: 1 }}></View>,
+                <View key="collections" style={{ flex: 1 }}></View>,
               ]}
             />
           </View>

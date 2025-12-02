@@ -738,3 +738,25 @@ export const StarOutlineIcon: React.FC<IconProps> = ({
     />
   </Svg>
 );
+
+export const ArrowUpIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#000000",
+  strokeWidth = 1,
+  style,
+}) => (
+  <Svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill={color}
+    style={style}
+  >
+    <Path
+      d="M11 18.9998V7.41382L6.70702 11.7068C6.31649 12.0973 5.68348 12.0973 5.29295 11.7068C4.90243 11.3163 4.90243 10.6832 5.29295 10.2927L11.293 4.29272L11.3691 4.22436C11.7619 3.90403 12.3409 3.92662 12.707 4.29272L18.707 10.2927L18.7754 10.3689C19.0957 10.7617 19.0731 11.3407 18.707 11.7068C18.3409 12.0729 17.7619 12.0955 17.3691 11.7751L17.293 11.7068L13 7.41382V18.9998C13 19.552 12.5523 19.9998 12 19.9998C11.4477 19.9998 11 19.552 11 18.9998Z"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinejoin="round"
+    />
+  </Svg>
+);

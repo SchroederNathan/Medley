@@ -80,6 +80,50 @@ export class UserMediaService {
     return counts;
   }
 
+  static async getUserMediaItem(userId: string, mediaId: string) {
+    const { data, error } = await supabase
+      .from("user_media")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("media_id", mediaId)
+      .single();
+    if (error) {
+      // If no record found, return null instead of throwing
+      if (error.code === "PGRST116") {
+        return null;
+      }
+      throw error;
+    }
+    return data;
+  }
+
+  static async submitReview(
+    userId: string,
+    mediaId: string,
+    rating: number,
+    review: string
+  ) {
+    const { data, error } = await supabase.from("user_media").upsert(
+      {
+        user_id: userId,
+        media_id: mediaId,
+        user_rating: rating,
+        review: review.trim() || null,
+      },
+      { onConflict: "user_id,media_id" }
+    );
+
+    if (error) throw error;
+    // Refresh user media queries
+    queryClient.invalidateQueries({ queryKey: ["userLibrary", userId] });
+    queryClient.invalidateQueries({ queryKey: ["user-media-genres", userId] });
+    queryClient.invalidateQueries({ queryKey: ["userMedia", userId] });
+    queryClient.invalidateQueries({
+      queryKey: ["userMediaReview", userId, mediaId],
+    });
+    return data;
+  }
+
   static async addSampleDataForTesting(userId: string) {
     const samples = [
       {

@@ -376,10 +376,6 @@ const MediaDetailScreen = () => {
         <ReviewInput
           style={{ position: "absolute", bottom: 0, left: 0, right: 0 }}
           item={media}
-          onSubmit={(review, rating) => {
-            console.log("Review:", review, "Rating:", rating);
-            // Handle review submission
-          }}
         />
 
         <MediaZoomOverlay imageUri={media.poster_url} />
