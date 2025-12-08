@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="%LANG_ISO_CODE%">
+  <head>
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>%WEB_TITLE%</title>
+
+    <style id="expo-reset">
+      /* These styles make the body full-height */
+      html,
+      body {
+        height: 100%;
+      }
+      /* These styles disable body scrolling if you are using <ScrollView> */
+      body {
+        overflow: hidden;
+      }
+      /* These styles make the root element full-height */
+      #root {
+        display: flex;
+        height: 100%;
+        flex: 1;
+      }
+    </style>
+    <style id="bootsplash-style">
+      #bootsplash {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #f5fcff;
+      }
+      #bootsplash-logo {
+        content: url("data:image/svg+xml;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAAA6CAMAAADC3Oa+AAADAFBMVEVMaXHY2NjZ2dn////Z2dmqqqr////Y2NjY2Nj///+/v7/Y2NjMzMzY2NjZ2dnZ2dnU1NTX19fa2toAAADZ2dnZ2dnn5+fY2Ni2trbX19d/f3/Y2NjY2Nj////Z2dnY2NjY2NjZ2dnY2NjW1tbZ2dnY2NjY2NjZ2dnY2NjQ0NDZ2dnY2NjZ2dnY2Nja2tra2trT09PZ2dnZ2dnZ2dnX19ff39/Z2dna2trZ2dna2trZ2dnZ2dna2tra2trZ2dnY2NjY2Nja2trY2Ni+vr7X19fU1NTZ2dnT09PY2Njb29vZ2dnY2NjR0dHY2NjZ2dna2trY2NjY2NjZ2dnX19fT09PZ2dnW1tbX19fU1NTX19fY2NjZ2dnZ2dnY2NjX19fX19fY2NjY2Nja2tra2trZ2dnY2NjY2Nja2tra2trZ2dna2trZ2dna2trJycnW1tbY2NjZ2dnX19fZ2dnY2Nja2trZ2dnY2NjZ2dna2trY2NjY2NjZ2dne3t7Z2dnV1dXd3d3Y2NjU1NTY2NjX19fZ2dnY2Njf39/a2trX19fY2Njc3NzZ2dnY2NjY2NjY2NjW1tbZ2dnS0tLY2NjZ2dnd3d3a2trZ2dnW1tbY2Njd3d3X19fa2trb29vb29va2trT09PZ2dnb29vX19fe3t7c3NzX19fZ2dnd3d3i4uLY2NjX19fT09Pb29vX19fb29vY2Njc3Nza2tra2trd3d3W1tbe3t7i4uLNzc3Z2dnY2Nj////c3Nza2trY2NjW1taioqLW1tbb29vZ2dnZ2dna2trZ2dne3t7a2trc3NzX19fY2Nje3t7c3Nze3t7Z2dnV1dXf399/f3/Z2dnX19fY2Njb29vg4ODi4uLX19fb29vT09Pc3Nzn5+ff39/a2trm5uba2trd3d3b29vc3NzW1tbf39/e3t7a2trY2NjZ2dne3t7l5eXk5OTi4uLh4eHp6enr6+vn5+fb29vj4+Pd3d3m5uba2trf39/g4ODo6Ojc3NzY2Njq6urv7+/t7e3y8vKYee+NAAAA6XRSTlMA/fwD/QMC/P4BBK4F+/r7Bo9jAXXaC90H0QI7kgT+45NLIRmpwunvIAvuudxkB4oV3/X5IgiXG7H7lH3+6NxN6mHbCUA7gRu1trI8F4DT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");
+        width: 100px;
+        height: 29px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <noscript> You need to enable JavaScript to run this app. </noscript>
+
+    <div id="root"></div>
+    <div id="bootsplash">
+      <div id="bootsplash-logo"></div>
+    </div>
+  </body>
+</html>

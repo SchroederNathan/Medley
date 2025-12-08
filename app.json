@@ -52,7 +52,8 @@
           "color": "#171717",
           "sounds": []
         }
-      ]
+      ],
+      ["react-native-bootsplash", { "assetsDir": "assets/bootsplash" }]
     ],
     "extra": {
       "router": {},

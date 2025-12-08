@@ -1,21 +1,30 @@
+import * as Sentry from "@sentry/react-native";
 import { Stack } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
+import { Image } from "react-native";
+import BootSplash from "react-native-bootsplash";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
+import Animated, {
+  Easing,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from "react-native-reanimated";
+import { NotificationsProvider } from "../components/providers/notifications-provider";
 import { QueryProvider } from "../components/providers/query-provider";
 import { AuthContext, AuthProvider } from "../contexts/auth-context";
 import {
-  ContentReadyProvider,
   ContentReadyContext,
+  ContentReadyProvider,
 } from "../contexts/content-ready-context";
 import { OverlayProvider } from "../contexts/overlay-context";
 import { ThemeContext, ThemeProvider } from "../contexts/theme-context";
 import { ToastProvider } from "../contexts/toast-context";
 import { useAppFonts } from "../lib/fonts";
-import * as Sentry from "@sentry/react-native";
-import { NotificationsProvider } from "../components/providers/notifications-provider";
 
 Sentry.init({
   dsn: "https://077c17121b5dbfc5cecd4ec763173e88@o4510162802049024.ingest.us.sentry.io/4510162816073728",
@@ -122,21 +131,99 @@ const AuthProviderWithSplash = () => {
   );
 };
 
+// Separate animated splash component following react-native-bootsplash docs pattern
+const AnimatedBootSplash = ({
+  onAnimationEnd,
+  ready,
+}: {
+  onAnimationEnd: () => void;
+  ready: boolean;
+}) => {
+  const translateY = useSharedValue(0);
+  const opacity = useSharedValue(1);
+
+  const { container, logo } = BootSplash.useHideAnimation({
+    manifest: require("../assets/bootsplash/manifest.json"),
+    logo: require("../assets/bootsplash/logo.png"),
+    statusBarTranslucent: false,
+    navigationBarTranslucent: false,
+    ready: ready, // This triggers animate() when true
+
+    animate: () => {
+      // Hide the native splash immediately, we'll drive the JS animation
+      BootSplash.hide({ fade: false });
+
+      // Fade out the background first
+      opacity.value = withTiming(0, {
+        duration: 500,
+      });
+
+      // Then move the logo up and off-screen with a slow start, then accel
+      translateY.value = withDelay(
+        120,
+        withTiming(
+          -800,
+          {
+            duration: 500,
+            easing: Easing.in(Easing.cubic), // start slow, then take off
+          },
+          () => {
+            // Once the logo animation completes, remove the splash
+            runOnJS(onAnimationEnd)();
+          }
+        )
+      );
+    },
+  });
+
+  const animatedContainerStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
+
+  const animatedLogoStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  return (
+    <Animated.View
+      {...container}
+      style={[
+        container.style,
+        animatedContainerStyle,
+        {
+          // Ensure we fade the visible background
+          backgroundColor: "#0A0A0A",
+        },
+      ]}
+    >
+      <Animated.View style={animatedLogoStyle}>
+        <Image {...logo} style={[logo.style, { width: 240, height: 240 }]} />
+      </Animated.View>
+    </Animated.View>
+  );
+};
+
 const SplashController = ({ children }: { children: React.ReactNode }) => {
   const { isReady, isLoggedIn } = useContext(AuthContext);
   const { isContentReady } = useContext(ContentReadyContext);
+  const [splashVisible, setSplashVisible] = useState(true);
 
-  React.useEffect(() => {
-    if (isReady) {
-      // If user is not logged in (onboarding/login screens), hide splash immediately
-      // Otherwise, wait for content to be ready
-      if (!isLoggedIn || isContentReady) {
-        SplashScreen.hideAsync();
-      }
-    }
-  }, [isReady, isLoggedIn, isContentReady]);
+  // Determine if we should hide splash - this triggers the animation
+  const shouldHideSplash = isReady && (!isLoggedIn || isContentReady);
 
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      {splashVisible && (
+        <AnimatedBootSplash
+          ready={shouldHideSplash}
+          onAnimationEnd={() => {
+            setSplashVisible(false);
+          }}
+        />
+      )}
+    </>
+  );
 };
 
 export default Sentry.wrap(RootLayout);

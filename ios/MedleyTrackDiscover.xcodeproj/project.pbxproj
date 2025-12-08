@@ -13,7 +13,9 @@
 		22856F510C15C19108FDDE38 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C36670016532C448C8AFA6C4 /* PrivacyInfo.xcprivacy */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
 		43DCB0ED2EC59B1900EE9E06 /* warp_circle.riv in Resources */ = {isa = PBXBuildFile; fileRef = 43DCB0EC2EC59B1900EE9E06 /* warp_circle.riv */; };
+		746DD462ECF8409185199697 /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 86E7CD9A4609401D88A07EC2 /* Colors.xcassets */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
+		D8ED10BB70EB44DB89BB6099 /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5955BD2B468A4A959BA3C966 /* BootSplash.storyboard */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
@@ -23,6 +25,8 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = MedleyTrackDiscover/Info.plist; sourceTree = "<group>"; };
 		43DCB0EC2EC59B1900EE9E06 /* warp_circle.riv */ = {isa = PBXFileReference; lastKnownFileType = file; path = warp_circle.riv; sourceTree = "<group>"; };
 		44E0158CED45826DAB830C3F /* libPods-MedleyTrackDiscover.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MedleyTrackDiscover.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5955BD2B468A4A959BA3C966 /* BootSplash.storyboard */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = BootSplash.storyboard; path = MedleyTrackDiscover/BootSplash.storyboard; sourceTree = "<group>"; };
+		86E7CD9A4609401D88A07EC2 /* Colors.xcassets */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = folder.assetcatalog; name = Colors.xcassets; path = MedleyTrackDiscover/Colors.xcassets; sourceTree = "<group>"; };
 		97AC0D0BF46DCBA82AD34162 /* Pods-MedleyTrackDiscover.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MedleyTrackDiscover.release.xcconfig"; path = "Target Support Files/Pods-MedleyTrackDiscover/Pods-MedleyTrackDiscover.release.xcconfig"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = MedleyTrackDiscover/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
@@ -56,6 +60,8 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
 				C36670016532C448C8AFA6C4 /* PrivacyInfo.xcprivacy */,
+				5955BD2B468A4A959BA3C966 /* BootSplash.storyboard */,
+				86E7CD9A4609401D88A07EC2 /* Colors.xcassets */,
 			);
 			name = MedleyTrackDiscover;
 			sourceTree = "<group>";
@@ -211,6 +217,8 @@
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
 				22856F510C15C19108FDDE38 /* PrivacyInfo.xcprivacy in Resources */,
+				D8ED10BB70EB44DB89BB6099 /* BootSplash.storyboard in Resources */,
+				746DD462ECF8409185199697 /* Colors.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -411,7 +419,7 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.schroedernathan.medley;
-				PRODUCT_NAME = MedleyTrackDiscover;
+				PRODUCT_NAME = "MedleyTrackDiscover";
 				SWIFT_OBJC_BRIDGING_HEADER = "MedleyTrackDiscover/MedleyTrackDiscover-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -445,7 +453,7 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.schroedernathan.medley;
-				PRODUCT_NAME = MedleyTrackDiscover;
+				PRODUCT_NAME = "MedleyTrackDiscover";
 				SWIFT_OBJC_BRIDGING_HEADER = "MedleyTrackDiscover/MedleyTrackDiscover-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

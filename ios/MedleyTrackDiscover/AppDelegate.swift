@@ -1,4 +1,7 @@
 import Expo
+// @generated begin bootsplash-header - expo prebuild (DO NOT MODIFY) sync-7dde938c6b171704c935d950437931dd119f9ecd
+import RNBootSplash
+// @generated end bootsplash-header
 import React
 import ReactAppDependencyProvider
 
@@ -53,6 +56,12 @@ public class AppDelegate: ExpoAppDelegate {
 }
 
 class ReactNativeDelegate: ExpoReactNativeFactoryDelegate {
+// @generated begin bootsplash-init - expo prebuild (DO NOT MODIFY) sync-ed8abcac6539972aebf80ff9b977cac92fde8246
+public override func customize(_ rootView: UIView) {
+  super.customize(rootView)
+  RNBootSplash.initWithStoryboard("BootSplash", rootView: rootView)
+}
+// @generated end bootsplash-init
   // Extension point for config-plugins
 
   override func sourceURL(for bridge: RCTBridge) -> URL? {
