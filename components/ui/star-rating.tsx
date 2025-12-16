@@ -21,7 +21,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
-import { StarOutlineIcon, StarSolidIcon } from "./svg-icons";
+import { StarSolidIcon } from "./svg-icons";
 
 // Star rating geometry
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -44,14 +44,7 @@ const StarContent: React.FC<StarContentProps> = ({
   emptyColor,
 }) => {
   if (fillPercentage <= 0) {
-    return (
-      <StarOutlineIcon
-        size={size + 2}
-        color={emptyColor}
-        strokeWidth={1}
-        style={{ marginBottom: 1 }}
-      />
-    );
+    return <StarSolidIcon size={size} color={emptyColor} />;
   }
 
   if (fillPercentage >= 1) {
@@ -61,8 +54,8 @@ const StarContent: React.FC<StarContentProps> = ({
   // Half star: overlay solid star with clip
   return (
     <View style={{ width: size, height: size }}>
-      <StarOutlineIcon
-        size={size + 2}
+      <StarSolidIcon
+        size={size}
         color={emptyColor}
         strokeWidth={1}
         style={{ position: "absolute", bottom: 1 }}
@@ -181,7 +174,7 @@ export const StarRating: React.FC<StarRatingProps> = ({
 }) => {
   const { theme } = useContext(ThemeContext);
   const resolvedFilledColor = filledColor ?? theme.text;
-  const resolvedEmptyColor = emptyColor ?? theme.secondaryText;
+  const resolvedEmptyColor = theme.fabButtonBackground;
 
   const lastSlideRating = useRef(0);
   const cursorX = useSharedValue(0);
@@ -189,8 +182,23 @@ export const StarRating: React.FC<StarRatingProps> = ({
 
   const handleStarPress = (starIndex: number) => {
     Haptics.selectionAsync();
-    // Toggle: if already at this value, clear; otherwise set to full star
-    onRatingChange(rating === starIndex + 1 ? 0 : starIndex + 1);
+    const full = starIndex + 1;
+    const half = starIndex + 0.5;
+    const isSame = (a: number, b: number) => Math.abs(a - b) < 0.001;
+
+    // Repeated taps on the same star toggle half/full.
+    if (isSame(rating, full)) {
+      onRatingChange(half);
+      return;
+    }
+
+    if (isSame(rating, half)) {
+      onRatingChange(full);
+      return;
+    }
+
+    // Otherwise, set to full star.
+    onRatingChange(full);
   };
 
   const handleSlideRating = (newRating: number) => {
