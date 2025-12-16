@@ -154,8 +154,8 @@ const IndexScreen = () => {
             media={popularMovies.data ?? []}
             title="Popular Movies"
           />
-          <Carousel
-            style={{ marginTop: 0 }}
+          {/* <Carousel
+            style={{ marginTop: 32 }}
             media={recommendedMovies.data ?? []}
             title="Movies for you"
           />
@@ -168,7 +168,7 @@ const IndexScreen = () => {
             style={{ marginTop: 32 }}
             media={recommendedTvShows.data ?? []}
             title="TV for you"
-          />
+          /> */}
         </ScrollView>
       </PullToSearchContent>
 

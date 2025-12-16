@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams, usePathname } from "expo-router";
 import React, { FC, useContext, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -141,7 +141,9 @@ const POSTER_PADDING = 72;
 const MediaDetailScreen = () => {
   const { theme } = useContext(ThemeContext);
   const { user } = useContext(AuthContext);
-
+  // get pathname of expo router route
+  const pathname = usePathname();
+  console.log("pathname", pathname);
   const [showActionMenu, setShowActionMenu] = useState(false);
   const { id } = useLocalSearchParams();
   const topPadding = useSafeAreaInsets().top;

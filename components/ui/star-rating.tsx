@@ -174,7 +174,7 @@ export const StarRating: React.FC<StarRatingProps> = ({
 }) => {
   const { theme } = useContext(ThemeContext);
   const resolvedFilledColor = filledColor ?? theme.text;
-  const resolvedEmptyColor = theme.fabButtonBackground;
+  const resolvedEmptyColor = theme.border;
 
   const lastSlideRating = useRef(0);
   const cursorX = useSharedValue(0);

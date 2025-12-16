@@ -27,6 +27,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AuthContext } from "../../contexts/auth-context";
 import { ThemeContext } from "../../contexts/theme-context";
+import { useToast } from "../../contexts/toast-context";
 import { useSubmitReview } from "../../hooks/mutations";
 import { fontFamily } from "../../lib/fonts";
 import { queryKeys } from "../../lib/query-keys";
@@ -35,7 +36,7 @@ import { Media } from "../../types/media";
 import { BottomGradient } from "./bottom-gradient";
 import MediaCard from "./media-card";
 import { StarRating } from "./star-rating";
-import { BookmarkIcon, ArrowUpIcon } from "./svg-icons";
+import { ArrowUpIcon, BookmarkIcon } from "./svg-icons";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
@@ -43,7 +44,7 @@ const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 // Base geometry
 const MIN_HEIGHT = 56;
 const BOOKMARK_BTN_SIZE = MIN_HEIGHT;
-const INPUT_GAP = 10;
+const INPUT_GAP = 12;
 const KEYBOARD_APPROX = 336; // Approx keyboard height to start with
 
 interface ReviewInputProps {
@@ -77,6 +78,7 @@ const SubmitButton = ({
 const ReviewInput: React.FC<ReviewInputProps> = ({ item, style }) => {
   const { theme } = useContext(ThemeContext);
   const { user } = useContext(AuthContext);
+  const { showToast } = useToast();
   const [value, setValue] = useState("");
   const [rating, setRating] = useState(0);
   const [isHeightMaxed, setIsHeightMaxed] = useState(false);
@@ -277,6 +279,11 @@ const ReviewInput: React.FC<ReviewInputProps> = ({ item, style }) => {
           // Close the form
           textInputRef.current?.blur();
           handleBlur();
+          showToast({
+            message: hasExistingReview
+              ? "Review updated successfully"
+              : "Review submitted successfully",
+          });
         },
         onError: (error) => {
           console.error("Error submitting review:", error);
@@ -469,7 +476,7 @@ const styles = StyleSheet.create({
     zIndex: 0,
   },
   root: {
-    marginHorizontal: 12,
+    marginHorizontal: 16,
     zIndex: 1,
   },
   row: {

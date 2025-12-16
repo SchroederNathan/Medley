@@ -36,30 +36,34 @@ const Toast: React.FC<ToastProps> = ({
   const scale = useSharedValue(0.7);
   const opacity = useSharedValue(0);
 
-  // Auto-detect if we're on a tab screen by checking route segments
-  // Tab screens will have segments like: ["(protected)", "(tabs)", "(home)"]
-  const isTabScreen =
-    segments.includes("(tabs)") &&
-    (segments.includes("(home)") ||
-      segments.includes("(social)") ||
-      segments.includes("(match)") ||
-      segments.includes("(library)") ||
-      segments.includes("(profile)"));
+  // Auto-detect if we're on a screen that should be offset above the tab bar.
+  // - Any route within the `(tabs)` group should have the tab bar.
+  // - Some routes outside `(tabs)` may still want "tab bar" spacing (e.g. `media-detail`).
+  const isTabsGroupScreen = segments.includes("(tabs)");
+  const isTabBarScreen = isTabsGroupScreen || segments.includes("media-detail");
+  const isReviewInputScreen = segments.includes("media-detail");
 
   // Use provided value or auto-detect
-  const hasTabBar = hasTabBarProp !== undefined ? hasTabBarProp : isTabScreen;
+  const hasTabBar =
+    hasTabBarProp !== undefined ? hasTabBarProp : isTabBarScreen;
 
-  console.log(
-    "Toast - segments:",
-    segments,
-    "isTabScreen:",
-    isTabScreen,
-    "hasTabBar:",
-    hasTabBar,
-  );
+  if (__DEV__) {
+    console.log(
+      "Toast - segments:",
+      segments,
+      "isTabsGroupScreen:",
+      isTabsGroupScreen,
+      "hasTabBar:",
+      hasTabBar
+    );
+  }
 
   // Calculate bottom position based on tab bar presence
-  const bottomOffset = hasTabBar ? 100 : insets.bottom;
+  const bottomOffset = hasTabBar
+    ? isReviewInputScreen
+      ? 112
+      : 100
+    : insets.bottom;
 
   // Animation close function - React Compiler will optimize this automatically
   const handleClose = () => {
@@ -146,9 +150,11 @@ export default Toast;
 const styles = StyleSheet.create({
   container: {
     position: "absolute",
-    left: 20,
-    right: 20,
+    left: 16,
+    right: 16,
     borderRadius: 16,
+    zIndex: 2000,
+    elevation: 2000,
     boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.3)",
   },
   content: {
