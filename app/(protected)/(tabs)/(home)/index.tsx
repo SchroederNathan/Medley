@@ -20,6 +20,7 @@ import { SharedHeader } from "../../../../components/ui/shared-header";
 import { AuthContext } from "../../../../contexts/auth-context";
 import { ContentReadyContext } from "../../../../contexts/content-ready-context";
 import { ThemeContext } from "../../../../contexts/theme-context";
+import { usePopularMovies } from "../../../../hooks/use-popular-movies";
 import { useRecommendations } from "../../../../hooks/use-recommendations";
 import { useSharedSearch } from "../../../../hooks/use-shared-search";
 import { fontFamily } from "../../../../lib/fonts";
@@ -46,6 +47,7 @@ const IndexScreen = () => {
     kind: "type",
     mediaType: "movie",
   });
+  const popularMovies = usePopularMovies(20);
   const recommendedTvShows = useRecommendations({
     kind: "type",
     mediaType: "tv_show",
@@ -56,6 +58,7 @@ const IndexScreen = () => {
     const allQueriesFinished =
       !recommendedGames.isLoading &&
       !recommendedMovies.isLoading &&
+      !popularMovies.isLoading &&
       !recommendedTvShows.isLoading;
 
     if (allQueriesFinished) {
@@ -64,6 +67,7 @@ const IndexScreen = () => {
   }, [
     recommendedGames.isLoading,
     recommendedMovies.isLoading,
+    popularMovies.isLoading,
     recommendedTvShows.isLoading,
     setContentReady,
   ]);
@@ -125,7 +129,7 @@ const IndexScreen = () => {
         isSearchError={searchError}
       >
         {/* Featured carousel at the top */}
-        <HomeCarousel media={recommendedMovies.data ?? []} />
+        <HomeCarousel media={popularMovies.data ?? []} />
 
         {/* Main content - always show recommendations */}
         <ScrollView
@@ -144,6 +148,11 @@ const IndexScreen = () => {
                 body: "Hello, this is a test push notification",
               });
             }}
+          />
+          <Carousel
+            style={{ marginTop: 0 }}
+            media={popularMovies.data ?? []}
+            title="Popular Movies"
           />
           <Carousel
             style={{ marginTop: 0 }}

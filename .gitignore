@@ -38,3 +38,6 @@ yarn-error.*
 *.tsbuildinfo
 
 .env.local
+
+# Supabase
+supabase/*

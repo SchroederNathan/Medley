@@ -36,7 +36,13 @@ export const queryKeys = {
     byType: (userId: string, mediaType: string) =>
       ["recommendations", userId, "type", mediaType] as const,
     similar: (userId: string, sourceMediaId: string, targetType?: string) =>
-      ["recommendations", userId, "similar", sourceMediaId, targetType] as const,
+      [
+        "recommendations",
+        userId,
+        "similar",
+        sourceMediaId,
+        targetType,
+      ] as const,
   },
 
   // Media items
@@ -44,6 +50,8 @@ export const queryKeys = {
     detail: (mediaId: string) => ["mediaItem", mediaId] as const,
     preferred: (userId: string, search?: string) =>
       ["preferredMedia", userId, search ?? ""] as const,
+    popularMovies: (limit: number = 20) =>
+      ["popularMovies", { limit }] as const,
   },
 
   // User media item (single item status/rating)
@@ -55,4 +63,3 @@ export const queryKeys = {
 
 // Helper type for extracting query key types
 export type QueryKeys = typeof queryKeys;
-
