@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { createContext, PropsWithChildren, useEffect, useState } from "react";
 import { queryClient } from "../lib/query-client";
 import { supabase } from "../lib/utils";
+import { ProfileService } from "../services/profileService";
 
 const authStorageKey = "authState";
 
@@ -25,8 +26,12 @@ type AuthState = {
   completeOnboarding: (
     mediaPreferences?: ("Games" | "Movies" | "Books")[]
   ) => Promise<void>;
-  fetchUserProfile: (id: string) => Promise<any>;
-  uploadProfileImage: (imageUri: string) => Promise<string>;
+  updateUserFromProfile: (profile: {
+    id?: string;
+    name?: string;
+    avatar_url?: string;
+    media_preferences?: { preferred_media?: ("Games" | "Movies" | "Books")[] };
+  }) => void;
 };
 
 export const AuthContext = createContext<AuthState>({
@@ -39,8 +44,7 @@ export const AuthContext = createContext<AuthState>({
   setUserName: () => {},
   setUserPreferredMedia: () => {},
   completeOnboarding: async () => {},
-  fetchUserProfile: async () => {},
-  uploadProfileImage: async () => "",
+  updateUserFromProfile: () => {},
 });
 
 export const AuthProvider = ({ children }: PropsWithChildren) => {
@@ -58,193 +62,26 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     }
   };
 
-  const fetchUserProfile = async (id: string) => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (error) {
-      throw error;
-    }
-
-    // Update user object with profile data including avatar_url
-    if (data) {
+  /**
+   * Updates the user state from profile data
+   * Use this after fetching profile via useUserProfile hook
+   */
+  const updateUserFromProfile = (profile: {
+    id?: string;
+    name?: string;
+    avatar_url?: string;
+    media_preferences?: { preferred_media?: ("Games" | "Movies" | "Books")[] };
+  }) => {
+    if (profile) {
       setUser((prevUser) => ({
         ...prevUser,
-        id: prevUser.id || data.id,
-        name: data.name || prevUser.name,
-        avatar_url: data.avatar_url || prevUser.avatar_url,
+        id: prevUser.id || profile.id,
+        name: profile.name || prevUser.name,
+        avatar_url: profile.avatar_url || prevUser.avatar_url,
         preferred_media:
-          data.media_preferences?.preferred_media || prevUser.preferred_media,
+          profile.media_preferences?.preferred_media || prevUser.preferred_media,
       }));
     }
-
-    return data;
-  };
-
-  const uploadProfileImage = async (imageUri: string): Promise<string> => {
-    if (!user.id) {
-      throw new Error("User must be logged in to upload profile image");
-    }
-
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession();
-
-    if (sessionError || !session) {
-      throw new Error("Authentication required");
-    }
-
-    const profileResult = await supabase
-      .from("profiles")
-      .select("avatar_url")
-      .eq("id", user.id)
-      .single();
-
-    if (profileResult.error) {
-      console.error("Error fetching profile:", profileResult.error);
-      throw profileResult.error;
-    }
-
-    // Use a fixed filename to replace the existing image
-    const fileName = `profiles/${user.id}/avatar.jpg`;
-
-    // Delete existing avatar if it exists to ensure clean replacement
-    const { data: deleteData, error: deleteError } = await supabase.storage
-      .from("profile-images")
-      .remove([fileName]);
-
-    // Log delete result for debugging
-    if (deleteError) {
-      const isNotFound =
-        deleteError.message?.includes("not found") ||
-        deleteError.message?.includes("does not exist") ||
-        deleteError.message?.includes("No such file");
-      if (!isNotFound) {
-        console.warn("Could not delete existing avatar:", deleteError);
-      } else {
-        console.log("No existing avatar to delete (first upload)");
-      }
-    } else if (deleteData && deleteData.length > 0) {
-      console.log("Successfully deleted existing avatar");
-    }
-
-    let fileData: ArrayBuffer | null = null;
-    let fileReadError: Error | null = null;
-    let detectedContentType: string | null = null;
-
-    try {
-      const response = await fetch(imageUri);
-      fileData = await response.arrayBuffer();
-      detectedContentType = response.headers.get("content-type");
-    } catch (error) {
-      fileReadError = error as Error;
-    }
-
-    if (fileReadError || !fileData) {
-      console.error("Error reading image file:", fileReadError);
-      throw fileReadError || new Error("Failed to read image file");
-    }
-
-    let contentType = "image/jpeg";
-    if (
-      detectedContentType &&
-      detectedContentType !== "application/octet-stream"
-    ) {
-      contentType = detectedContentType;
-    } else {
-      const lowerUri = imageUri.toLowerCase();
-      if (lowerUri.endsWith(".png")) {
-        contentType = "image/png";
-      } else if (lowerUri.endsWith(".webp")) {
-        contentType = "image/webp";
-      }
-    }
-
-    // Upload new file - upsert disabled since we deleted first
-    const uploadResult = await supabase.storage
-      .from("profile-images")
-      .upload(fileName, fileData, {
-        contentType,
-        upsert: false,
-        cacheControl: "3600",
-      });
-
-    if (uploadResult.error) {
-      // If file still exists despite delete, try with upsert
-      if (
-        uploadResult.error.message?.includes("already exists") ||
-        uploadResult.error.message?.includes("duplicate")
-      ) {
-        console.warn(
-          "File exists after delete, using upsert:",
-          uploadResult.error.message
-        );
-        const upsertResult = await supabase.storage
-          .from("profile-images")
-          .upload(fileName, fileData, {
-            contentType,
-            upsert: true,
-            cacheControl: "3600",
-          });
-
-        if (upsertResult.error) {
-          console.error(
-            "Error uploading image (with upsert):",
-            upsertResult.error
-          );
-          const uploadError = upsertResult.error;
-          throw uploadError;
-        }
-      } else {
-        console.error("Error uploading image:", uploadResult.error);
-        const uploadError = uploadResult.error;
-        throw uploadError;
-      }
-    }
-
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from("profile-images").getPublicUrl(fileName);
-
-    // Add cache-busting query parameter to force image refresh
-    const cacheBustUrl = `${publicUrl}?t=${Date.now()}`;
-
-    const updateResult = await supabase
-      .from("profiles")
-      .update({
-        avatar_url: cacheBustUrl,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", user.id);
-
-    if (updateResult.error) {
-      await supabase.storage.from("profile-images").remove([fileName]);
-      console.error("Error updating profile:", updateResult.error);
-      const updateError = updateResult.error;
-      throw updateError;
-    }
-
-    // Update user object with new avatar_url immediately
-    setUser((prevUser) => ({
-      ...prevUser,
-      avatar_url: cacheBustUrl,
-    }));
-
-    // Force refetch the profile immediately to update UI
-    await queryClient.invalidateQueries({
-      queryKey: ["userProfile", user.id],
-    });
-
-    // Refetch the profile data immediately to ensure UI updates
-    await queryClient.refetchQueries({
-      queryKey: ["userProfile", user.id],
-    });
-
-    return cacheBustUrl;
   };
 
   const setUserId = (id: string) => {
@@ -266,55 +103,8 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       throw new Error("Missing required user information");
     }
 
-    const { data: existingProfile, error: fetchError } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("id", user.id)
-      .single();
-
-    if (fetchError) {
-      console.error("Error fetching profile:", fetchError);
-      throw fetchError;
-    }
-
-    let dbError: Error | null = null;
-
-    if (!existingProfile) {
-      const insertResult = await supabase.from("profiles").insert({
-        id: user.id,
-        name: user.name,
-        media_preferences: {
-          preferred_media: preferredMedia,
-          onboarding_completed: true,
-          completed_at: new Date().toISOString(),
-        },
-      });
-
-      if (insertResult.error) {
-        dbError = insertResult.error;
-      }
-    } else {
-      const updateResult = await supabase
-        .from("profiles")
-        .update({
-          name: user.name,
-          media_preferences: {
-            preferred_media: preferredMedia,
-            onboarding_completed: true,
-            completed_at: new Date().toISOString(),
-          },
-        })
-        .eq("id", user.id);
-
-      if (updateResult.error) {
-        dbError = updateResult.error;
-      }
-    }
-
-    if (dbError) {
-      console.error("Error completing onboarding:", dbError);
-      throw dbError;
-    }
+    // Use ProfileService for onboarding completion
+    await ProfileService.completeOnboarding(user.id, user.name, preferredMedia);
 
     await logIn(user.id);
     router.replace("/(tabs)");
@@ -324,9 +114,13 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     setIsLoggedIn(true);
     storeAuthState({ isLoggedIn: true });
     setUserId(id);
-    // Fetch profile data including avatar_url
+
+    // Fetch profile data using ProfileService
     try {
-      await fetchUserProfile(id);
+      const profile = await ProfileService.getProfile(id);
+      if (profile) {
+        updateUserFromProfile(profile);
+      }
     } catch (error) {
       console.warn("Failed to fetch user profile on login:", error);
     }
@@ -366,9 +160,13 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         setUser({ id: userId });
         setIsLoggedIn(true);
         storeAuthState({ isLoggedIn: true });
-        // Fetch profile data including avatar_url
+
+        // Fetch profile data using ProfileService
         try {
-          await fetchUserProfile(userId);
+          const profile = await ProfileService.getProfile(userId);
+          if (profile) {
+            updateUserFromProfile(profile);
+          }
         } catch (error) {
           console.warn("Failed to fetch user profile on init:", error);
         }
@@ -408,8 +206,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         setUserName,
         setUserPreferredMedia,
         completeOnboarding,
-        fetchUserProfile,
-        uploadProfileImage,
+        updateUserFromProfile,
       }}
     >
       {children}

@@ -1,4 +1,3 @@
-import { queryClient } from "../lib/query-client";
 import { supabase } from "../lib/utils";
 import { Media } from "../types/media";
 
@@ -8,6 +7,27 @@ export interface CreateCollectionParams {
   description?: string;
   ranked: boolean;
   items: Media[]; // Array of selected media in order
+}
+
+export interface Collection {
+  id: string;
+  user_id: string;
+  name: string;
+  description?: string | null;
+  ranked: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CollectionWithItems extends Collection {
+  collection_items: {
+    id: string;
+    collection_id: string;
+    media_id: string;
+    position: number;
+    created_at: string;
+    media: Media;
+  }[];
 }
 
 export class CollectionService {
@@ -21,7 +41,7 @@ export class CollectionService {
     description,
     ranked,
     items,
-  }: CreateCollectionParams) {
+  }: CreateCollectionParams): Promise<Collection> {
     // Step 1: Create the collection
     const { data: collection, error: collectionError } = await supabase
       .from("collections")
@@ -59,16 +79,15 @@ export class CollectionService {
       }
     }
 
-    // Invalidate relevant queries
-    queryClient.invalidateQueries({ queryKey: ["collections", userId] });
-
     return collection;
   }
 
   /**
    * Fetches all collections for a user with their items
    */
-  static async getUserCollections(userId: string) {
+  static async getUserCollections(
+    userId: string
+  ): Promise<CollectionWithItems[]> {
     const { data, error } = await supabase
       .from("collections")
       .select(
@@ -84,13 +103,15 @@ export class CollectionService {
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return data ?? [];
+    return (data as CollectionWithItems[]) ?? [];
   }
 
   /**
    * Fetches a single collection with its items
    */
-  static async getCollection(collectionId: string) {
+  static async getCollection(
+    collectionId: string
+  ): Promise<CollectionWithItems | null> {
     const { data, error } = await supabase
       .from("collections")
       .select(
@@ -104,10 +125,15 @@ export class CollectionService {
       )
       .eq("id", collectionId)
       .single();
-    // .maybeSingle(); // alternative to avoid error on 0 rows
 
-    if (error) throw error;
-    return data;
+    if (error) {
+      // If no collection found, return null instead of throwing
+      if (error.code === "PGRST116") {
+        return null;
+      }
+      throw error;
+    }
+    return data as CollectionWithItems;
   }
 
   /**
@@ -120,7 +146,7 @@ export class CollectionService {
       description?: string;
       ranked?: boolean;
     }
-  ) {
+  ): Promise<Collection> {
     const { data, error } = await supabase
       .from("collections")
       .update(updates)
@@ -129,32 +155,28 @@ export class CollectionService {
       .single();
 
     if (error) throw error;
-
-    // Invalidate queries
-    queryClient.invalidateQueries({ queryKey: ["collection", collectionId] });
-
     return data;
   }
 
   /**
    * Deletes a collection and all its items (cascades via FK constraint)
    */
-  static async deleteCollection(collectionId: string, userId: string) {
+  static async deleteCollection(collectionId: string): Promise<void> {
     const { error } = await supabase
       .from("collections")
       .delete()
       .eq("id", collectionId);
 
     if (error) throw error;
-
-    // Invalidate queries
-    queryClient.invalidateQueries({ queryKey: ["collections", userId] });
   }
 
   /**
    * Adds media to a collection at the next available position
    */
-  static async addMediaToCollection(collectionId: string, mediaId: string) {
+  static async addMediaToCollection(
+    collectionId: string,
+    mediaId: string
+  ): Promise<{ success: true }> {
     // First, get the current max position for this collection
     const { data: maxPositionData, error: positionError } = await supabase
       .from("collection_items")
@@ -184,12 +206,23 @@ export class CollectionService {
       );
     }
 
-    // Invalidate relevant queries
-    queryClient.invalidateQueries({ queryKey: ["collection", collectionId] });
-    // Also invalidate user collections to update the save-media screen
-    queryClient.invalidateQueries({ queryKey: ["collections"] });
-
     return { success: true };
+  }
+
+  /**
+   * Removes media from a collection
+   */
+  static async removeMediaFromCollection(
+    collectionId: string,
+    mediaId: string
+  ): Promise<void> {
+    const { error } = await supabase
+      .from("collection_items")
+      .delete()
+      .eq("collection_id", collectionId)
+      .eq("media_id", mediaId);
+
+    if (error) throw error;
   }
 
   /**
@@ -198,14 +231,13 @@ export class CollectionService {
    */
   static async updateCollectionWithItems(
     collectionId: string,
-    userId: string,
     updates: {
       name: string;
       description?: string;
       ranked: boolean;
       items: Media[]; // Array of media in order
     }
-  ) {
+  ): Promise<{ success: true }> {
     // Step 1: Update the collection metadata
     const { error: collectionError } = await supabase
       .from("collections")
@@ -250,10 +282,6 @@ export class CollectionService {
         throw new Error(`Failed to add items: ${itemsError.message}`);
       }
     }
-
-    // Invalidate relevant queries
-    queryClient.invalidateQueries({ queryKey: ["collection", collectionId] });
-    queryClient.invalidateQueries({ queryKey: ["collections", userId] });
 
     return { success: true };
   }

@@ -14,17 +14,11 @@ import Animated, {
   FadeOut,
   Layout,
 } from "react-native-reanimated";
-import { ThemeContext } from "../../contexts/theme-context";
-import { fontFamily } from "../../lib/fonts";
 import { AuthContext } from "../../contexts/auth-context";
-import { UserMediaService } from "../../services/userMediaService";
-
-type UserMediaStatus =
-  | "want"
-  | "watching"
-  | "reading"
-  | "playing"
-  | "completed";
+import { ThemeContext } from "../../contexts/theme-context";
+import { useAddToLibrary } from "../../hooks/mutations";
+import { fontFamily } from "../../lib/fonts";
+import { UserMediaStatus } from "../../services/userMediaService";
 
 interface StatusButtonProps {
   title: string;
@@ -49,9 +43,13 @@ const StatusButton = ({
 }: StatusButtonProps) => {
   const { theme } = useContext(ThemeContext);
   const { user } = useContext(AuthContext);
+  const addToLibraryMutation = useAddToLibrary();
 
   const [isOpen, setIsOpen] = useState(initiallyOpen);
-  const [isSaving, setIsSaving] = useState<UserMediaStatus | null>(null);
+  const [savingStatus, setSavingStatus] = useState<UserMediaStatus | null>(
+    null
+  );
+  const isSaving = addToLibraryMutation.isPending;
 
   // Use secondary colors for secondary variant, primary colors for primary variant
   const buttonBackground =
@@ -104,23 +102,28 @@ const StatusButton = ({
   }, []);
 
   const onPressStatus = useCallback(
-    async (status: UserMediaStatus) => {
+    (status: UserMediaStatus) => {
       if (!user?.id || isSaving) return;
-      setIsSaving(status);
-      try {
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        await UserMediaService.addToUserList(user.id, mediaId, status);
-        onStatusSaved?.(status);
-        // Close after save
-        setIsOpen(false);
-      } catch (err) {
-        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-        console.error("Failed to save user media status", err);
-      } finally {
-        setIsSaving(null);
-      }
+      setSavingStatus(status);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+      addToLibraryMutation.mutate(
+        { mediaId, status },
+        {
+          onSuccess: () => {
+            onStatusSaved?.(status);
+            setIsOpen(false);
+            setSavingStatus(null);
+          },
+          onError: (err) => {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+            console.error("Failed to save user media status", err);
+            setSavingStatus(null);
+          },
+        }
+      );
     },
-    [mediaId, onStatusSaved, user?.id, isSaving],
+    [mediaId, onStatusSaved, user?.id, isSaving, addToLibraryMutation]
   );
 
   return (
@@ -172,7 +175,7 @@ const StatusButton = ({
                   styles.optionRow,
                   { borderColor: theme.secondaryButtonBorder },
                   index > 0 ? { marginTop: 8 } : null,
-                  isSaving === key && { opacity: 0.6 },
+                  savingStatus === key && { opacity: 0.6 },
                 ]}
                 onPressIn={() => onPressStatus(key)}
                 disabled={!!isSaving}

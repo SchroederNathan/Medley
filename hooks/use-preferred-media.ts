@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { useContext, useMemo } from "react";
+import { useContext } from "react";
 import { AuthContext } from "../contexts/auth-context";
+import { queryKeys } from "../lib/query-keys";
 import { supabase } from "../lib/utils";
 import { Media } from "../types/media";
+import { useUserProfile } from "./use-user-profile";
 
 type DbMediaType = "game" | "movie" | "tv_show" | "book";
 
@@ -14,42 +16,46 @@ const PROFILE_TO_DB_MAP: Record<string, DbMediaType[]> = {
   TVShows: ["tv_show"],
 };
 
+/**
+ * Hook for fetching media based on user's preferences
+ * Uses the user profile to determine preferred media types
+ */
 export function usePreferredMedia(searchQuery?: string) {
-  const { user, isLoggedIn, fetchUserProfile } = useContext(AuthContext);
+  const { user, isLoggedIn } = useContext(AuthContext);
 
-  // Resolve preferred media types from the profile
-  const { preferredDbTypesKey, enabled } = useMemo(() => {
-    // We rely on the profile fetch to read preferences. If not logged in or missing id, disable.
-    const baseEnabled = isLoggedIn && !!user?.id;
-    return { preferredDbTypesKey: user?.id ?? null, enabled: baseEnabled };
-  }, [isLoggedIn, user?.id]);
+  // Use the profile query hook to get preferences
+  const profileQuery = useUserProfile();
+
+  const enabled = isLoggedIn && !!user?.id;
 
   return useQuery<Media[]>({
-    queryKey: [
-      "preferredMedia",
-      preferredDbTypesKey,
-      searchQuery?.trim() || "",
-    ],
+    queryKey: queryKeys.media.preferred(user?.id ?? "", searchQuery?.trim()),
     enabled,
     queryFn: async () => {
       if (!user?.id) throw new Error("No user ID");
 
-      // Fetch profile to get preferred media types
-      const profile = await fetchUserProfile(user.id);
+      // Get preferred media types from the profile data
       const profilePrefs: string[] =
-        profile?.media_preferences?.preferred_media ?? [];
+        profileQuery.data?.media_preferences?.preferred_media ?? [];
 
       const dbTypes: DbMediaType[] = profilePrefs
         .flatMap((p) => PROFILE_TO_DB_MAP[p] ?? [])
         .filter(Boolean) as DbMediaType[];
 
-      if (dbTypes.length === 0) return [];
+      // If no preferences are set, show all media types
+      const mediaTypesToQuery =
+        dbTypes.length > 0
+          ? dbTypes
+          : (["game", "movie", "tv_show", "book"] as DbMediaType[]);
 
-      let query = supabase.from("media").select("*").in("media_type", dbTypes);
+      let query = supabase
+        .from("media")
+        .select("*")
+        .in("media_type", mediaTypesToQuery);
 
       const q = (searchQuery || "").trim();
       if (q.length > 0) {
-        // Basic title ilike filter; consider trigram/fts later
+        // Basic title ilike filter
         query = query.ilike("title", `%${q}%`);
       }
 

@@ -7,10 +7,10 @@ import CollectionCard from "../../../components/ui/collection-card";
 import ModalHeader from "../../../components/ui/modal-header";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { useToast } from "../../../contexts/toast-context";
+import { useAddToCollection } from "../../../hooks/mutations";
 import { useUserCollections } from "../../../hooks/use-user-collections";
 import { fontFamily } from "../../../lib/fonts";
 import Search from "../../../components/ui/search";
-import { CollectionService } from "../../../services/collectionService";
 import * as Haptics from "expo-haptics";
 
 const SaveMedia = () => {
@@ -19,14 +19,15 @@ const SaveMedia = () => {
   const router = useRouter();
   const { id: mediaId } = useLocalSearchParams();
   const { showToast } = useToast();
+  const addToCollectionMutation = useAddToCollection();
 
   const [addingToCollection, setAddingToCollection] = useState<string | null>(
-    null,
+    null
   );
 
   const allCollections = useMemo(
     () => collectionsQuery.data ?? [],
-    [collectionsQuery.data],
+    [collectionsQuery.data]
   );
 
   const handleAddToCollection = async (collectionId: string) => {
@@ -34,38 +35,39 @@ const SaveMedia = () => {
       return;
     }
 
-    try {
-      setAddingToCollection(collectionId);
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setAddingToCollection(collectionId);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
-      await CollectionService.addMediaToCollection(
-        collectionId,
-        mediaId as string,
-      );
+    // Get collection name for the toast
+    const collection = allCollections.find((c: any) => c.id === collectionId);
+    const collectionName = collection?.name || "collection";
 
-      // Get collection name for the toast
-      const collection = allCollections.find((c: any) => c.id === collectionId);
-      const collectionName = collection?.name || "collection";
-
-      // Show toast and navigate back
-      router.back();
-      setTimeout(() => {
-        showToast({
-          message: `Saved to ${collectionName}`,
-          actionText: "VIEW",
-          onActionPress: () => {
-            router.push(`/collection/${collectionId}`);
-          },
-        });
-      }, 300);
-    } catch (error) {
-      console.error("Failed to add media to collection:", error);
-      showToast({
-        message: "Failed to add media. Please try again.",
-      });
-    } finally {
-      setAddingToCollection(null);
-    }
+    addToCollectionMutation.mutate(
+      { collectionId, mediaId: mediaId as string },
+      {
+        onSuccess: () => {
+          // Show toast and navigate back
+          router.back();
+          setTimeout(() => {
+            showToast({
+              message: `Saved to ${collectionName}`,
+              actionText: "VIEW",
+              onActionPress: () => {
+                router.push(`/collection/${collectionId}`);
+              },
+            });
+          }, 300);
+          setAddingToCollection(null);
+        },
+        onError: (error) => {
+          console.error("Failed to add media to collection:", error);
+          showToast({
+            message: "Failed to add media. Please try again.",
+          });
+          setAddingToCollection(null);
+        },
+      }
+    );
   };
 
   const renderCollectionItem = ({ item }: { item: any }) => (

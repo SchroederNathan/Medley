@@ -1,15 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useContext } from "react";
 import { AuthContext } from "../contexts/auth-context";
-import { supabase } from "../lib/utils";
+import { queryKeys } from "../lib/query-keys";
+import { Profile, ProfileService } from "../services/profileService";
 
+/**
+ * Hook for fetching the current user's profile
+ */
 export function useUserProfile() {
-  const { user, isLoggedIn, fetchUserProfile } = useContext(AuthContext);
+  const { user, isLoggedIn } = useContext(AuthContext);
 
-  return useQuery({
-    queryKey: ["userProfile", user?.id],
-    queryFn: async () =>
-      user?.id ? fetchUserProfile(user.id) : Promise.reject("No user ID"),
+  return useQuery<Profile | null>({
+    queryKey: queryKeys.userProfile.detail(user?.id ?? ""),
+    queryFn: async () => {
+      if (!user?.id) throw new Error("No user ID");
+      return ProfileService.getProfile(user.id);
+    },
     enabled: isLoggedIn && !!user?.id,
     // Longer stale time because profiles rarely change
     staleTime: 1000 * 60 * 30, // 30 minutes
@@ -20,25 +26,15 @@ export function useUserProfile() {
 }
 
 /**
- * Hook to fetch a user profile by ID
+ * Hook for fetching a user profile by ID
  * Useful for displaying other users' profiles
  */
 export function useUserProfileById(userId?: string) {
-  return useQuery({
-    queryKey: ["userProfile", userId],
+  return useQuery<Profile | null>({
+    queryKey: queryKeys.userProfile.detail(userId ?? ""),
     queryFn: async () => {
       if (!userId) throw new Error("No user ID provided");
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      return data;
+      return ProfileService.getProfile(userId);
     },
     enabled: !!userId,
     staleTime: 1000 * 60 * 30, // 30 minutes
@@ -51,9 +47,10 @@ export function useUserProfileById(userId?: string) {
 /**
  * Hook for uploading profile images
  * Returns a mutation that can be used to upload a profile image
+ * @deprecated Use useUploadAvatar from hooks/mutations instead
  */
 export function useUploadProfileImage() {
-  const { uploadProfileImage, user } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -61,25 +58,32 @@ export function useUploadProfileImage() {
       if (!user?.id) {
         throw new Error("User must be logged in");
       }
-      return uploadProfileImage(imageUri);
+      return ProfileService.uploadAvatar(user.id, imageUri);
     },
     onSuccess: () => {
+      if (!user?.id) return;
       // Invalidate and refetch the user profile to get the updated avatar_url
       queryClient.invalidateQueries({
-        queryKey: ["userProfile", user?.id],
+        queryKey: queryKeys.userProfile.detail(user.id),
       });
     },
   });
 }
 
-// Hook for prefetching user profile (useful for loading screens)
+/**
+ * Hook for prefetching user profile
+ */
 export function usePrefetchUserProfile() {
   const { user, isLoggedIn } = useContext(AuthContext);
+  const queryClient = useQueryClient();
 
-  const prefetchProfile = () => {
+  const prefetchProfile = async () => {
     if (isLoggedIn && user?.id) {
-      // This would typically be used with queryClient.prefetchQuery
-      // but we'll implement it when the queryClient is available
+      await queryClient.prefetchQuery({
+        queryKey: queryKeys.userProfile.detail(user.id),
+        queryFn: () => ProfileService.getProfile(user.id!),
+        staleTime: 1000 * 60 * 30,
+      });
     }
   };
 

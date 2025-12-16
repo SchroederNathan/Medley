@@ -1,10 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "../lib/query-keys";
 import { supabase } from "../lib/utils";
 import { Media } from "../types/media";
 
+/**
+ * Hook for fetching a single media item by ID
+ */
 export function useMediaItem(mediaId?: string) {
   return useQuery<Media>({
-    queryKey: ["mediaItem", mediaId],
+    queryKey: queryKeys.media.detail(mediaId ?? ""),
     queryFn: async () => {
       if (!mediaId) throw new Error("No media ID provided");
 

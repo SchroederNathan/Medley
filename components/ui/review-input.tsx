@@ -27,7 +27,9 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AuthContext } from "../../contexts/auth-context";
 import { ThemeContext } from "../../contexts/theme-context";
+import { useSubmitReview } from "../../hooks/mutations";
 import { fontFamily } from "../../lib/fonts";
+import { queryKeys } from "../../lib/query-keys";
 import { UserMediaService } from "../../services/userMediaService";
 import { Media } from "../../types/media";
 import { BottomGradient } from "./bottom-gradient";
@@ -78,15 +80,18 @@ const ReviewInput: React.FC<ReviewInputProps> = ({ item, style }) => {
   const [value, setValue] = useState("");
   const [rating, setRating] = useState(0);
   const [isHeightMaxed, setIsHeightMaxed] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
   const textInputRef = useRef<TextInput>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const insets = useSafeAreaInsets();
 
+  // Mutation hook for submitting reviews
+  const submitReviewMutation = useSubmitReview();
+  const isSubmitting = submitReviewMutation.isPending;
+
   // Fetch existing review data
   const { data: existingReview } = useQuery({
-    queryKey: ["userMediaReview", user?.id, item.id],
+    queryKey: queryKeys.userMediaItem.detail(user?.id ?? "", item.id),
     queryFn: async () => {
       if (!user?.id) return null;
       return await UserMediaService.getUserMediaItem(user.id, item.id);
@@ -252,32 +257,33 @@ const ReviewInput: React.FC<ReviewInputProps> = ({ item, style }) => {
       return;
     }
 
-    setIsSubmitting(true);
     Haptics.selectionAsync();
 
-    try {
-      // Convert rating to integer (round to nearest whole number)
-      // StarRating can return decimals like 1.5, 2.5, etc., but DB expects integer
-      // Clamp to valid range (1-5) as per database constraint
-      const integerRating = Math.max(1, Math.min(5, Math.round(rating)));
-      await UserMediaService.submitReview(
-        user.id,
-        item.id,
-        integerRating,
-        value
-      );
+    // Convert rating to integer (round to nearest whole number)
+    // StarRating can return decimals like 1.5, 2.5, etc., but DB expects integer
+    // Clamp to valid range (1-5) as per database constraint
+    const integerRating = Math.max(1, Math.min(5, Math.round(rating)));
 
-      // Reset the loaded media ID so the form reloads fresh data
-      lastLoadedMediaId.current = null;
-      // Close the form
-      textInputRef.current?.blur();
-      handleBlur();
-    } catch (error) {
-      console.error("Error submitting review:", error);
-      // Optionally show an error toast here
-    } finally {
-      setIsSubmitting(false);
-    }
+    submitReviewMutation.mutate(
+      {
+        mediaId: item.id,
+        rating: integerRating,
+        review: value,
+      },
+      {
+        onSuccess: () => {
+          // Reset the loaded media ID so the form reloads fresh data
+          lastLoadedMediaId.current = null;
+          // Close the form
+          textInputRef.current?.blur();
+          handleBlur();
+        },
+        onError: (error) => {
+          console.error("Error submitting review:", error);
+          // Optionally show an error toast here
+        },
+      }
+    );
   };
 
   return (

@@ -20,7 +20,6 @@ import { PullToSearchContent } from "../../../../components/ui/pull-to-search-co
 import { SharedHeader } from "../../../../components/ui/shared-header";
 import TabPager from "../../../../components/ui/tab-pager";
 import { ThemeContext } from "../../../../contexts/theme-context";
-import { useLibrarySearch } from "../../../../hooks/use-library-search";
 import { useUserCollections } from "../../../../hooks/use-user-collections";
 import { useUserMedia } from "../../../../hooks/use-user-media";
 import { fontFamily } from "../../../../lib/fonts";
@@ -33,13 +32,17 @@ const CARD_HEIGHT = CARD_WIDTH * 1.5;
 const LibraryScreen = () => {
   const { theme } = useContext(ThemeContext);
   const collectionsQuery = useUserCollections();
-  const mediaQuery = useUserMedia();
   const [activeTab, setActiveTab] = React.useState("all");
   const [query, setQuery] = React.useState("");
   const router = useRouter();
 
-  // Use library-specific search functionality
-  const { searchResults, isLoading, isError } = useLibrarySearch(query);
+  // Use user media hook with built-in search functionality
+  const {
+    data: allMedia,
+    searchResults,
+    isLoading,
+    isError,
+  } = useUserMedia(query);
 
   const handleSearchChange = (text: string) => {
     setQuery(text);
@@ -55,7 +58,7 @@ const LibraryScreen = () => {
     { key: "ranked", title: "Ranked" },
   ];
 
-  const allMedia = useMemo(() => mediaQuery.data ?? [], [mediaQuery.data]);
+  const mediaItems = useMemo(() => allMedia ?? [], [allMedia]);
 
   const allCollections = useMemo(
     () => collectionsQuery.data ?? [],
@@ -154,7 +157,7 @@ const LibraryScreen = () => {
                     </Text>
                   ) : (
                     <FlashList
-                      data={allMedia}
+                      data={mediaItems}
                       renderItem={({ item }) => (
                         <MediaCard
                           media={item}

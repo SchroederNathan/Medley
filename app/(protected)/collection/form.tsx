@@ -34,8 +34,11 @@ import { AuthContext } from "../../../contexts/auth-context";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { useCollection } from "../../../hooks/use-collection";
 import { useCollectionSearch } from "../../../hooks/use-collection-search";
+import {
+  useCreateCollection,
+  useUpdateCollectionWithItems,
+} from "../../../hooks/mutations";
 import { fontFamily } from "../../../lib/fonts";
-import { CollectionService } from "../../../services/collectionService";
 import { Media } from "../../../types/media";
 
 const CollectionForm = () => {
@@ -45,6 +48,10 @@ const CollectionForm = () => {
   const params = useLocalSearchParams();
   const collectionId = Array.isArray(params.id) ? params.id[0] : params.id;
   const isEditMode = !!collectionId;
+
+  // Mutation hooks
+  const createCollectionMutation = useCreateCollection();
+  const updateCollectionMutation = useUpdateCollectionWithItems();
 
   // Load collection data if in edit mode
   const { data: collection, isLoading: isLoadingCollection } = useCollection(
@@ -57,8 +64,10 @@ const CollectionForm = () => {
   const [isRanked, setIsRanked] = useState(() => collection?.ranked ?? false);
   const [isEditingEntries, setIsEditingEntries] = useState(false);
   const [renderCounter, setRenderCounter] = useState(0);
-  const [isCreating, setIsCreating] = useState(false);
   const insets = useSafeAreaInsets();
+
+  const isCreating =
+    createCollectionMutation.isPending || updateCollectionMutation.isPending;
 
   // Extract media items from collection if in edit mode
   const initialMedia = React.useMemo(() => {
@@ -109,7 +118,7 @@ const CollectionForm = () => {
     Keyboard.dismiss();
   };
 
-  const handleCollectionForm = async () => {
+  const handleCollectionForm = () => {
     // Validation
     if (!collectionName.trim()) {
       Alert.alert("Name Required", "Please enter a name for your collection.");
@@ -121,50 +130,62 @@ const CollectionForm = () => {
       return;
     }
 
-    setIsCreating(true);
     const shouldUpdate = isEditMode && collectionId;
     const trimmedDescription = description.trim() || undefined;
     const actionVerb = isEditMode ? "update" : "create";
-    try {
-      if (shouldUpdate) {
-        // Update existing collection
-        await CollectionService.updateCollectionWithItems(
-          collectionId!,
-          user.id,
-          {
-            name: collectionName.trim(),
-            description: trimmedDescription,
-            ranked: isRanked,
-            items: selectedMedia,
-          }
-        );
 
-        // Success! Navigate back to the collection detail page
-        router.back();
-        router.push(`/collection/${collectionId}`);
-      } else {
-        // Create new collection
-        const collection = await CollectionService.createCollection({
-          userId: user.id,
+    if (shouldUpdate) {
+      // Update existing collection
+      updateCollectionMutation.mutate(
+        {
+          collectionId: collectionId!,
           name: collectionName.trim(),
           description: trimmedDescription,
           ranked: isRanked,
           items: selectedMedia,
-        });
-
-        // Success! Navigate to the collection detail page
-        router.back();
-        router.push(`/collection/${collection.id}`);
-      }
-      setIsCreating(false);
-    } catch (error) {
-      setIsCreating(false);
-      console.error(`Failed to ${actionVerb} collection:`, error);
-      Alert.alert(
-        "Error",
-        error instanceof Error
-          ? error.message
-          : `Failed to ${actionVerb} collection. Please try again.`
+        },
+        {
+          onSuccess: () => {
+            // Success! Navigate back to the collection detail page
+            router.back();
+            router.push(`/collection/${collectionId}`);
+          },
+          onError: (error) => {
+            console.error(`Failed to ${actionVerb} collection:`, error);
+            Alert.alert(
+              "Error",
+              error instanceof Error
+                ? error.message
+                : `Failed to ${actionVerb} collection. Please try again.`
+            );
+          },
+        }
+      );
+    } else {
+      // Create new collection
+      createCollectionMutation.mutate(
+        {
+          name: collectionName.trim(),
+          description: trimmedDescription,
+          ranked: isRanked,
+          items: selectedMedia,
+        },
+        {
+          onSuccess: (newCollection) => {
+            // Success! Navigate to the collection detail page
+            router.back();
+            router.push(`/collection/${newCollection.id}`);
+          },
+          onError: (error) => {
+            console.error(`Failed to ${actionVerb} collection:`, error);
+            Alert.alert(
+              "Error",
+              error instanceof Error
+                ? error.message
+                : `Failed to ${actionVerb} collection. Please try again.`
+            );
+          },
+        }
       );
     }
   };

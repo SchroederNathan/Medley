@@ -1,47 +1,46 @@
 import { useQuery } from "@tanstack/react-query";
-import { useContext } from "react";
+import { useContext, useMemo } from "react";
 import { AuthContext } from "../contexts/auth-context";
-import { supabase } from "../lib/utils";
+import { queryKeys } from "../lib/query-keys";
+import { UserMediaService } from "../services/userMediaService";
 import { Media } from "../types/media";
 
-export function useUserMedia() {
+/**
+ * Hook for fetching user's media library with full media details
+ * Optionally supports search filtering on the client side
+ */
+export function useUserMedia(searchQuery?: string) {
   const { user, isLoggedIn } = useContext(AuthContext);
 
-  return useQuery<Media[]>({
-    queryKey: ["userLibrary", user?.id],
+  const query = useQuery<Media[]>({
+    queryKey: queryKeys.userMedia.all(user?.id ?? ""),
     enabled: isLoggedIn && !!user?.id,
     queryFn: async () => {
       if (!user?.id) throw new Error("No user ID");
-
-      // 1) Fetch the user's list from user_media
-      const { data: userMediaRows, error: userMediaError } = await supabase
-        .from("user_media")
-        .select("media_id, added_at")
-        .eq("user_id", user.id)
-        .order("added_at", { ascending: false });
-
-      if (userMediaError) throw userMediaError;
-      const mediaIds = (userMediaRows || []).map((r: any) => r.media_id);
-      if (mediaIds.length === 0) return [];
-
-      // 2) Fetch media details in a single query
-      const { data: mediaRows, error: mediaError } = await supabase
-        .from("media")
-        .select("*")
-        .in("id", mediaIds);
-      if (mediaError) throw mediaError;
-
-      // 3) Preserve user_media order (added_at desc)
-      const orderMap = new Map<string, number>();
-      mediaIds.forEach((id, idx) => orderMap.set(id, idx));
-      const sorted = (mediaRows as Media[]).slice().sort((a, b) => {
-        const ai = orderMap.get(a.id) ?? 0;
-        const bi = orderMap.get(b.id) ?? 0;
-        return ai - bi;
-      });
-
-      return sorted;
+      return UserMediaService.getUserMediaWithDetails(user.id);
     },
     staleTime: 1000 * 60 * 10, // 10 minutes
   });
+
+  // Client-side search filtering
+  const filteredData = useMemo(() => {
+    if (!query.data || !searchQuery?.trim()) {
+      return query.data || [];
+    }
+
+    const normalizedQuery = searchQuery.toLowerCase().trim();
+    return query.data.filter(
+      (item) =>
+        item.title?.toLowerCase().includes(normalizedQuery) ||
+        item.description?.toLowerCase().includes(normalizedQuery) ||
+        item.media_type?.toLowerCase().includes(normalizedQuery)
+    );
+  }, [query.data, searchQuery]);
+
+  return {
+    ...query,
+    data: searchQuery?.trim() ? filteredData : query.data,
+    // Expose filtered data separately if needed
+    searchResults: filteredData,
+  };
 }
