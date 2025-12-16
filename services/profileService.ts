@@ -128,7 +128,9 @@ export class ProfileService {
       detectedContentType = response.headers.get("content-type");
     } catch (error) {
       console.error("Error reading image file:", error);
-      throw error instanceof Error ? error : new Error("Failed to read image file");
+      throw error instanceof Error
+        ? error
+        : new Error("Failed to read image file");
     }
 
     // Determine content type
@@ -175,7 +177,10 @@ export class ProfileService {
           });
 
         if (upsertResult.error) {
-          console.error("Error uploading image (with upsert):", upsertResult.error);
+          console.error(
+            "Error uploading image (with upsert):",
+            upsertResult.error
+          );
           throw upsertResult.error;
         }
       } else {
@@ -239,4 +244,3 @@ export class ProfileService {
     }
   }
 }
-

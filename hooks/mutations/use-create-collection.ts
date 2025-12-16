@@ -16,9 +16,7 @@ export function useCreateCollection() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (
-      params: Omit<CreateCollectionParams, "userId">
-    ) => {
+    mutationFn: async (params: Omit<CreateCollectionParams, "userId">) => {
       if (!user?.id) {
         throw new Error("User must be logged in");
       }
@@ -130,4 +128,3 @@ export function useRemoveFromCollection() {
     },
   });
 }
-

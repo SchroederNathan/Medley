@@ -23,4 +23,3 @@ export {
 
 // Profile mutations
 export { useUploadAvatar, useUpdateProfile } from "./use-upload-avatar";
-

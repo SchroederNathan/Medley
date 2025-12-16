@@ -28,7 +28,10 @@ export function useUpdateCollection() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ collectionId, ...updates }: UpdateCollectionParams) => {
+    mutationFn: async ({
+      collectionId,
+      ...updates
+    }: UpdateCollectionParams) => {
       return CollectionService.updateCollection(collectionId, updates);
     },
     onSuccess: (_, { collectionId }) => {
@@ -77,4 +80,3 @@ export function useUpdateCollectionWithItems() {
     },
   });
 }
-

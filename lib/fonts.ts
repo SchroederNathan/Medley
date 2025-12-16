@@ -1,5 +1,4 @@
 import { useFonts } from "expo-font";
-import { useEffect } from "react";
 
 // Font file paths
 export const fontAssets = {

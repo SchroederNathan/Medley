@@ -22,7 +22,11 @@ export function useAddToLibrary() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ mediaId, status = "want", rating }: AddToLibraryParams) => {
+    mutationFn: async ({
+      mediaId,
+      status = "want",
+      rating,
+    }: AddToLibraryParams) => {
       if (!user?.id) {
         throw new Error("User must be logged in");
       }
@@ -109,4 +113,3 @@ export function useUpdateMediaStatus() {
     },
   });
 }
-
