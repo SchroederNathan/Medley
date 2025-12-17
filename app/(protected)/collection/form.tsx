@@ -1,6 +1,4 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Plus, Trophy } from "lucide-react-native";
-import { ArrowLeft } from "../../../components/ui/svg-icons";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -30,15 +28,20 @@ import CollectionItem from "../../../components/ui/collection-item";
 import Input from "../../../components/ui/input";
 import MediaCard from "../../../components/ui/media-card";
 import Search from "../../../components/ui/search";
+import {
+  ArrowLeft,
+  PlusIcon,
+  TrophyIcon,
+} from "../../../components/ui/svg-icons";
 import { Switch } from "../../../components/ui/switch";
 import { AuthContext } from "../../../contexts/auth-context";
 import { ThemeContext } from "../../../contexts/theme-context";
-import { useCollection } from "../../../hooks/use-collection";
-import { useCollectionSearch } from "../../../hooks/use-collection-search";
 import {
   useCreateCollection,
   useUpdateCollectionWithItems,
 } from "../../../hooks/mutations";
+import { useCollection } from "../../../hooks/use-collection";
+import { useCollectionSearch } from "../../../hooks/use-collection-search";
 import { fontFamily } from "../../../lib/fonts";
 import { Media } from "../../../types/media";
 
@@ -374,7 +377,7 @@ const CollectionForm = () => {
             {/* Ranked Switch */}
             <View style={styles.rankedSwitchContainer}>
               <View style={styles.rankedSwitchLabelContainer}>
-                <Trophy size={20} color={theme.text} />
+                <TrophyIcon size={24} strokeWidth={2.5} color={theme.text} />
                 <Text
                   style={[
                     styles.rankedSwitchLabel,
@@ -403,7 +406,7 @@ const CollectionForm = () => {
                   >
                     Edit Entries
                   </Text>
-                  <Plus size={24} color={theme.text} />
+                  <PlusIcon size={24} strokeWidth={2.5} color={theme.text} />
                 </TouchableOpacity>
               </View>
               <View style={styles.entriesList}>

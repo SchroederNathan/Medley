@@ -794,3 +794,75 @@ export const ArrowLeft: React.FC<IconProps> = ({
     />
   </Svg>
 );
+
+export const TrophyIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#000000",
+  strokeWidth = 2,
+  style,
+}) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+    <Path
+      d="M12 17C9.79086 17 8 19.2386 8 22H16C16 19.2386 14.2091 17 12 17Z"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M18.5 5H22L21.7616 6.66896C21.4984 8.51101 21.3669 9.43204 21.001 10.2267C20.6067 11.0831 20.0161 11.8345 19.2772 12.4201C18.5915 12.9634 17.7277 13.3089 16 14"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M5.5 5H2L2.23842 6.66896C2.50157 8.51101 2.63315 9.43204 2.99902 10.2267C3.39331 11.0831 3.98387 11.8345 4.72282 12.4201C5.4085 12.9634 6.27233 13.3089 8 14"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M12 17C8.5559 17 5.73743 10.8185 5.51424 3.00094C5.49848 2.44888 5.94772 2 6.5 2H17.5C18.0523 2 18.5015 2.44888 18.4858 3.00093C18.2626 10.8185 15.4441 17 12 17Z"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+export const PlusIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#000000",
+  strokeWidth = 2,
+  style,
+}) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+    <Path
+      d="M12 4V20M20 12H4"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+export const CheckIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#000000",
+  strokeWidth = 2,
+  style,
+}) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+    <Path
+      d="M4.25 13.5L8.75 18L19.75 6"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);

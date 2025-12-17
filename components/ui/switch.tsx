@@ -1,4 +1,4 @@
-import { Check, X } from "lucide-react-native";
+import { CheckIcon, XIcon } from "./svg-icons";
 import React, { FC } from "react";
 import { Pressable, StyleSheet } from "react-native";
 import Animated, {
@@ -95,11 +95,11 @@ export const Switch: FC<Props> = ({ value = false, onValueChange }) => {
             // Key prop ensures ZoomIn animation triggers on state change
             // Icons provide clear visual feedback
             <Animated.View key="check" entering={ZoomIn}>
-              <Check size={12} color={theme.text} strokeWidth={4} />
+              <CheckIcon size={12} color={theme.text} strokeWidth={4} />
             </Animated.View>
           ) : (
             <Animated.View key="x" entering={ZoomIn}>
-              <X size={14} color={theme.border} strokeWidth={3} />
+              <XIcon size={14} color={theme.border} strokeWidth={4} />
             </Animated.View>
           )}
         </Animated.View>
