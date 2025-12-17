@@ -1,72 +1,21 @@
 import { router } from "expo-router";
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import Animated, {
   SharedValue,
   useAnimatedStyle,
   useDerivedValue,
-  useSharedValue,
   withTiming,
 } from "react-native-reanimated";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
+import { AnimatedIconButton } from "./animated-icon-button";
 import { ChevronDown, ChevronLeft } from "./svg-icons";
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface RightButton {
   icon: React.ReactNode;
   onPress: () => void;
 }
-
-// Component for animated right button with press scale effect
-const AnimatedRightButton: React.FC<{
-  button: RightButton;
-  style?: any;
-}> = ({ button, style }) => {
-  const pressScale = useSharedValue(1);
-
-  const pressAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        {
-          scale: withTiming(pressScale.value, {
-            duration: 200,
-          }),
-        },
-      ],
-    };
-  });
-
-  const handlePressIn = () => {
-    pressScale.value = 0.95;
-  };
-
-  const handlePressOut = () => {
-    pressScale.value = 1;
-  };
-
-  return (
-    <AnimatedPressable
-      onPress={button.onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      hitSlop={{ top: 12, bottom: 12 }}
-      style={[style, pressAnimatedStyle]}
-      accessibilityRole="button"
-    >
-      {button.icon}
-      <View
-        style={{
-          ...StyleSheet.absoluteFillObject,
-          backgroundColor: "rgba(10, 10, 10, 0.7)",
-          borderRadius: 20,
-          zIndex: -1,
-        }}
-      />
-    </AnimatedPressable>
-  );
-};
 
 interface AnimatedDetailHeaderProps {
   scrollY: SharedValue<number>;
@@ -121,29 +70,6 @@ export const AnimatedDetailHeader: React.FC<AnimatedDetailHeaderProps> = ({
     };
   });
 
-  // Back button press animation
-  const backPressScale = useSharedValue(1);
-
-  const backPressAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        {
-          scale: withTiming(backPressScale.value, {
-            duration: 200,
-          }),
-        },
-      ],
-    };
-  });
-
-  const handleBackPressIn = () => {
-    backPressScale.value = 0.95;
-  };
-
-  const handleBackPressOut = () => {
-    backPressScale.value = 1;
-  };
-
   return (
     <>
       {/* Animated Header Background */}
@@ -172,11 +98,9 @@ export const AnimatedDetailHeader: React.FC<AnimatedDetailHeaderProps> = ({
       </Animated.View>
 
       {/* Back Button Overlay - stays above header */}
-      <AnimatedPressable
+      <AnimatedIconButton
         onPress={onBackPress || (() => router.back())}
-        onPressIn={handleBackPressIn}
-        onPressOut={handleBackPressOut}
-        hitSlop={{ top: 12, bottom: 12 }}
+        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         style={[
           styles.backButton,
           {
@@ -184,33 +108,26 @@ export const AnimatedDetailHeader: React.FC<AnimatedDetailHeaderProps> = ({
             position: "absolute",
             zIndex: 20,
           },
-          backPressAnimatedStyle,
         ]}
         accessibilityRole="button"
         accessibilityLabel="Go back"
-      >
-        {isModal ? (
-          <ChevronDown size={20} color={theme.text} />
-        ) : (
-          <ChevronLeft size={20} color={theme.text} />
-        )}
-        <View
-          style={{
-            ...StyleSheet.absoluteFillObject,
-            backgroundColor: "rgba(10, 10, 10, 0.7)",
-            borderRadius: 20,
-            zIndex: -1,
-          }}
-        />
-      </AnimatedPressable>
+        icon={
+          isModal ? (
+            <ChevronDown size={20} color={theme.text} />
+          ) : (
+            <ChevronLeft size={20} color={theme.text} />
+          )
+        }
+      />
 
       {/* Right Container */}
       {rightButtons && rightButtons.length > 0 && (
         <View style={[styles.rightContainer, { top: topPadding }]}>
           {rightButtons.map((button, index) => (
-            <AnimatedRightButton
+            <AnimatedIconButton
               key={index}
-              button={button}
+              icon={button.icon}
+              onPress={button.onPress}
               style={styles.rightButton}
             />
           ))}

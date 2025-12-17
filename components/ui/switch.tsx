@@ -47,7 +47,7 @@ export const Switch: FC<Props> = ({ value = false, onValueChange }) => {
     const backgroundColor = interpolateColor(
       offset.get(),
       [0, SWITCH_MAX_OFFSET],
-      [theme.text, theme.background],
+      [theme.text, theme.background]
     );
 
     return {
@@ -60,7 +60,7 @@ export const Switch: FC<Props> = ({ value = false, onValueChange }) => {
     const trackBackgroundColor = interpolateColor(
       offset.get(),
       [0, SWITCH_MAX_OFFSET],
-      [theme.inputBackground, theme.text],
+      [theme.inputBackground, theme.text]
     );
 
     return {

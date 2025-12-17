@@ -24,14 +24,14 @@ export const AnimatedChevron = () => {
         offsetY.value,
         [0, TRIGGER_DRAG_DISTANCE],
         [0, Math.abs(TRIGGER_DRAG_DISTANCE)],
-        Extrapolation.CLAMP,
+        Extrapolation.CLAMP
       ),
       // Clamp to avoid overshooting when pulled beyond trigger distance
       opacity: interpolate(
         offsetY.value,
         [0, TRIGGER_DRAG_DISTANCE],
         [0, 1],
-        Extrapolation.CLAMP,
+        Extrapolation.CLAMP
       ),
     };
   });

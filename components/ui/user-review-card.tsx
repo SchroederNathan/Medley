@@ -4,7 +4,7 @@ import React, { useContext } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
-import { MoreVerticalIcon, StarOutlineIcon, StarSolidIcon } from "./svg-icons";
+import { MoreVerticalIcon, StarSolidIcon } from "./svg-icons";
 import { TruncatedText } from "./truncated-text";
 
 interface UserReviewCardProps {
@@ -40,12 +40,7 @@ const UserReviewCard = ({
             const starSize = 16;
             if (fillPercentage <= 0) {
               return (
-                <StarOutlineIcon
-                  key={i}
-                  size={starSize}
-                  color={theme.secondaryText}
-                  strokeWidth={2}
-                />
+                <StarSolidIcon key={i} size={starSize} color={theme.border} />
               );
             }
             if (fillPercentage >= 1) {
@@ -56,12 +51,7 @@ const UserReviewCard = ({
             // Half star
             return (
               <View key={i} style={{ width: starSize, height: starSize }}>
-                <StarOutlineIcon
-                  size={starSize + 2}
-                  color={theme.secondaryText}
-                  strokeWidth={2}
-                  style={{ position: "absolute", bottom: 1 }}
-                />
+                <StarSolidIcon size={starSize + 2} color={theme.border} />
                 <View
                   style={{
                     position: "absolute",

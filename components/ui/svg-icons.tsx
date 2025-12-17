@@ -760,3 +760,37 @@ export const ArrowUpIcon: React.FC<IconProps> = ({
     />
   </Svg>
 );
+
+export const XIcon: React.FC<IconProps> = ({
+  size = 24,
+  color = "#000000",
+  strokeWidth = 2,
+  style,
+}) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+    <Path
+      d="M18 6L6.00081 17.9992M17.9992 18L6 6.00085"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+export const ArrowLeft: React.FC<IconProps> = ({
+  size = 24,
+  color = "#000000",
+  strokeWidth = 2,
+  style,
+}) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+    <Path
+      d="M11 18L5 12L11 6M5.5 12L19 12"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);

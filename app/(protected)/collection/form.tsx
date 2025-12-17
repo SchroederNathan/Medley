@@ -1,5 +1,6 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ArrowLeft, Plus, Trophy } from "lucide-react-native";
+import { Plus, Trophy } from "lucide-react-native";
+import { ArrowLeft } from "../../../components/ui/svg-icons";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -320,7 +321,7 @@ const CollectionForm = () => {
             onPress={handleEditEntries}
             style={styles.backArrowButtonTouchable}
           >
-            <ArrowLeft size={24} color={theme.text} />
+            <ArrowLeft size={24} strokeWidth={2.5} color={theme.text} />
           </TouchableOpacity>
         </Animated.View>
         <View style={styles.headerTitleContainer}>

@@ -329,7 +329,6 @@ const MediaDetailScreen = () => {
                 numberOfLines={3}
                 textStyle={[styles.descriptionText, { color: theme.text }]}
                 animated={true}
-                backgroundColor={theme.background}
               />
             )}
 

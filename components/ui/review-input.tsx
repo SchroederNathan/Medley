@@ -33,10 +33,11 @@ import { fontFamily } from "../../lib/fonts";
 import { queryKeys } from "../../lib/query-keys";
 import { UserMediaService } from "../../services/userMediaService";
 import { Media } from "../../types/media";
+import { AnimatedIconButton } from "./animated-icon-button";
 import { BottomGradient } from "./bottom-gradient";
 import MediaCard from "./media-card";
 import { StarRating } from "./star-rating";
-import { ArrowUpIcon, BookmarkIcon } from "./svg-icons";
+import { ArrowUpIcon, BookmarkIcon, XIcon } from "./svg-icons";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
@@ -232,6 +233,12 @@ const ReviewInput: React.FC<ReviewInputProps> = ({ item, style }) => {
     };
   });
 
+  // When expanded (modal open), hide the inner blur so the modal background is clean
+  const rInnerBlurStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(focusProgress.get(), [0, 0.35, 1], [1, 0, 0]);
+    return { opacity };
+  });
+
   const handleFocus = () => {
     focusProgress.set(withSpring(1));
     textInputRef.current?.focus();
@@ -335,11 +342,15 @@ const ReviewInput: React.FC<ReviewInputProps> = ({ item, style }) => {
               <Animated.View
                 style={[
                   StyleSheet.absoluteFill,
-                  { backgroundColor: theme.modalBackground },
+                  { backgroundColor: theme.background },
                   rModalBackgroundStyle,
                 ]}
               />
-              <BlurView intensity={30} tint="dark" style={[styles.blur]} />
+              <AnimatedBlurView
+                intensity={30}
+                tint="dark"
+                style={[styles.blur, rInnerBlurStyle]}
+              />
 
               {/* Collapsed state: placeholder trigger */}
               <Animated.View
@@ -362,6 +373,20 @@ const ReviewInput: React.FC<ReviewInputProps> = ({ item, style }) => {
 
               {/* Expanded state: header + input + button */}
               <Animated.View style={[styles.expanded, rExpandedStyle]}>
+                <AnimatedIconButton
+                  icon={
+                    <XIcon size={24} strokeWidth={2.5} color={theme.text} />
+                  }
+                  onPress={handleBackdropPress}
+                  accessibilityLabel="Close"
+                  backgroundColor="none"
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                  style={{
+                    position: "absolute",
+                    top: 16,
+                    right: 16,
+                  }}
+                />
                 <ScrollView
                   ref={scrollViewRef}
                   bounces={isHeightMaxed}
@@ -380,6 +405,14 @@ const ReviewInput: React.FC<ReviewInputProps> = ({ item, style }) => {
                       setIsHeightMaxed(newContentHeight >= maxAvailableHeight);
                     }}
                   >
+                    <View style={styles.detentContainer}>
+                      <View
+                        style={[
+                          styles.detent,
+                          { backgroundColor: theme.inputBorder },
+                        ]}
+                      />
+                    </View>
                     {/* Header */}
                     <View style={styles.header}>
                       <View style={styles.titleContainer}>
@@ -479,6 +512,19 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     zIndex: 1,
   },
+  detentContainer: {
+    position: "absolute",
+    top: 8,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+  },
+  detent: {
+    height: 6,
+    width: 40,
+    backgroundColor: "red",
+    borderRadius: 6,
+  },
   row: {
     flexDirection: "row",
     alignItems: "flex-end",
@@ -519,7 +565,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   header: {
-    marginTop: 16,
+    marginTop: 24,
     marginBottom: 12,
     gap: 8,
     alignItems: "center",
