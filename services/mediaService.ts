@@ -1,12 +1,15 @@
 import { supabase } from "../lib/utils";
 import { Media } from "../types/media";
 
-export type SearchTmdbResult = {
+export type SearchMediaResult = {
   data: Media[];
   total_results: number;
   page: number;
   total_pages: number;
 };
+
+/** @deprecated Use SearchMediaResult */
+export type SearchTmdbResult = SearchMediaResult;
 
 export class MediaService {
   /**
@@ -34,13 +37,15 @@ export class MediaService {
   }
 
   /**
-   * Search movies via TMDB through the search-tmdb edge function.
+   * Search media via the search-media edge function.
+   * Supports "movie" (TMDB) and "game" (IGDB).
    * Results are automatically cached in the media table for future local queries.
    */
-  static async searchTmdb(
+  static async searchExternal(
     query: string,
+    type: "movie" | "game" = "movie",
     page: number = 1
-  ): Promise<SearchTmdbResult> {
+  ): Promise<SearchMediaResult> {
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -48,8 +53,9 @@ export class MediaService {
     const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
     const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_KEY!;
 
-    const url = new URL(`${supabaseUrl}/functions/v1/search-tmdb`);
+    const url = new URL(`${supabaseUrl}/functions/v1/search-media`);
     url.searchParams.set("query", query);
+    url.searchParams.set("type", type);
     url.searchParams.set("page", String(page));
 
     const resp = await fetch(url.toString(), {
@@ -61,9 +67,17 @@ export class MediaService {
 
     if (!resp.ok) {
       const body = await resp.text();
-      throw new Error(`search-tmdb failed (${resp.status}): ${body}`);
+      throw new Error(`search-media failed (${resp.status}): ${body}`);
     }
 
     return resp.json();
+  }
+
+  /** @deprecated Use searchExternal */
+  static async searchTmdb(
+    query: string,
+    page: number = 1
+  ): Promise<SearchMediaResult> {
+    return this.searchExternal(query, "movie", page);
   }
 }

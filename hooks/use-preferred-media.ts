@@ -17,13 +17,13 @@ const PROFILE_TO_DB_MAP: Record<string, DbMediaType[]> = {
   TVShows: ["tv_show"],
 };
 
-/** Minimum local results before we skip the TMDB fallback */
+/** Minimum local results before we skip the external API fallback */
 const LOCAL_RESULT_THRESHOLD = 5;
 
 /**
  * Hook for fetching media based on user's preferences.
  * When searching, if local results are sparse it automatically
- * fetches from TMDB via the search-tmdb edge function.
+ * fetches from external APIs (TMDB for movies, IGDB for games).
  */
 export function usePreferredMedia(searchQuery?: string) {
   const { user, isLoggedIn } = useContext(AuthContext);
@@ -70,29 +70,50 @@ export function usePreferredMedia(searchQuery?: string) {
       const localResults = data ?? [];
 
       // If the user is actively searching and local results are sparse,
-      // fetch from TMDB to backfill the catalog
-      const wantsMovies =
-        mediaTypesToQuery.includes("movie") ||
-        mediaTypesToQuery.includes("tv_show");
+      // fetch from external APIs to backfill the catalog
+      if (q.length >= 2 && localResults.length < LOCAL_RESULT_THRESHOLD) {
+        const wantsMovies =
+          mediaTypesToQuery.includes("movie") ||
+          mediaTypesToQuery.includes("tv_show");
+        const wantsGames = mediaTypesToQuery.includes("game");
 
-      if (
-        q.length >= 2 &&
-        wantsMovies &&
-        localResults.length < LOCAL_RESULT_THRESHOLD
-      ) {
-        try {
-          const tmdbResult = await MediaService.searchTmdb(q);
-          if (tmdbResult.data.length > 0) {
-            // Merge: local results first, then TMDB results (deduplicated)
+        // Fire external searches in parallel
+        const searches: Promise<Media[]>[] = [];
+
+        if (wantsMovies) {
+          searches.push(
+            MediaService.searchExternal(q, "movie")
+              .then((r) => r.data)
+              .catch((err) => {
+                console.warn("TMDB search fallback failed:", err);
+                return [] as Media[];
+              })
+          );
+        }
+
+        if (wantsGames) {
+          searches.push(
+            MediaService.searchExternal(q, "game")
+              .then((r) => r.data)
+              .catch((err) => {
+                console.warn("IGDB search fallback failed:", err);
+                return [] as Media[];
+              })
+          );
+        }
+
+        if (searches.length > 0) {
+          const results = await Promise.all(searches);
+          const externalItems = results.flat();
+
+          if (externalItems.length > 0) {
+            // Merge: local results first, then external results (deduplicated)
             const existingIds = new Set(localResults.map((m) => m.id));
-            const newItems = tmdbResult.data.filter(
+            const newItems = externalItems.filter(
               (m) => !existingIds.has(m.id)
             );
             return [...localResults, ...newItems].slice(0, 50);
           }
-        } catch (err) {
-          // TMDB search is best-effort; return local results on failure
-          console.warn("TMDB search fallback failed:", err);
         }
       }
 
