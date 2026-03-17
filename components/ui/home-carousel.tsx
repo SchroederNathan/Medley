@@ -1,470 +1,369 @@
-import MaskedView from "@react-native-masked-view/masked-view";
-import { FlashList } from "@shopify/flash-list";
-import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import {
-  Dimensions,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Dimensions, Platform, Share, StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   Extrapolation,
-  FadeIn,
-  FadeOut,
   interpolate,
   runOnJS,
-  useAnimatedScrollHandler,
+  runOnUI,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
-  withTiming,
   type SharedValue,
 } from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ThemeContext } from "../../contexts/theme-context";
-import { useHeaderHeight } from "../../hooks/use-header-height";
-import { fontFamily } from "../../lib/fonts";
+import { useRadialOverlay } from "../../hooks/use-radial-overlay";
 import { Media } from "../../types/media";
+import GradientSweepOverlay from "./gradient-sweep-overlay";
+import { BookmarkIcon, ShareIcon, StarIcon } from "./svg-icons";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const ITEM_WIDTH = SCREEN_WIDTH * 0.9; // 90% of screen width for cards
-const ITEM_SPACING = 16; // Spacing between cards
-const SIDE_SPACING = (SCREEN_WIDTH - ITEM_WIDTH) / 2; // Space on each side to center the card
+const ITEM_WIDTH = SCREEN_WIDTH * 0.55;
+const ITEM_HEIGHT = Math.round(ITEM_WIDTH * 1.5);
+const ITEM_SPACING = 12;
+const LEFT_MARGIN = 20;
+const VISIBLE_STACK_COUNT = 6;
+const STACK_OFFSET =
+  (SCREEN_WIDTH - LEFT_MARGIN - ITEM_WIDTH) / (VISIBLE_STACK_COUNT - 1);
 const DOT_SIZE = 6;
 const DOT_GAP = 4;
 const DOT_CONTAINER_WIDTH = DOT_SIZE + DOT_GAP;
 
 interface HomeCarouselProps {
   media: Media[];
+  onIndexChange?: (index: number) => void;
 }
+
+interface GalleryCardProps {
+  item: Media;
+  index: number;
+  activeIndex: SharedValue<number>;
+  totalItems: number;
+}
+
+const GalleryCard: React.FC<GalleryCardProps> = ({
+  item,
+  index,
+  activeIndex,
+  totalItems,
+}) => {
+  const router = useRouter();
+  const pressScale = useSharedValue(1);
+  const cardRef = useRef<View>(null);
+
+  const actions = useMemo(
+    () => [
+      { id: "star", icon: StarIcon, title: "Favorite" },
+      { id: "bookmark", icon: BookmarkIcon, title: "Save" },
+      { id: "share", icon: ShareIcon, title: "Share" },
+    ],
+    []
+  );
+
+  const { longPressGesture, panGesture, isLongPressed, overlayOpen } =
+    useRadialOverlay({
+      actions,
+      onSelect: async (actionId) => {
+        if (actionId === "share") {
+          try {
+            await Share.share({ message: item.title || "Share" });
+          } catch {}
+        } else if (actionId === "bookmark") {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          router.push(`/save-media?id=${item.id}`);
+        }
+        runOnUI(() => {
+          "worklet";
+          pressScale.value = withSpring(1);
+        })();
+      },
+      onCancel: () => {
+        runOnUI(() => {
+          "worklet";
+          pressScale.value = withSpring(1);
+        })();
+      },
+      targetRef: cardRef as React.RefObject<View>,
+      renderClone: ({ x, y, width: cardWidth, height: cardHeight }) => (
+        <View
+          style={{
+            position: "absolute",
+            top: y,
+            left: x,
+            width: cardWidth,
+            height: cardHeight,
+          }}
+        >
+          <View
+            style={[styles.cardInner, { width: cardWidth, height: cardHeight }]}
+          >
+            <Image
+              cachePolicy="memory-disk"
+              source={{ uri: item.poster_url }}
+              style={styles.image}
+              contentFit="cover"
+            />
+            <GradientSweepOverlay
+              width={cardWidth}
+              height={cardHeight}
+              isAnimating
+            />
+          </View>
+        </View>
+      ),
+    });
+
+  const longPressWithScale = longPressGesture
+    .onBegin(() => {
+      "worklet";
+      pressScale.value = withSpring(0.95);
+    })
+    .onFinalize(() => {
+      "worklet";
+      if (overlayOpen.value === 0) {
+        pressScale.value = withSpring(1);
+      }
+    });
+
+  const pan = panGesture.onFinalize(() => {
+    "worklet";
+    if (overlayOpen.value === 0) {
+      pressScale.value = withSpring(1);
+    }
+  });
+
+  const tapGesture = Gesture.Tap()
+    .maxDuration(500)
+    .onBegin(() => {
+      "worklet";
+      pressScale.value = withSpring(0.95);
+    })
+    .onEnd(() => {
+      "worklet";
+      pressScale.value = withSpring(1);
+      if (!isLongPressed.value) {
+        runOnJS(router.push)(`/media-detail?id=${item.id}`);
+      }
+    })
+    .onFinalize(() => {
+      "worklet";
+      pressScale.value = withSpring(1);
+    });
+
+  const composedGesture = Gesture.Simultaneous(
+    Gesture.Race(longPressWithScale, tapGesture),
+    pan
+  );
+
+  const animatedStyle = useAnimatedStyle(() => {
+    const active = activeIndex.value;
+    const diff = index - active;
+
+    // Gallery influence: strongest when activeIndex near 0
+    const galleryFactor = interpolate(
+      active,
+      [0, 1],
+      [1, 0],
+      Extrapolation.CLAMP
+    );
+
+    // Centered carousel position
+    const centeredX =
+      SCREEN_WIDTH / 2 - ITEM_WIDTH / 2 + diff * (ITEM_WIDTH + ITEM_SPACING);
+    const centeredScale = interpolate(
+      Math.abs(diff),
+      [0, 1],
+      [1, 0.85],
+      Extrapolation.CLAMP
+    );
+
+    // Gallery stack position — continuous scale decay per card
+    const stackX = LEFT_MARGIN + index * STACK_OFFSET;
+    const stackScale = Math.max(0.6, 1 - index * 0.06);
+
+    // Blend between the two layouts
+    const translateX = galleryFactor * stackX + (1 - galleryFactor) * centeredX;
+    const scale =
+      (galleryFactor * stackScale + (1 - galleryFactor) * centeredScale) *
+      pressScale.value;
+
+    // Static z-index: card 0 always on top, descending order
+    const zIndex = totalItems - index;
+
+    // Fade cards based on distance from focused index
+    const absDiff = Math.abs(diff);
+    const carouselOpacity = interpolate(
+      absDiff,
+      [0, 1, 2, 3],
+      [1, 0.6, 0.3, 0],
+      Extrapolation.CLAMP
+    );
+    // In stack mode (index 0), show all cards at full opacity
+    const finalOpacity = interpolate(
+      galleryFactor,
+      [0, 1],
+      [carouselOpacity, 1],
+      Extrapolation.CLAMP
+    );
+
+    return {
+      transform: [{ translateX }, { scale }],
+      zIndex,
+      opacity: finalOpacity,
+    };
+  });
+
+  return (
+    <Animated.View style={[styles.cardPositioner, animatedStyle]}>
+      <GestureDetector gesture={composedGesture}>
+        <View ref={cardRef} style={styles.cardInner}>
+          <Image
+            cachePolicy="memory-disk"
+            source={{ uri: item.poster_url }}
+            style={styles.image}
+            contentFit="cover"
+          />
+        </View>
+      </GestureDetector>
+    </Animated.View>
+  );
+};
 
 interface CarouselDotProps {
   index: number;
-  listOffsetX: SharedValue<number>;
+  activeIndex: SharedValue<number>;
   isActive: boolean;
   totalImages: number;
   defaultDotColor?: string;
   activeDotColor?: string;
 }
 
-const CarouselDot: React.FC<CarouselDotProps> = ({
-  index,
-  listOffsetX,
-  isActive,
-  totalImages,
-  defaultDotColor = "#525252",
-  activeDotColor = "#3b82f6",
+// const CarouselDot: React.FC<CarouselDotProps> = ({
+//   index,
+//   activeIndex,
+//   isActive,
+//   totalImages,
+//   defaultDotColor = "#525252",
+//   activeDotColor = "#3b82f6",
+// }) => {
+//   const rDotStyle = useAnimatedStyle(() => {
+//     if (totalImages < 6) {
+//       return {
+//         opacity: 1,
+//         transform: [{ scale: 1 }],
+//       };
+//     }
+
+//     // For many dots, scale based on distance from active
+//     const dist = Math.abs(index - activeIndex.value);
+//     const scale = interpolate(
+//       dist,
+//       [0, 1, 2, 3],
+//       [1, 1, 0.7, 0.3],
+//       Extrapolation.CLAMP
+//     );
+
+//     return {
+//       opacity: 1,
+//       transform: [{ scale }],
+//     };
+//   });
+
+//   return (
+//     <View style={styles.dotContainer}>
+//       <Animated.View
+//         style={[
+//           styles.dot,
+//           rDotStyle,
+//           { backgroundColor: isActive ? activeDotColor : defaultDotColor },
+//         ]}
+//       />
+//     </View>
+//   );
+// };
+
+const HomeCarousel: React.FC<HomeCarouselProps> = ({
+  media,
+  onIndexChange,
 }) => {
-  const rDotStyle = useAnimatedStyle(() => {
-    if (totalImages < 6) {
-      return {
-        opacity: 1,
-        transform: [{ scale: 1 }],
-      };
-    }
-
-    const hideDot =
-      index === 0 ||
-      index === 1 ||
-      index === totalImages + 2 ||
-      index === totalImages + 3;
-
-    const scale = interpolate(
-      DOT_CONTAINER_WIDTH * index - listOffsetX.value,
-      [
-        0,
-        DOT_CONTAINER_WIDTH,
-        DOT_CONTAINER_WIDTH * 2,
-        DOT_CONTAINER_WIDTH * 3,
-        DOT_CONTAINER_WIDTH * 4,
-        DOT_CONTAINER_WIDTH * 5,
-        DOT_CONTAINER_WIDTH * 6,
-      ],
-      [0.3, 0.7, 1, 1, 1, 0.7, 0.3],
-      Extrapolation.CLAMP
-    );
-
-    return {
-      opacity: hideDot ? 0 : 1,
-      transform: [{ scale }],
-    };
-  });
-
-  return (
-    <View style={styles.dotContainer}>
-      <Animated.View
-        style={[
-          styles.dot,
-          rDotStyle,
-          { backgroundColor: isActive ? activeDotColor : defaultDotColor },
-        ]}
-      />
-    </View>
-  );
-};
-
-const AnimatedPressable = Animated.createAnimatedComponent(TouchableOpacity);
-const AnimatedImage = Animated.createAnimatedComponent(Image);
-
-interface CarouselItemProps {
-  item: Media;
-  onPress: () => void;
-}
-
-const CarouselItem: React.FC<CarouselItemProps> = ({ item, onPress }) => {
-  // Shared value for scale animation
-  const scale = useSharedValue(1);
-
-  // Animated style for the scale transformation
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: scale.value }],
-    };
-  });
-
-  return (
-    <Animated.View style={[styles.carouselItem, animatedStyle]}>
-      <TouchableOpacity
-        style={styles.carouselItemTouchable}
-        onPress={onPress}
-        onPressIn={() => {
-          scale.value = withSpring(0.95);
-        }}
-        onPressOut={() => {
-          scale.value = withSpring(1);
-        }}
-      >
-        <LinearGradient
-          style={[styles.bottomGradient, { height: 100 }]}
-          colors={[
-            "rgba(10, 10, 10, 0)",
-            "rgba(10, 10, 10, 0.6)",
-            "rgba(10, 10, 10, 0.9)",
-          ]}
-          locations={[0, 0.4, 0.9]}
-        />
-        <Image
-          cachePolicy="memory-disk"
-          source={{ uri: item.backdrop_url }}
-          style={styles.image}
-          contentFit="cover"
-        />
-        <View style={styles.overlay}>
-          <Text style={styles.title} numberOfLines={2}>
-            {item.title}
-          </Text>
-        </View>
-      </TouchableOpacity>
-    </Animated.View>
-  );
-};
-
-const HomeCarousel: React.FC<HomeCarouselProps> = ({ media }) => {
-  const { theme } = useContext(ThemeContext);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isDotsPressed, setIsDotsPressed] = useState(false);
-  const [isAutoAdvancing, setIsAutoAdvancing] = useState(false);
-  const carouselRef = useRef<any>(null);
-  const dotsListRef = useRef<any>(null);
-  const autoAdvanceRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const listOffsetX = useSharedValue(0);
-  const translateXStep = media.length > 10 ? 12 : 15;
-  const prevTranslateX = useSharedValue(0);
-  const refIndex = useRef(0);
-  const topPadding = useSafeAreaInsets().top;
-  const { grossHeight } = useHeaderHeight();
-  const router = useRouter();
+  const activeIndex = useSharedValue(0);
+  const startIndex = useSharedValue(0);
 
-  // Animation handled by key-based remounting with entering/exiting animations
+  // Notify parent of index changes
+  useEffect(() => {
+    onIndexChange?.(currentIndex);
+  }, [currentIndex, onIndexChange]);
 
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      listOffsetX.value = event.contentOffset.x;
-    },
-  });
-
-  const handleImageIndexChange = (action: "increase" | "decrease") => {
-    // Reset auto-advancing when user manually interacts
-    setIsAutoAdvancing(false);
-
-    const index = action === "increase" ? currentIndex + 1 : currentIndex - 1;
-
-    if (index < 0 || index >= media.length) return;
-
+  const updateIndex = (index: number) => {
     setCurrentIndex(index);
-
     if (Platform.OS === "ios") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-
-    carouselRef.current?.scrollToOffset({
-      animated: false,
-      offset: index * (ITEM_WIDTH + ITEM_SPACING),
-    });
-  };
-
-  const autoAdvance = useCallback(() => {
-    setIsAutoAdvancing(true);
-    setCurrentIndex((prevIndex) => {
-      const nextIndex = prevIndex + 1;
-      const newIndex = nextIndex >= media.length ? 0 : nextIndex;
-
-      carouselRef.current?.scrollToOffset({
-        animated: true,
-        offset: newIndex * (ITEM_WIDTH + ITEM_SPACING),
-      });
-
-      // Reset auto-advancing flag after animation completes
-      setTimeout(() => setIsAutoAdvancing(false), 300);
-
-      return newIndex;
-    });
-  }, [media.length]);
-
-  const handleFinalize = () => {
-    if (!isDotsPressed) return;
-    setIsDotsPressed(false);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   };
 
   const gesture = Gesture.Pan()
     .onStart(() => {
-      prevTranslateX.value = 0;
+      startIndex.value = activeIndex.value;
     })
-    .onUpdate((event) => {
-      if (!isDotsPressed) return;
-
-      const translateX = event.translationX;
-
-      if (translateX - prevTranslateX.value > translateXStep) {
-        runOnJS(handleImageIndexChange)("increase");
-        prevTranslateX.value = translateX;
-      }
-
-      if (translateX - prevTranslateX.value < -translateXStep) {
-        runOnJS(handleImageIndexChange)("decrease");
-        prevTranslateX.value = translateX;
-      }
+    .onUpdate((e) => {
+      const newIndex =
+        startIndex.value - e.translationX / (ITEM_WIDTH + ITEM_SPACING);
+      activeIndex.value = Math.max(0, Math.min(media.length - 1, newIndex));
     })
-    .onFinalize(() => {
-      runOnJS(handleFinalize)();
+    .onEnd((e) => {
+      const projected = activeIndex.value - e.velocityX / 1000;
+      const target = Math.max(
+        0,
+        Math.min(media.length - 1, Math.round(projected))
+      );
+      activeIndex.value = withSpring(target);
+      runOnJS(updateIndex)(target);
     });
-
-  // Smart dots list scrolling: keep current dot within visible viewport
-  // When user scrolls beyond 2 dots ahead, shift dots list to maintain visibility
-  useEffect(() => {
-    if (media.length <= 5) return; // No scrolling needed for small lists
-
-    // When user scrolls beyond 2 dots ahead, shift dots list to maintain visibility
-    if (currentIndex - refIndex.current > 2) {
-      refIndex.current = currentIndex - 2; // Keep 2 dots before current visible
-      dotsListRef.current?.scrollToIndex({
-        animated: true,
-        index: Math.max(0, currentIndex - 2),
-      });
-    }
-
-    // When scrolling backwards, ensure current dot stays visible
-    if (currentIndex - refIndex.current < 0) {
-      refIndex.current = currentIndex;
-      dotsListRef.current?.scrollToIndex({
-        animated: true,
-        index: Math.max(0, currentIndex),
-      });
-    }
-  }, [currentIndex, media.length]);
-
-  // Auto-advance carousel every 2 seconds
-  useEffect(() => {
-    if (media.length <= 1) return; // No need to auto-advance with 1 or 0 items
-
-    autoAdvanceRef.current = setInterval(autoAdvance, 8000);
-
-    return () => {
-      if (autoAdvanceRef.current) {
-        clearInterval(autoAdvanceRef.current);
-      }
-    };
-  }, [autoAdvance, media.length]);
-
-  const rContainerStyle = useAnimatedStyle(() => {
-    return {
-      backgroundColor: withTiming(
-        isDotsPressed ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0)",
-        { duration: 150 }
-      ),
-    };
-  });
-
-  const renderItem = ({ item }: { item: Media }) => (
-    <CarouselItem
-      item={item}
-      onPress={() => {
-        router.push(`/media-detail?id=${item.id}`);
-      }}
-    />
-  );
 
   if (media.length === 0) return null;
 
   return (
-    <View style={[styles.container]}>
-      <MaskedView
-        style={[
-          styles.backgroundContainer,
-          { top: -topPadding - grossHeight, bottom: 40 },
-        ]}
-        maskElement={
-          <LinearGradient
-            locations={[0, 0.7, 1]} // Start opaque, fade in middle, fully transparent at bottom
-            colors={["black", "black", "transparent"]}
-            style={StyleSheet.absoluteFill}
-          />
-        }
-      >
-        {/* Single AnimatedImage that remounts for smooth transitions */}
-        <AnimatedImage
-          cachePolicy="memory-disk"
-          key={`bg-${currentIndex}`}
-          entering={FadeIn.duration(500)}
-          exiting={FadeOut.duration(500)}
-          source={{ uri: media[currentIndex]?.backdrop_url }}
-          style={styles.backgroundImage}
-          contentFit="cover"
-        />
-        {/* Preload adjacent images (invisible but cached) */}
-        {currentIndex > 0 && (
-          <Image
-            cachePolicy="memory-disk"
-            source={{ uri: media[currentIndex - 1]?.backdrop_url }}
-            style={[styles.backgroundImage, { opacity: 0 }]}
-            contentFit="cover"
-          />
-        )}
-        {currentIndex < media.length - 1 && (
-          <Image
-            cachePolicy="memory-disk"
-            source={{ uri: media[currentIndex + 1]?.backdrop_url }}
-            style={[styles.backgroundImage, { opacity: 0 }]}
-            contentFit="cover"
-          />
-        )}
-        <Animated.View
-          key="blur-overlay"
-          style={styles.blurOverlay}
-          pointerEvents="none"
-        >
-          <BlurView
-            style={StyleSheet.absoluteFill}
-            intensity={100}
-            tint="dark"
-          />
-        </Animated.View>
-      </MaskedView>
-      <View style={{ height: 200 }}>
-        <FlashList
-          ref={carouselRef}
-          data={media}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          pagingEnabled={false}
-          onScroll={(event) => {
-            // Don't update currentIndex during auto-advance to prevent flickering
-            if (isAutoAdvancing) return;
-
-            const x = event.nativeEvent.contentOffset.x;
-            // Determine active index when the LEFT EDGE of an item crosses the screen center
-            // leftEdge(index) = SIDE_SPACING + index * (ITEM_WIDTH + ITEM_SPACING)
-            const centerX = x + SCREEN_WIDTH / 2;
-            const step = ITEM_WIDTH + ITEM_SPACING;
-            const index = Math.floor((centerX - SIDE_SPACING) / step);
-            const clamped = Math.max(0, Math.min(media.length - 1, index));
-            if (clamped !== currentIndex) setCurrentIndex(clamped);
-          }}
-          scrollEventThrottle={16}
-          onMomentumScrollEnd={(event) => {
-            // Don't update currentIndex during auto-advance to prevent flickering
-            if (isAutoAdvancing) return;
-
-            const offsetX = event.nativeEvent.contentOffset.x;
-            const index = Math.round(offsetX / (ITEM_WIDTH + ITEM_SPACING));
-            setCurrentIndex(Math.min(Math.max(index, 0), media.length - 1));
-          }}
-          snapToOffsets={media.map(
-            (_, index) => index * (ITEM_WIDTH + ITEM_SPACING)
-          )}
-          decelerationRate="fast"
-          contentContainerStyle={styles.carouselContainer}
-        />
-      </View>
-      {media.length > 1 && (
-        <View style={styles.paginationContainer}>
-          <GestureDetector gesture={gesture}>
-            <AnimatedPressable
-              style={[styles.dotsContainer, rContainerStyle]}
-              onLongPress={() => {
-                setIsDotsPressed(true);
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-              }}
-              delayLongPress={200}
-            >
-              <View
-                style={{
-                  width:
-                    DOT_CONTAINER_WIDTH * (media.length > 5 ? 7 : media.length),
-                }}
-              >
-                <Animated.FlatList
-                  ref={dotsListRef}
-                  data={Array.from({
-                    length: media.length > 5 ? media.length + 4 : media.length,
-                  }).map((_, index) => index)}
-                  renderItem={({ item }) => (
-                    <CarouselDot
-                      index={item}
-                      listOffsetX={listOffsetX}
-                      defaultDotColor={theme.secondaryText}
-                      activeDotColor={theme.text}
-                      isActive={
-                        media.length > 5
-                          ? item === currentIndex + 2
-                          : item === currentIndex
-                      }
-                      totalImages={media.length}
-                    />
-                  )}
-                  horizontal
-                  scrollEnabled={false}
-                  showsHorizontalScrollIndicator={false}
-                  onScroll={scrollHandler}
-                  scrollEventThrottle={16}
-                  getItemLayout={(_, index) => ({
-                    length: DOT_CONTAINER_WIDTH,
-                    offset: DOT_CONTAINER_WIDTH * index,
-                    index,
-                  })}
-                />
-              </View>
-            </AnimatedPressable>
-          </GestureDetector>
+    <View style={styles.container}>
+      <GestureDetector gesture={gesture}>
+        <View style={styles.carouselArea}>
+          {media.map((item, index) => (
+            <GalleryCard
+              key={item.id}
+              item={item}
+              index={index}
+              activeIndex={activeIndex}
+              totalItems={media.length}
+            />
+          ))}
         </View>
-      )}
+      </GestureDetector>
+      {/* {media.length > 1 && (
+        <View style={styles.paginationContainer}>
+          <View
+            style={[
+              styles.dotsContainer,
+              {
+                width: DOT_CONTAINER_WIDTH * Math.min(media.length, 7),
+              },
+            ]}
+          >
+            {media.map((_, index) => (
+              <CarouselDot
+                key={index}
+                index={index}
+                activeIndex={activeIndex}
+                defaultDotColor={theme.secondaryText}
+                activeDotColor={theme.text}
+                isActive={index === currentIndex}
+                totalImages={media.length}
+              />
+            ))}
+          </View>
+        </View>
+      )} */}
     </View>
   );
 };
@@ -474,46 +373,33 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     marginHorizontal: -20,
   },
-  carouselContainer: {
-    paddingHorizontal: SIDE_SPACING - ITEM_SPACING / 2,
+  carouselArea: {
+    height: ITEM_HEIGHT,
+    width: SCREEN_WIDTH,
   },
-  carouselItem: {
+  cardPositioner: {
+    position: "absolute",
     width: ITEM_WIDTH,
-    height: 200,
-    marginHorizontal: ITEM_SPACING / 2, // Half spacing on each side
-    position: "relative",
-    overflow: "hidden",
-    borderRadius: 8, // Add rounded corners for card appearance
-    backgroundColor: "rgba(0,0,0,0.1)", // Subtle background
+    height: ITEM_HEIGHT,
   },
-  carouselItemTouchable: {
-    width: "100%",
-    height: "100%",
+  cardInner: {
+    width: ITEM_WIDTH,
+    height: ITEM_HEIGHT,
+    borderRadius: 4,
+    overflow: "hidden",
+    boxShadow: "rgba(204, 219, 232, 0.3) 0 1px 4px -0.5px inset",
+    backgroundColor: "rgba(0,0,0,0.1)",
   },
   image: {
-    width: "100%",
-    height: "100%",
-  },
-  overlay: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  title: {
-    color: "white",
-    fontFamily: fontFamily.tanker.regular,
-    fontSize: 24,
-    letterSpacing: 0.3,
-    zIndex: 10,
+    width: ITEM_WIDTH,
+    height: ITEM_HEIGHT,
   },
   paginationContainer: {
     alignItems: "center",
     marginTop: 8,
   },
   dotsContainer: {
+    flexDirection: "row",
     padding: 8,
     borderRadius: 20,
   },
@@ -526,33 +412,6 @@ const styles = StyleSheet.create({
     width: DOT_SIZE,
     height: DOT_SIZE,
     borderRadius: DOT_SIZE / 2,
-  },
-  bottomGradient: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-  },
-  backgroundContainer: {
-    position: "absolute",
-    top: -20, // Extend beyond container for full blur effect
-    left: -20,
-    right: -20,
-    bottom: -20,
-    borderRadius: 16, // Match container radius
-  },
-  backgroundImage: {
-    width: "100%",
-    height: "100%",
-  },
-  blurOverlay: {
-    position: "absolute",
-    zIndex: 10,
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
   },
 });
 

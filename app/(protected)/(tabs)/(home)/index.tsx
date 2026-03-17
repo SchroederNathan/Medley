@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, {
@@ -13,6 +13,7 @@ import { AnimatedBlur } from "../../../../components/ui/animated-blur";
 import { AnimatedChevron } from "../../../../components/ui/animated-chevron";
 import Button from "../../../../components/ui/button";
 import Carousel from "../../../../components/ui/carousel";
+import HomeBackdrop from "../../../../components/ui/home-backdrop";
 import HomeCarousel from "../../../../components/ui/home-carousel";
 import ProfileButton from "../../../../components/ui/profile-button";
 import { PullToSearchContent } from "../../../../components/ui/pull-to-search-content";
@@ -48,6 +49,7 @@ const IndexScreen = () => {
     mediaType: "movie",
   });
   const popularMovies = usePopularMovies(20);
+  const [carouselIndex, setCarouselIndex] = useState(0);
   const recommendedTvShows = useRecommendations({
     kind: "type",
     mediaType: "tv_show",
@@ -122,6 +124,11 @@ const IndexScreen = () => {
         />
       </Svg>
 
+      <HomeBackdrop
+        media={popularMovies.data ?? []}
+        currentIndex={carouselIndex}
+      />
+
       <PullToSearchContent
         searchResults={searchResults}
         searchQuery={query}
@@ -129,7 +136,10 @@ const IndexScreen = () => {
         isSearchError={searchError}
       >
         {/* Featured carousel at the top */}
-        <HomeCarousel media={popularMovies.data ?? []} />
+        <HomeCarousel
+          media={popularMovies.data ?? []}
+          onIndexChange={setCarouselIndex}
+        />
 
         {/* Main content - always show recommendations */}
         <ScrollView
@@ -142,6 +152,7 @@ const IndexScreen = () => {
         >
           <Button
             title="Send Push Notification"
+            styles={{ marginVertical: 16 }}
             onPress={() => {
               sendPushNotification({
                 userId: user?.id as string,
