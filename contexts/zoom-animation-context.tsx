@@ -4,10 +4,12 @@ import {
   PropsWithChildren,
   useContext,
   useEffect,
+  useState,
 } from "react";
 import { useWindowDimensions } from "react-native";
 import {
   Easing,
+  MeasuredDimensions,
   useSharedValue,
   useAnimatedReaction,
   withDelay,
@@ -28,6 +30,9 @@ export type ZoomConfig = {
   targetWidth?: number;
   targetHeight?: number;
   aspectRatio?: number;
+  imageUri?: string;
+  sourceId?: string;
+  borderRadius?: number;
 };
 
 type ContextValue = {
@@ -49,6 +54,19 @@ type ContextValue = {
   blurIntensity: SharedValue<number>;
   dimOpacity: SharedValue<number>; // Previously closeBtnOpacity
   extraContentOpacity: SharedValue<number>; // Previously changeImageRowOpacity
+
+  // Dynamic image / source tracking
+  activeImageUri: string;
+  activeTitle: string;
+  activeSubtitle: string;
+  setActiveOverlayInfo: (info: {
+    imageUri: string;
+    title?: string;
+    subtitle?: string;
+  }) => void;
+  activeSourceId: SharedValue<string>;
+  activeBorderRadius: SharedValue<number>;
+  setMeasurement: (m: MeasuredDimensions) => void;
 
   // Methods
   open: (config?: ZoomConfig) => void;
@@ -86,6 +104,28 @@ export const ZoomAnimationProvider: FC<PropsWithChildren> = ({ children }) => {
   const screenCenterXValue = useSharedValue(screenCenterX);
   const screenCenterYValue = useSharedValue(screenCenterY);
   const activeConfig = useSharedValue<ZoomConfig>({});
+
+  // Dynamic image / source tracking
+  const [activeImageUri, setActiveImageUri] = useState("");
+  const [activeTitle, setActiveTitle] = useState("");
+  const [activeSubtitle, setActiveSubtitle] = useState("");
+  const activeSourceId = useSharedValue("");
+  const activeBorderRadius = useSharedValue(0);
+
+  const setActiveOverlayInfo = (info: {
+    imageUri: string;
+    title?: string;
+    subtitle?: string;
+  }) => {
+    setActiveImageUri(info.imageUri);
+    setActiveTitle(info.title ?? "");
+    setActiveSubtitle(info.subtitle ?? "");
+  };
+
+  const setMeasurement = (m: MeasuredDimensions) => {
+    "worklet";
+    measurement.value = m;
+  };
 
   // Sync shared values when screen dimensions change
   useEffect(() => {
@@ -158,6 +198,10 @@ export const ZoomAnimationProvider: FC<PropsWithChildren> = ({ children }) => {
     "worklet";
     isAnimating.value = 1;
     activeConfig.value = config;
+
+    // Store config-driven values for overlay
+    if (config.sourceId) activeSourceId.value = config.sourceId;
+    activeBorderRadius.value = config.borderRadius ?? 0;
 
     const currentMeasurement = measurement.value;
     const { targetW, targetH } = calculateTargetDimensions(config);
@@ -270,6 +314,13 @@ export const ZoomAnimationProvider: FC<PropsWithChildren> = ({ children }) => {
         blurIntensity,
         dimOpacity,
         extraContentOpacity,
+        activeImageUri,
+        activeTitle,
+        activeSubtitle,
+        setActiveOverlayInfo,
+        activeSourceId,
+        activeBorderRadius,
+        setMeasurement,
         open,
         close,
         snapToCenter,

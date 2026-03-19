@@ -6,10 +6,25 @@ export type MediaCastMember = {
   order?: number | null;
 };
 
+export type MediaCrewMember = {
+  id: string;
+  name: string;
+  job: string;
+  department?: string | null;
+  profile_path?: string | null;
+};
+
+export type MediaCrewCredits = {
+  directors?: MediaCrewMember[];
+  producers?: MediaCrewMember[];
+  writers?: MediaCrewMember[];
+};
+
 export type MediaMetadata = {
   popularity: number;
   original_title: string | null;
   cast?: MediaCastMember[];
+  crew?: MediaCrewCredits;
   [key: string]: any;
 };
 

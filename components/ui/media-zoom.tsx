@@ -5,6 +5,7 @@ import { FC, Ref } from "react";
 import {
   Pressable,
   StyleSheet,
+  Text,
   useWindowDimensions,
   View,
   ViewStyle,
@@ -22,12 +23,15 @@ import {
   _timingConfig,
   useZoomAnimation,
 } from "../../contexts/zoom-animation-context";
+import { fontFamily } from "../../lib/fonts";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 const AnimatedImage = Animated.createAnimatedComponent(Image);
 
-export const MediaZoomOverlay: FC<{ imageUri?: string }> = ({ imageUri }) => {
+export const MediaZoomOverlay: FC<{ imageUri?: string }> = ({
+  imageUri: fallbackImageUri,
+}) => {
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
 
@@ -39,9 +43,14 @@ export const MediaZoomOverlay: FC<{ imageUri?: string }> = ({ imageUri }) => {
     height,
     blurIntensity,
     dimOpacity,
+    extraContentOpacity,
     close,
     snapToCenter,
     activeConfig,
+    activeImageUri,
+    activeTitle,
+    activeSubtitle,
+    activeBorderRadius,
   } = useZoomAnimation();
 
   const imageScale = useSharedValue(1);
@@ -61,6 +70,7 @@ export const MediaZoomOverlay: FC<{ imageUri?: string }> = ({ imageUri }) => {
     opacity: zoomState.value === "open" ? 1 : 0,
     transform: [{ scale: imageScale.value }],
     position: "absolute",
+    borderRadius: activeBorderRadius.value,
   }));
 
   const backdropAnimatedProps = useAnimatedProps(() => ({
@@ -71,11 +81,23 @@ export const MediaZoomOverlay: FC<{ imageUri?: string }> = ({ imageUri }) => {
     opacity: dimOpacity.value,
   }));
 
+  const rExtraContentStyle = useAnimatedStyle(() => {
+    const imageBottom = y.value + height.value;
+    return {
+      opacity: zoomState.value === "open" ? extraContentOpacity.value : 0,
+      top: imageBottom + 24,
+      left: 0,
+      right: 0,
+      width: "100%",
+    };
+  });
+
   const pan = Gesture.Pan()
     .onStart(() => {
       panStartX.value = x.value;
       panStartY.value = y.value;
       dimOpacity.value = withTiming(0, { duration: 200 });
+      extraContentOpacity.value = withTiming(0, { duration: 100 });
     })
     .onChange((event) => {
       if (zoomState.value === "close") return;
@@ -116,7 +138,8 @@ export const MediaZoomOverlay: FC<{ imageUri?: string }> = ({ imageUri }) => {
       }
     });
 
-  if (!imageUri) return null;
+  const displayImageUri = activeImageUri || fallbackImageUri;
+  if (!displayImageUri) return null;
 
   return (
     <GestureDetector gesture={pan}>
@@ -136,10 +159,21 @@ export const MediaZoomOverlay: FC<{ imageUri?: string }> = ({ imageUri }) => {
         </Animated.View>
 
         <AnimatedImage
-          source={{ uri: imageUri }}
+          source={{ uri: displayImageUri }}
           contentFit="cover"
           style={[rImageStyle, styles.zoomedImage]}
         />
+
+        {activeTitle ? (
+          <Animated.View
+            style={[styles.overlayTextContainer, rExtraContentStyle]}
+          >
+            <Text style={styles.overlayName}>{activeTitle}</Text>
+            {activeSubtitle ? (
+              <Text style={styles.overlaySubtitle}>{activeSubtitle}</Text>
+            ) : null}
+          </Animated.View>
+        ) : null}
       </AnimatedPressable>
     </GestureDetector>
   );
@@ -152,10 +186,18 @@ export const ZoomablePoster: FC<{
   height?: number;
 }> = ({ imageUri, style, width: sourceWidth, height: sourceHeight }) => {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
-  const { targetRef, onTargetLayout, handleMeasurement, zoomState, open } =
-    useZoomAnimation();
+  const {
+    targetRef,
+    onTargetLayout,
+    handleMeasurement,
+    zoomState,
+    open,
+    activeSourceId,
+    setActiveOverlayInfo,
+  } = useZoomAnimation();
 
   const handleOpen = () => {
+    setActiveOverlayInfo({ imageUri });
     handleMeasurement();
     requestAnimationFrame(() => {
       // Calculate target dimensions
@@ -187,12 +229,16 @@ export const ZoomablePoster: FC<{
       open({
         targetWidth,
         targetHeight,
+        imageUri,
+        sourceId: "poster",
+        borderRadius: 4,
       });
     });
   };
 
   const rStyle = useAnimatedStyle(() => ({
-    opacity: zoomState.value === "open" ? 0 : 1,
+    opacity:
+      zoomState.value === "open" && activeSourceId.value === "poster" ? 0 : 1,
   }));
 
   return (
@@ -227,7 +273,24 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   zoomedImage: {
-    borderRadius: 4,
     boxShadow: "rgba(204, 219, 232, 0.3) 0 1px 4px -0.5px inset",
+  },
+  overlayTextContainer: {
+    position: "absolute",
+    alignItems: "center",
+    paddingHorizontal: 16,
+  },
+  overlayName: {
+    color: "white",
+    fontSize: 20,
+    fontFamily: fontFamily.plusJakarta.bold,
+    textAlign: "center",
+  },
+  overlaySubtitle: {
+    color: "rgba(255, 255, 255, 0.7)",
+    fontSize: 16,
+    fontFamily: fontFamily.plusJakarta.medium,
+    textAlign: "center",
+    marginTop: 4,
   },
 });

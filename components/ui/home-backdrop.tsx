@@ -98,11 +98,7 @@ const HomeBackdrop: React.FC<HomeBackdropProps> = ({ media, currentIndex }) => {
         style={[styles.blurOverlay, { height: maskHeight }]}
         pointerEvents="none"
       >
-        <BlurView
-          style={StyleSheet.absoluteFill}
-          intensity={100}
-          tint="dark"
-        />
+        <BlurView style={StyleSheet.absoluteFill} intensity={100} tint="dark" />
       </View>
       {/* Bottom gradient fade to background */}
       <LinearGradient

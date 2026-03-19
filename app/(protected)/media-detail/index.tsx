@@ -23,11 +23,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AnimatedDetailHeader } from "../../../components/ui/animated-detail-header";
 import Button from "../../../components/ui/button";
 import Carousel from "../../../components/ui/carousel";
-import CastCarousel from "../../../components/ui/cast-carousel";
 import {
   MediaZoomOverlay,
   ZoomablePoster,
 } from "../../../components/ui/media-zoom";
+import PeopleCarousel, {
+  PeopleCarouselItem,
+} from "../../../components/ui/people-carousel";
 import ReviewInput from "../../../components/ui/review-input";
 import ActionMenu from "../../../components/ui/sheets/action-menu";
 import {
@@ -42,6 +44,11 @@ import { ZoomAnimationProvider } from "../../../contexts/zoom-animation-context"
 import { useMediaItem } from "../../../hooks/use-media-item";
 import { fontFamily } from "../../../lib/fonts";
 import { RecommendationService } from "../../../services/recommendationService";
+import {
+  MediaCastMember,
+  MediaCrewCredits,
+  MediaCrewMember,
+} from "../../../types/media";
 
 // Parallax animation constants
 const BACKDROP_WIDTH = Dimensions.get("window").width;
@@ -136,6 +143,61 @@ const ParallaxBackdropImage: FC<ParallaxBackdropImageProps> = ({
 };
 
 const POSTER_PADDING = 72;
+
+const buildCastCarouselItems = (cast?: MediaCastMember[] | null) => {
+  if (!Array.isArray(cast)) return [];
+
+  return cast.map((member) => ({
+    id: member.id,
+    name: member.name,
+    subtitle: member.character ?? null,
+    imageUrl: member.profile_path,
+  }));
+};
+
+const buildCrewCarouselItems = (crew?: MediaCrewCredits | null) => {
+  if (!crew) return [];
+
+  const peopleById = new Map<string, PeopleCarouselItem>();
+
+  const appendCrew = (
+    members: MediaCrewMember[] | undefined,
+    label: string
+  ) => {
+    if (!Array.isArray(members)) return;
+
+    members.forEach((member) => {
+      const existing = peopleById.get(member.id);
+
+      if (existing) {
+        const subtitleParts = new Set(
+          String(existing.subtitle ?? "")
+            .split(", ")
+            .filter(Boolean)
+        );
+        subtitleParts.add(label);
+        existing.subtitle = Array.from(subtitleParts).join(", ");
+        if (!existing.imageUrl && member.profile_path) {
+          existing.imageUrl = member.profile_path;
+        }
+        return;
+      }
+
+      peopleById.set(member.id, {
+        id: member.id,
+        name: member.name,
+        subtitle: label,
+        imageUrl: member.profile_path,
+      });
+    });
+  };
+
+  appendCrew(crew.directors, "Director");
+  appendCrew(crew.producers, "Producer");
+  appendCrew(crew.writers, "Writer");
+
+  return Array.from(peopleById.values());
+};
 
 const MediaDetailScreen = () => {
   const { theme } = useContext(ThemeContext);
@@ -232,6 +294,9 @@ const MediaDetailScreen = () => {
       </View>
     );
   }
+
+  const castItems = buildCastCarouselItems(media.metadata?.cast);
+  const crewItems = buildCrewCarouselItems(media.metadata?.crew);
 
   return (
     <ZoomAnimationProvider>
@@ -357,12 +422,22 @@ const MediaDetailScreen = () => {
             >
               <WhereToWatchCarousel title="Where to watch" platforms={[]} />
             </Animated.View> */}
-            <Animated.View
-              layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
-              style={{ marginTop: 24 }}
-            >
-              <CastCarousel title="Cast" cast={media.metadata?.cast ?? []} />
-            </Animated.View>
+            {castItems.length > 0 && (
+              <Animated.View
+                layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
+                style={{ marginTop: 24 }}
+              >
+                <PeopleCarousel title="Cast" people={castItems} />
+              </Animated.View>
+            )}
+            {crewItems.length > 0 && (
+              <Animated.View
+                layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
+                style={{ marginTop: 24 }}
+              >
+                <PeopleCarousel title="Crew" people={crewItems} />
+              </Animated.View>
+            )}
             {recs.length > 0 && (
               <Animated.View
                 layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
