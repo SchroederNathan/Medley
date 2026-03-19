@@ -31,6 +31,7 @@ import PeopleCarousel, {
   PeopleCarouselItem,
 } from "../../../components/ui/people-carousel";
 import ReviewInput from "../../../components/ui/review-input";
+import SeasonEpisodesCarousel from "../../../components/ui/season-episodes-carousel";
 import ActionMenu from "../../../components/ui/sheets/action-menu";
 import {
   BookmarkIcon,
@@ -155,9 +156,10 @@ const buildCastCarouselItems = (cast?: MediaCastMember[] | null) => {
   }));
 };
 
-const buildCrewCarouselItems = (crew?: MediaCrewCredits | null) => {
-  if (!crew) return [];
-
+const buildCrewCarouselItems = (
+  crew?: MediaCrewCredits | null,
+  createdBy?: MediaCrewMember[] | null
+) => {
   const peopleById = new Map<string, PeopleCarouselItem>();
 
   const appendCrew = (
@@ -192,9 +194,11 @@ const buildCrewCarouselItems = (crew?: MediaCrewCredits | null) => {
     });
   };
 
-  appendCrew(crew.directors, "Director");
-  appendCrew(crew.producers, "Producer");
-  appendCrew(crew.writers, "Writer");
+  // Prepend creators for TV shows
+  appendCrew(createdBy ?? undefined, "Creator");
+  appendCrew(crew?.directors, "Director");
+  appendCrew(crew?.producers, "Producer");
+  appendCrew(crew?.writers, "Writer");
 
   return Array.from(peopleById.values());
 };
@@ -296,7 +300,10 @@ const MediaDetailScreen = () => {
   }
 
   const castItems = buildCastCarouselItems(media.metadata?.cast);
-  const crewItems = buildCrewCarouselItems(media.metadata?.crew);
+  const crewItems = buildCrewCarouselItems(
+    media.metadata?.crew,
+    media.metadata?.created_by
+  );
 
   return (
     <ZoomAnimationProvider>
@@ -357,7 +364,8 @@ const MediaDetailScreen = () => {
               <View style={styles.titleDetailsContainer}>
                 <Image
                   source={
-                    media.media_type === "movie"
+                    media.media_type === "movie" ||
+                    media.media_type === "tv_show"
                       ? require("../../../assets/rating-logos/imdb.png")
                       : media.media_type === "game"
                         ? require("../../../assets/rating-logos/metacritic.png")
@@ -373,10 +381,13 @@ const MediaDetailScreen = () => {
                 >
                   {media.rating_average} {" ·  "}
                   {media.year}
-                  {typeof media.duration_minutes === "number" &&
-                  media.duration_minutes > 0
-                    ? `  ·  ${media.duration_minutes} mins`
-                    : ""}
+                  {media.media_type === "tv_show" &&
+                  media.metadata?.number_of_seasons
+                    ? `  ·  ${media.metadata.number_of_seasons} season${media.metadata.number_of_seasons !== 1 ? "s" : ""}`
+                    : typeof media.duration_minutes === "number" &&
+                        media.duration_minutes > 0
+                      ? `  ·  ${media.duration_minutes} mins`
+                      : ""}
                 </Text>
               </View>
             </View>
@@ -422,6 +433,18 @@ const MediaDetailScreen = () => {
             >
               <WhereToWatchCarousel title="Where to watch" platforms={[]} />
             </Animated.View> */}
+            {media.media_type === "tv_show" &&
+              (media.metadata?.seasons?.length ?? 0) > 0 && (
+                <Animated.View
+                  layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
+                  style={{ marginTop: 24 }}
+                >
+                  <SeasonEpisodesCarousel
+                    mediaId={media.id}
+                    seasons={media.metadata!.seasons!}
+                  />
+                </Animated.View>
+              )}
             {castItems.length > 0 && (
               <Animated.View
                 layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}

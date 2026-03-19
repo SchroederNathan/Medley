@@ -52,6 +52,8 @@ export const queryKeys = {
       ["preferredMedia", userId, search ?? ""] as const,
     popularMovies: (limit: number = 20) =>
       ["popularMovies", { limit }] as const,
+    seasonEpisodes: (mediaId: string, seasonNumber: number) =>
+      ["seasonEpisodes", mediaId, seasonNumber] as const,
   },
 
   // User media item (single item status/rating)

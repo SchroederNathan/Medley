@@ -1,5 +1,5 @@
 import { supabase } from "../lib/utils";
-import { Media } from "../types/media";
+import { Media, TvEpisode } from "../types/media";
 
 export type SearchMediaResult = {
   data: Media[];
@@ -94,6 +94,36 @@ export class MediaService {
     if (!resp.ok) {
       const body = await resp.text();
       throw new Error(`search-media failed (${resp.status}): ${body}`);
+    }
+
+    return resp.json();
+  }
+
+  static async getSeasonEpisodes(
+    mediaId: string,
+    seasonNumber: number
+  ): Promise<TvEpisode[]> {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
+    const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_KEY!;
+
+    const url = new URL(`${supabaseUrl}/functions/v1/tv-season-detail`);
+    url.searchParams.set("media_id", mediaId);
+    url.searchParams.set("season_number", String(seasonNumber));
+
+    const resp = await fetch(url.toString(), {
+      headers: {
+        Authorization: `Bearer ${session?.access_token ?? ""}`,
+        apikey: supabaseKey,
+      },
+    });
+
+    if (!resp.ok) {
+      const body = await resp.text();
+      throw new Error(`tv-season-detail failed (${resp.status}): ${body}`);
     }
 
     return resp.json();
