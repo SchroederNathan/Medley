@@ -89,9 +89,7 @@ const SeasonEpisodesCarousel = ({
         onPress={() => setShowPicker(true)}
         style={styles.titleRow}
       >
-        <Text style={[styles.title, { color: theme.text }]}>
-          {seasonTitle}
-        </Text>
+        <Text style={[styles.title, { color: theme.text }]}>{seasonTitle}</Text>
         <ChevronDown size={20} color={theme.text} />
       </TouchableOpacity>
 

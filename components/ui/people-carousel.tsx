@@ -1,5 +1,5 @@
-import { Image } from "expo-image";
 import { FlashList } from "@shopify/flash-list";
+import { Image } from "expo-image";
 import React, { useCallback, useContext } from "react";
 import {
   Pressable,
@@ -84,17 +84,26 @@ const PeopleCarouselCardInner = ({
 
   return (
     <Pressable onPress={handlePress} disabled={!item.imageUrl}>
-      <View style={styles.item}>
-        <Animated.View ref={imageRef} style={[styles.image, rImageStyle]}>
+      <View style={[styles.item]}>
+        <Animated.View
+          ref={imageRef}
+          style={[styles.image, rImageStyle, { borderColor: theme.border }]}
+        >
           {item.imageUrl ? (
             <Image
               source={{ uri: item.imageUrl }}
               contentFit="cover"
-              style={styles.image}
+              cachePolicy="memory-disk"
+              transition={200}
+              style={[styles.image, { borderColor: theme.border }]}
             />
           ) : (
             <View
-              style={[styles.image, { backgroundColor: theme.secondaryText }]}
+              style={[
+                styles.image,
+                { backgroundColor: theme.secondaryText },
+                { borderColor: theme.border },
+              ]}
             />
           )}
         </Animated.View>
@@ -168,22 +177,25 @@ const styles = StyleSheet.create({
   },
   item: {
     alignItems: "center",
+    justifyContent: "center",
     marginRight: 16,
-    width: 104,
   },
   image: {
     width: 104,
     height: 104,
     borderRadius: 52,
+    borderWidth: 1,
   },
   name: {
     fontSize: 12,
     fontFamily: fontFamily.plusJakarta.medium,
     marginTop: 8,
     textAlign: "center",
+    maxWidth: 104,
   },
   subtitle: {
     fontSize: 12,
+    maxWidth: 104,
     fontFamily: fontFamily.plusJakarta.medium,
     textAlign: "center",
   },

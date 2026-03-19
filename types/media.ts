@@ -40,6 +40,12 @@ export type TvSeason = {
   episodes?: TvEpisode[];
 };
 
+export type MediaTrailer = {
+  key: string;
+  name: string;
+  site: string;
+};
+
 export type MediaMetadata = {
   popularity: number;
   original_title: string | null;
@@ -50,6 +56,7 @@ export type MediaMetadata = {
   status?: string;
   seasons?: TvSeason[];
   created_by?: MediaCrewMember[];
+  trailer?: MediaTrailer;
   [key: string]: any;
 };
 

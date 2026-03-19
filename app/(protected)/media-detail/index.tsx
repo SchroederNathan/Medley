@@ -29,6 +29,7 @@ import PeopleCarousel, {
   PeopleCarouselItem,
 } from "../../../components/ui/people-carousel";
 import ReviewInput from "../../../components/ui/review-input";
+import TrailerThumbnail from "../../../components/ui/trailer-thumbnail";
 import SeasonEpisodesCarousel from "../../../components/ui/season-episodes-carousel";
 import ActionMenu from "../../../components/ui/sheets/action-menu";
 import {
@@ -411,6 +412,12 @@ const MediaDetailScreen = () => {
                   </Text>
                 )}
             </View>
+            {(media.media_type === "movie" || media.media_type === "tv_show") &&
+              media.metadata?.trailer && (
+                <View style={{ marginTop: 24 }}>
+                  <TrailerThumbnail trailer={media.metadata.trailer} />
+                </View>
+              )}
             {media.media_type === "tv_show" &&
               (media.metadata?.seasons?.length ?? 0) > 0 && (
                 <View style={{ marginTop: 24 }}>
