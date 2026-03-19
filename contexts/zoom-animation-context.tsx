@@ -2,8 +2,10 @@ import {
   createContext,
   FC,
   PropsWithChildren,
+  useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import { useWindowDimensions } from "react-native";
@@ -112,15 +114,14 @@ export const ZoomAnimationProvider: FC<PropsWithChildren> = ({ children }) => {
   const activeSourceId = useSharedValue("");
   const activeBorderRadius = useSharedValue(0);
 
-  const setActiveOverlayInfo = (info: {
-    imageUri: string;
-    title?: string;
-    subtitle?: string;
-  }) => {
-    setActiveImageUri(info.imageUri);
-    setActiveTitle(info.title ?? "");
-    setActiveSubtitle(info.subtitle ?? "");
-  };
+  const setActiveOverlayInfo = useCallback(
+    (info: { imageUri: string; title?: string; subtitle?: string }) => {
+      setActiveImageUri(info.imageUri);
+      setActiveTitle(info.title ?? "");
+      setActiveSubtitle(info.subtitle ?? "");
+    },
+    []
+  );
 
   const setMeasurement = (m: MeasuredDimensions) => {
     "worklet";
@@ -300,33 +301,59 @@ export const ZoomAnimationProvider: FC<PropsWithChildren> = ({ children }) => {
     isAnimating.value = withDelay(_duration, withTiming(0, { duration: 0 }));
   };
 
+  const contextValue = useMemo<ContextValue>(
+    () => ({
+      targetRef,
+      onTargetLayout,
+      handleMeasurement,
+      zoomState,
+      x,
+      y,
+      width,
+      height,
+      blurIntensity,
+      dimOpacity,
+      extraContentOpacity,
+      activeImageUri,
+      activeTitle,
+      activeSubtitle,
+      setActiveOverlayInfo,
+      activeSourceId,
+      activeBorderRadius,
+      setMeasurement,
+      open,
+      close,
+      snapToCenter,
+      activeConfig,
+    }),
+    [
+      targetRef,
+      onTargetLayout,
+      handleMeasurement,
+      zoomState,
+      x,
+      y,
+      width,
+      height,
+      blurIntensity,
+      dimOpacity,
+      extraContentOpacity,
+      activeImageUri,
+      activeTitle,
+      activeSubtitle,
+      setActiveOverlayInfo,
+      activeSourceId,
+      activeBorderRadius,
+      setMeasurement,
+      open,
+      close,
+      snapToCenter,
+      activeConfig,
+    ]
+  );
+
   return (
-    <ZoomAnimationContext.Provider
-      value={{
-        targetRef,
-        onTargetLayout,
-        handleMeasurement,
-        zoomState,
-        x,
-        y,
-        width,
-        height,
-        blurIntensity,
-        dimOpacity,
-        extraContentOpacity,
-        activeImageUri,
-        activeTitle,
-        activeSubtitle,
-        setActiveOverlayInfo,
-        activeSourceId,
-        activeBorderRadius,
-        setMeasurement,
-        open,
-        close,
-        snapToCenter,
-        activeConfig,
-      }}
-    >
+    <ZoomAnimationContext.Provider value={contextValue}>
       {children}
     </ZoomAnimationContext.Provider>
   );

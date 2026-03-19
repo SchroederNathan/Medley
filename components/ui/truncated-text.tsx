@@ -73,7 +73,7 @@ export const TruncatedText: FC<TruncatedTextProps> = ({
   // Animated style for height
   const animatedContainerStyle = useAnimatedStyle(() => {
     return {
-      height: animatedHeight.value,
+      maxHeight: animatedHeight.value,
       overflow: "hidden" as const,
     };
   });

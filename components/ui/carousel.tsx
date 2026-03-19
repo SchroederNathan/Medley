@@ -1,5 +1,5 @@
 import { FlashList } from "@shopify/flash-list";
-import React, { useContext } from "react";
+import React, { useCallback, useContext } from "react";
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
@@ -15,6 +15,12 @@ const Carousel = ({
   style?: StyleProp<ViewStyle>;
 }) => {
   const { theme } = useContext(ThemeContext);
+  const renderItem = useCallback(
+    ({ item }: { item: Media }) => (
+      <MediaCard media={item} style={{ marginRight: 12 }} />
+    ),
+    []
+  );
   return (
     <View style={style}>
       <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
@@ -23,9 +29,7 @@ const Carousel = ({
         keyExtractor={(item) => item.id}
         style={{ marginHorizontal: -20 }}
         contentContainerStyle={{ paddingHorizontal: 20 }}
-        renderItem={({ item }) => (
-          <MediaCard media={item} style={{ marginRight: 12 }} />
-        )}
+        renderItem={renderItem}
         horizontal
         showsHorizontalScrollIndicator={false}
       />

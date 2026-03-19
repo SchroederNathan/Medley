@@ -33,7 +33,7 @@ const placeholderPeople = Array.from({ length: 10 }, (_, i) => ({
   subtitle: `Role ${i + 1}`,
 }));
 
-const PeopleCarouselCard = ({
+const PeopleCarouselCardInner = ({
   item,
   theme,
 }: {
@@ -111,6 +111,8 @@ const PeopleCarouselCard = ({
     </Pressable>
   );
 };
+
+const PeopleCarouselCard = React.memo(PeopleCarouselCardInner);
 
 const PeopleCarousel = ({
   people,

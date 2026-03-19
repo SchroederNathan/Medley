@@ -1,7 +1,7 @@
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { router, useLocalSearchParams, usePathname } from "expo-router";
-import React, { FC, useContext, useEffect, useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import React, { FC, useCallback, useContext, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -10,10 +10,8 @@ import {
   View,
 } from "react-native";
 import Animated, {
-  Easing,
   Extrapolation,
   interpolate,
-  Layout,
   SharedValue,
   useAnimatedScrollHandler,
   useAnimatedStyle,
@@ -39,12 +37,11 @@ import {
   Share2Icon,
 } from "../../../components/ui/svg-icons";
 import { TruncatedText } from "../../../components/ui/truncated-text";
-import { AuthContext } from "../../../contexts/auth-context";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { ZoomAnimationProvider } from "../../../contexts/zoom-animation-context";
 import { useMediaItem } from "../../../hooks/use-media-item";
 import { fontFamily } from "../../../lib/fonts";
-import { RecommendationService } from "../../../services/recommendationService";
+import { useRecommendations } from "../../../hooks/use-recommendations";
 import {
   MediaCastMember,
   MediaCrewCredits,
@@ -205,10 +202,6 @@ const buildCrewCarouselItems = (
 
 const MediaDetailScreen = () => {
   const { theme } = useContext(ThemeContext);
-  const { user } = useContext(AuthContext);
-  // get pathname of expo router route
-  const pathname = usePathname();
-  console.log("pathname", pathname);
   const [showActionMenu, setShowActionMenu] = useState(false);
   const { id } = useLocalSearchParams();
   const topPadding = useSafeAreaInsets().top;
@@ -226,30 +219,46 @@ const MediaDetailScreen = () => {
   });
 
   const { data: media, isLoading, error } = useMediaItem(mediaId);
-  const [recs, setRecs] = useState<any[]>([]);
+  const { data: recs = [] } = useRecommendations({
+    kind: "similar",
+    sourceMediaId: mediaId,
+    filters: { limit: 20 },
+  });
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      if (!mediaId) return;
-      try {
-        const results = await RecommendationService.getSimilarToMedia(
-          user?.id || "",
-          mediaId,
-          undefined,
-          { limit: 20 }
-        );
+  const castItems = useMemo(
+    () => buildCastCarouselItems(media?.metadata?.cast),
+    [media?.metadata?.cast]
+  );
+  const crewItems = useMemo(
+    () =>
+      buildCrewCarouselItems(
+        media?.metadata?.crew,
+        media?.metadata?.created_by
+      ),
+    [media?.metadata?.crew, media?.metadata?.created_by]
+  );
 
-        console.log("results", results[0]);
-        if (mounted) setRecs(results || []);
-      } catch {
-        if (mounted) setRecs([]);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, [mediaId, user?.id]);
+  const handleShare = useCallback(() => {
+    // TODO: Implement share functionality
+  }, []);
+
+  const handleShowActionMenu = useCallback(() => {
+    setShowActionMenu(true);
+  }, []);
+
+  const rightButtons = useMemo(
+    () => [
+      {
+        icon: <Share2Icon size={20} color={theme.text} />,
+        onPress: handleShare,
+      },
+      {
+        icon: <MoreVerticalIcon size={20} color={theme.text} />,
+        onPress: handleShowActionMenu,
+      },
+    ],
+    [theme.text, handleShare, handleShowActionMenu]
+  );
 
   if (isLoading) {
     return (
@@ -299,12 +308,6 @@ const MediaDetailScreen = () => {
     );
   }
 
-  const castItems = buildCastCarouselItems(media.metadata?.cast);
-  const crewItems = buildCrewCarouselItems(
-    media.metadata?.crew,
-    media.metadata?.created_by
-  );
-
   return (
     <ZoomAnimationProvider>
       <View style={{ flex: 1, backgroundColor: theme.background }}>
@@ -319,20 +322,7 @@ const MediaDetailScreen = () => {
           scrollY={scrollY}
           title={media.title}
           theme={theme}
-          rightButtons={[
-            {
-              icon: <Share2Icon size={20} color={theme.text} />,
-              onPress: () => {
-                // TODO: Implement share functionality
-              },
-            },
-            {
-              icon: <MoreVerticalIcon size={20} color={theme.text} />,
-              onPress: () => {
-                setShowActionMenu(true);
-              },
-            },
-          ]}
+          rightButtons={rightButtons}
           topPadding={topPadding}
         />
 
@@ -394,10 +384,7 @@ const MediaDetailScreen = () => {
           </View>
 
           {/* Body Content */}
-          <Animated.View
-            style={styles.bodyContent}
-            layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
-          >
+          <View style={styles.bodyContent}>
             {media.description?.length > 0 && (
               <TruncatedText
                 text={media.description}
@@ -408,10 +395,7 @@ const MediaDetailScreen = () => {
             )}
 
             {/* Optional metadata */}
-            <Animated.View
-              style={styles.metadataContainer}
-              layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
-            >
+            <View style={styles.metadataContainer}>
               {media.metadata?.original_title &&
                 media.metadata.original_title !== media.title && (
                   <Text
@@ -426,50 +410,32 @@ const MediaDetailScreen = () => {
                     </Text>
                   </Text>
                 )}
-            </Animated.View>
-            {/* <Animated.View
-              layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
-              style={{ marginTop: 24 }}
-            >
-              <WhereToWatchCarousel title="Where to watch" platforms={[]} />
-            </Animated.View> */}
+            </View>
             {media.media_type === "tv_show" &&
               (media.metadata?.seasons?.length ?? 0) > 0 && (
-                <Animated.View
-                  layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
-                  style={{ marginTop: 24 }}
-                >
+                <View style={{ marginTop: 24 }}>
                   <SeasonEpisodesCarousel
                     mediaId={media.id}
                     seasons={media.metadata!.seasons!}
                   />
-                </Animated.View>
+                </View>
               )}
             {castItems.length > 0 && (
-              <Animated.View
-                layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
-                style={{ marginTop: 24 }}
-              >
+              <View style={{ marginTop: 24 }}>
                 <PeopleCarousel title="Cast" people={castItems} />
-              </Animated.View>
+              </View>
             )}
             {crewItems.length > 0 && (
-              <Animated.View
-                layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
-                style={{ marginTop: 24 }}
-              >
+              <View style={{ marginTop: 24 }}>
                 <PeopleCarousel title="Crew" people={crewItems} />
-              </Animated.View>
+              </View>
             )}
             {recs.length > 0 && (
-              <Animated.View
-                layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
-                style={{ marginTop: 24 }}
-              >
+              <View style={{ marginTop: 24 }}>
                 <Carousel title="You might also like" media={recs as any} />
-              </Animated.View>
+              </View>
             )}
-          </Animated.View>
+          </View>
         </Animated.ScrollView>
         <ReviewInput
           style={{ position: "absolute", bottom: 0, left: 0, right: 0 }}

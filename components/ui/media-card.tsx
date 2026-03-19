@@ -255,7 +255,7 @@ const MediaCard = ({
   );
 };
 
-export default MediaCard;
+export default React.memo(MediaCard);
 
 const styles = StyleSheet.create({
   container: {
