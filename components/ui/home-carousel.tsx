@@ -192,26 +192,42 @@ const GalleryCard: React.FC<GalleryCardProps> = ({
     // Static z-index: card 0 always on top, descending order
     const zIndex = totalItems - index;
 
-    // Fade cards based on distance from focused index
+    return {
+      transform: [{ translateX }, { scale }],
+      zIndex,
+    };
+  });
+
+  const overlayStyle = useAnimatedStyle(() => {
+    const active = activeIndex.value;
+    const diff = index - active;
     const absDiff = Math.abs(diff);
-    const carouselOpacity = interpolate(
-      absDiff,
-      [0, 1, 2, 3],
-      [1, 0.6, 0.3, 0],
+
+    const galleryFactor = interpolate(
+      active,
+      [0, 1],
+      [1, 0],
       Extrapolation.CLAMP
     );
-    // In stack mode (index 0), show all cards at full opacity
-    const finalOpacity = interpolate(
+
+    // Dark overlay intensity based on distance from focused card
+    const carouselDarkness = interpolate(
+      absDiff,
+      [0, 1, 2, 3],
+      [0, 0.5, 0.7, 0.85],
+      Extrapolation.CLAMP
+    );
+    // In stack mode (index 0), darken all cards except the front one
+    const stackDarkness = index === 0 ? 0 : 0.5;
+    const finalDarkness = interpolate(
       galleryFactor,
       [0, 1],
-      [carouselOpacity, 1],
+      [carouselDarkness, stackDarkness],
       Extrapolation.CLAMP
     );
 
     return {
-      transform: [{ translateX }, { scale }],
-      zIndex,
-      opacity: finalOpacity,
+      opacity: finalDarkness,
     };
   });
 
@@ -225,64 +241,15 @@ const GalleryCard: React.FC<GalleryCardProps> = ({
             style={styles.image}
             contentFit="cover"
           />
+          <Animated.View
+            style={[styles.darkOverlay, overlayStyle]}
+            pointerEvents="none"
+          />
         </View>
       </GestureDetector>
     </Animated.View>
   );
 };
-
-interface CarouselDotProps {
-  index: number;
-  activeIndex: SharedValue<number>;
-  isActive: boolean;
-  totalImages: number;
-  defaultDotColor?: string;
-  activeDotColor?: string;
-}
-
-// const CarouselDot: React.FC<CarouselDotProps> = ({
-//   index,
-//   activeIndex,
-//   isActive,
-//   totalImages,
-//   defaultDotColor = "#525252",
-//   activeDotColor = "#3b82f6",
-// }) => {
-//   const rDotStyle = useAnimatedStyle(() => {
-//     if (totalImages < 6) {
-//       return {
-//         opacity: 1,
-//         transform: [{ scale: 1 }],
-//       };
-//     }
-
-//     // For many dots, scale based on distance from active
-//     const dist = Math.abs(index - activeIndex.value);
-//     const scale = interpolate(
-//       dist,
-//       [0, 1, 2, 3],
-//       [1, 1, 0.7, 0.3],
-//       Extrapolation.CLAMP
-//     );
-
-//     return {
-//       opacity: 1,
-//       transform: [{ scale }],
-//     };
-//   });
-
-//   return (
-//     <View style={styles.dotContainer}>
-//       <Animated.View
-//         style={[
-//           styles.dot,
-//           rDotStyle,
-//           { backgroundColor: isActive ? activeDotColor : defaultDotColor },
-//         ]}
-//       />
-//     </View>
-//   );
-// };
 
 const HomeCarousel: React.FC<HomeCarouselProps> = ({
   media,
@@ -298,13 +265,17 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({
   }, [currentIndex, onIndexChange]);
 
   const updateIndex = (index: number) => {
-    setCurrentIndex(index);
-    if (Platform.OS === "ios") {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+    setCurrentIndex((prev) => {
+      if (prev !== index && Platform.OS === "ios") {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+      }
+      return index;
+    });
   };
 
   const gesture = Gesture.Pan()
+    .activeOffsetX([-10, 10])
+    .failOffsetY([-10, 10])
     .onStart(() => {
       startIndex.value = activeIndex.value;
     })
@@ -385,14 +356,19 @@ const styles = StyleSheet.create({
   cardInner: {
     width: ITEM_WIDTH,
     height: ITEM_HEIGHT,
-    borderRadius: 4,
+    borderRadius: 6,
+
     overflow: "hidden",
-    boxShadow: "rgba(204, 219, 232, 0.3) 0 1px 4px -0.5px inset",
-    backgroundColor: "rgba(0,0,0,0.1)",
+    boxShadow: "rgba(204, 219, 232, 0.25) 0 2px 8px -1px inset", // deeper/larger subtle inset
+    backgroundColor: "rgba(0,0,0,0.16)",
   },
   image: {
     width: ITEM_WIDTH,
     height: ITEM_HEIGHT,
+  },
+  darkOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "black",
   },
   paginationContainer: {
     alignItems: "center",

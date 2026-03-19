@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, {
   Defs,
@@ -142,14 +142,7 @@ const IndexScreen = () => {
         />
 
         {/* Main content - always show recommendations */}
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: paddingBottom }}
-          style={{ paddingTop: 0, overflow: "visible" }}
-          nestedScrollEnabled
-          keyboardDismissMode="on-drag"
-          keyboardShouldPersistTaps="handled"
-        >
+        <View style={{ paddingBottom: paddingBottom }}>
           <Button
             title="Send Push Notification"
             styles={{ marginVertical: 16 }}
@@ -180,7 +173,7 @@ const IndexScreen = () => {
             media={recommendedTvShows.data ?? []}
             title="TV for you"
           /> */}
-        </ScrollView>
+        </View>
       </PullToSearchContent>
 
       {/* Animated blur backdrop */}

@@ -2,19 +2,18 @@ import MaskedView from "@react-native-masked-view/masked-view";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import React from "react";
-import { StyleSheet } from "react-native";
+import React, { useContext, useEffect, useState } from "react";
+import { StyleSheet, View } from "react-native";
 import Animated, {
-  FadeIn,
-  FadeOut,
+  runOnJS,
   useAnimatedStyle,
+  useSharedValue,
+  withTiming,
 } from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ThemeContext } from "../../contexts/theme-context";
 import { useHomeAnimation } from "../../contexts/home-animation-context";
 import { useHeaderHeight } from "../../hooks/use-header-height";
 import { Media } from "../../types/media";
-
-const AnimatedImage = Animated.createAnimatedComponent(Image);
 
 interface HomeBackdropProps {
   media: Media[];
@@ -23,8 +22,37 @@ interface HomeBackdropProps {
 
 const HomeBackdrop: React.FC<HomeBackdropProps> = ({ media, currentIndex }) => {
   const { offsetY } = useHomeAnimation();
-
   const { grossHeight } = useHeaderHeight();
+  const { theme } = useContext(ThemeContext);
+  const [displayedIndex, setDisplayedIndex] = useState(currentIndex);
+  const [previousIndex, setPreviousIndex] = useState(currentIndex);
+  const fadeAnim = useSharedValue(1);
+
+  useEffect(() => {
+    if (currentIndex !== displayedIndex) {
+      setPreviousIndex(displayedIndex);
+      setDisplayedIndex(currentIndex);
+      fadeAnim.value = 0;
+      fadeAnim.value = withTiming(1, { duration: 500 }, (finished) => {
+        if (finished) {
+          runOnJS(setPreviousIndex)(currentIndex);
+        }
+      });
+    }
+  }, [currentIndex]);
+
+  // Prefetch adjacent images
+  useEffect(() => {
+    const urls = [
+      media[currentIndex - 1]?.backdrop_url,
+      media[currentIndex + 1]?.backdrop_url,
+    ].filter(Boolean);
+    urls.forEach((url) => Image.prefetch(url));
+  }, [currentIndex, media]);
+
+  const foregroundStyle = useAnimatedStyle(() => ({
+    opacity: fadeAnim.value,
+  }));
 
   const rStyle = useAnimatedStyle(() => {
     return {
@@ -34,16 +62,12 @@ const HomeBackdrop: React.FC<HomeBackdropProps> = ({ media, currentIndex }) => {
 
   if (media.length === 0) return null;
 
+  const maskHeight = grossHeight + 20 + 400;
+
   return (
-    <Animated.View style={[styles.container, rStyle]}>
+    <Animated.View style={[styles.container, rStyle]} pointerEvents="none">
       <MaskedView
-        style={[
-          styles.mask,
-          {
-            height: grossHeight + 20 + 400,
-            // paddingTop: topPadding,
-          },
-        ]}
+        style={[styles.mask, { height: maskHeight }]}
         maskElement={
           <LinearGradient
             locations={[0, 0.7, 1]}
@@ -52,40 +76,41 @@ const HomeBackdrop: React.FC<HomeBackdropProps> = ({ media, currentIndex }) => {
           />
         }
       >
-        <AnimatedImage
+        {/* Background layer: previous image (always visible) */}
+        <Image
           cachePolicy="memory-disk"
-          key={`bg-${currentIndex}`}
-          entering={FadeIn.duration(500)}
-          exiting={FadeOut.duration(500)}
-          source={{ uri: media[currentIndex]?.backdrop_url }}
+          source={{ uri: media[previousIndex]?.backdrop_url }}
           style={styles.image}
           contentFit="cover"
         />
-        {/* Preload adjacent images */}
-        {currentIndex > 0 && (
+        {/* Foreground layer: current image (fades in) */}
+        <Animated.View style={[StyleSheet.absoluteFill, foregroundStyle]}>
           <Image
             cachePolicy="memory-disk"
-            source={{ uri: media[currentIndex - 1]?.backdrop_url }}
-            style={[styles.image, { opacity: 0 }]}
+            source={{ uri: media[displayedIndex]?.backdrop_url }}
+            style={styles.image}
             contentFit="cover"
-          />
-        )}
-        {currentIndex < media.length - 1 && (
-          <Image
-            cachePolicy="memory-disk"
-            source={{ uri: media[currentIndex + 1]?.backdrop_url }}
-            style={[styles.image, { opacity: 0 }]}
-            contentFit="cover"
-          />
-        )}
-        <Animated.View style={styles.blurOverlay} pointerEvents="none">
-          <BlurView
-            style={StyleSheet.absoluteFill}
-            intensity={100}
-            tint="dark"
           />
         </Animated.View>
       </MaskedView>
+      {/* BlurView OUTSIDE MaskedView — always applies */}
+      <View
+        style={[styles.blurOverlay, { height: maskHeight }]}
+        pointerEvents="none"
+      >
+        <BlurView
+          style={StyleSheet.absoluteFill}
+          intensity={100}
+          tint="dark"
+        />
+      </View>
+      {/* Bottom gradient fade to background */}
+      <LinearGradient
+        locations={[0, 0.7, 1]}
+        colors={["transparent", "transparent", theme.background]}
+        style={[styles.blurOverlay, { height: maskHeight }]}
+        pointerEvents="none"
+      />
     </Animated.View>
   );
 };
