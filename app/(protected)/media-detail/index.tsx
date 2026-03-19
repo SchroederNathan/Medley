@@ -42,7 +42,6 @@ import { ZoomAnimationProvider } from "../../../contexts/zoom-animation-context"
 import { useMediaItem } from "../../../hooks/use-media-item";
 import { fontFamily } from "../../../lib/fonts";
 import { RecommendationService } from "../../../services/recommendationService";
-import WhereToWatchCarousel from "../../../components/ui/where-to-watch-carousel";
 
 // Parallax animation constants
 const BACKDROP_WIDTH = Dimensions.get("window").width;
@@ -236,7 +235,7 @@ const MediaDetailScreen = () => {
 
   return (
     <ZoomAnimationProvider>
-      <View style={[{ flex: 1, backgroundColor: theme.background }]}>
+      <View style={{ flex: 1, backgroundColor: theme.background }}>
         {/* Parallax Backdrop */}
         <ParallaxBackdropImage
           scrollY={scrollY}
@@ -279,7 +278,7 @@ const MediaDetailScreen = () => {
           <View style={[styles.posterRow, { marginTop: POSTER_PADDING }]}>
             <ZoomablePoster
               imageUri={media.poster_url}
-              style={[styles.posterImage]}
+              style={styles.posterImage}
               width={120}
               height={180}
             />
@@ -362,7 +361,7 @@ const MediaDetailScreen = () => {
               layout={Layout.duration(220).easing(Easing.out(Easing.cubic))}
               style={{ marginTop: 24 }}
             >
-              <CastCarousel title="Cast" cast={[]} />
+              <CastCarousel title="Cast" cast={media.metadata?.cast ?? []} />
             </Animated.View>
             {recs.length > 0 && (
               <Animated.View

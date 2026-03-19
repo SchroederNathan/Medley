@@ -12,6 +12,32 @@ export type SearchMediaResult = {
 export type SearchTmdbResult = SearchMediaResult;
 
 export class MediaService {
+  static async getMediaDetail(mediaId: string): Promise<Media> {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
+    const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_KEY!;
+
+    const url = new URL(`${supabaseUrl}/functions/v1/media-detail`);
+    url.searchParams.set("id", mediaId);
+
+    const resp = await fetch(url.toString(), {
+      headers: {
+        Authorization: `Bearer ${session?.access_token ?? ""}`,
+        apikey: supabaseKey,
+      },
+    });
+
+    if (!resp.ok) {
+      const body = await resp.text();
+      throw new Error(`media-detail failed (${resp.status}): ${body}`);
+    }
+
+    return resp.json();
+  }
+
   /**
    * Returns top N popular movies from `popular_movies` (ordered by rank),
    * joining to the referenced `media` row.

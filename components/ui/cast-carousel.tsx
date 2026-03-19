@@ -1,35 +1,66 @@
+import { Image } from "expo-image";
 import { FlashList } from "@shopify/flash-list";
-import React, { useContext } from "react";
+import React, { useCallback, useContext } from "react";
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
-
-type Cast = {
-  id: string;
-  name: string;
-  character: string;
-  profile_path: string;
-  characterName: string;
-};
+import { MediaCastMember } from "../../types/media";
 
 // Placeholder data with 10 empty cast members
 const placeholderCast = Array.from({ length: 10 }, (_, i) => ({
   id: `placeholder-${i}`,
   name: `Cast ${i + 1}`,
-  characterName: `Character ${i + 1}`,
+  character: `Character ${i + 1}`,
 }));
+
+const CastCarouselItem = ({
+  item,
+  theme,
+}: {
+  item: MediaCastMember;
+  theme: any;
+}) => (
+  <View style={styles.castItem}>
+    {item.profile_path ? (
+      <Image
+        source={{ uri: item.profile_path }}
+        contentFit="cover"
+        style={styles.circleImage}
+      />
+    ) : (
+      <View
+        style={[styles.circleImage, { backgroundColor: theme.secondaryText }]}
+      />
+    )}
+    <Text style={[styles.castName, { color: theme.text }]} numberOfLines={1}>
+      {item.name}
+    </Text>
+    <Text
+      style={[styles.castCharacterName, { color: theme.secondaryText }]}
+      numberOfLines={1}
+    >
+      {item.character ?? ""}
+    </Text>
+  </View>
+);
 
 const CastCarousel = ({
   cast,
   title = "Cast",
   style,
 }: {
-  cast?: Cast[];
+  cast?: MediaCastMember[];
   title?: string;
   style?: StyleProp<ViewStyle>;
 }) => {
   const { theme } = useContext(ThemeContext);
   const data = cast?.length ? cast : placeholderCast;
+  const renderItem = useCallback(
+    ({ item }: { item: MediaCastMember }) => (
+      <CastCarouselItem item={item} theme={theme} />
+    ),
+    [theme]
+  );
 
   return (
     <View style={style}>
@@ -39,28 +70,7 @@ const CastCarousel = ({
         keyExtractor={(item) => item.id}
         style={{ marginHorizontal: -20 }}
         contentContainerStyle={{ paddingHorizontal: 20 }}
-        renderItem={({ item }) => (
-          <View style={styles.castItem}>
-            <View
-              style={[
-                styles.circleImage,
-                { backgroundColor: theme.secondaryText },
-              ]}
-            />
-            <Text
-              style={[styles.castName, { color: theme.text }]}
-              numberOfLines={1}
-            >
-              {item.name}
-            </Text>
-            <Text
-              style={[styles.castCharacterName, { color: theme.secondaryText }]}
-              numberOfLines={1}
-            >
-              {item.characterName}
-            </Text>
-          </View>
-        )}
+        renderItem={renderItem}
         horizontal
         showsHorizontalScrollIndicator={false}
       />
