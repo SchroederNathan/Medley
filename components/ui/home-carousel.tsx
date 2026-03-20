@@ -2,7 +2,7 @@ import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Dimensions, Platform, Share, StyleSheet, View } from "react-native";
+import { Dimensions, Share, StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   Extrapolation,
@@ -67,9 +67,12 @@ const GalleryCard: React.FC<GalleryCardProps> = ({
       actions,
       onSelect: async (actionId) => {
         if (actionId === "share") {
+          const shareMessage = item.title || "Share";
           try {
-            await Share.share({ message: item.title || "Share" });
-          } catch {}
+            await Share.share({ message: shareMessage });
+          } catch {
+            // Share sheet dismissed or unavailable — ignore
+          }
         } else if (actionId === "bookmark") {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
           router.push(`/save-media?id=${item.id}`);
@@ -265,12 +268,7 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({
   }, [currentIndex, onIndexChange]);
 
   const updateIndex = (index: number) => {
-    setCurrentIndex((prev) => {
-      if (prev !== index && Platform.OS === "ios") {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
-      }
-      return index;
-    });
+    setCurrentIndex(index);
   };
 
   const gesture = Gesture.Pan()
@@ -311,30 +309,6 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({
           ))}
         </View>
       </GestureDetector>
-      {/* {media.length > 1 && (
-        <View style={styles.paginationContainer}>
-          <View
-            style={[
-              styles.dotsContainer,
-              {
-                width: DOT_CONTAINER_WIDTH * Math.min(media.length, 7),
-              },
-            ]}
-          >
-            {media.map((_, index) => (
-              <CarouselDot
-                key={index}
-                index={index}
-                activeIndex={activeIndex}
-                defaultDotColor={theme.secondaryText}
-                activeDotColor={theme.text}
-                isActive={index === currentIndex}
-                totalImages={media.length}
-              />
-            ))}
-          </View>
-        </View>
-      )} */}
     </View>
   );
 };
