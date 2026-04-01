@@ -1,19 +1,24 @@
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Dimensions, Share, StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   Extrapolation,
   interpolate,
-  runOnJS,
-  runOnUI,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
   type SharedValue,
 } from "react-native-reanimated";
+import { scheduleOnRN, scheduleOnUI } from "react-native-worklets";
 import { useRadialOverlay } from "../../hooks/use-radial-overlay";
 import { Media } from "../../types/media";
 import GradientSweepOverlay from "./gradient-sweep-overlay";
@@ -62,6 +67,14 @@ const GalleryCard: React.FC<GalleryCardProps> = ({
     []
   );
 
+  const navigateToMediaDetail = useCallback(() => {
+    router.push(`/media-detail?id=${item.id}`);
+  }, [router, item.id]);
+
+  const resetPressScale = useCallback(() => {
+    pressScale.value = withSpring(1);
+  }, [pressScale]);
+
   const { longPressGesture, panGesture, isLongPressed, overlayOpen } =
     useRadialOverlay({
       actions,
@@ -77,16 +90,10 @@ const GalleryCard: React.FC<GalleryCardProps> = ({
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
           router.push(`/save-media?id=${item.id}`);
         }
-        runOnUI(() => {
-          "worklet";
-          pressScale.value = withSpring(1);
-        })();
+        scheduleOnUI(resetPressScale);
       },
       onCancel: () => {
-        runOnUI(() => {
-          "worklet";
-          pressScale.value = withSpring(1);
-        })();
+        scheduleOnUI(resetPressScale);
       },
       targetRef: cardRef as React.RefObject<View>,
       renderClone: ({ x, y, width: cardWidth, height: cardHeight }) => (
@@ -147,7 +154,7 @@ const GalleryCard: React.FC<GalleryCardProps> = ({
       "worklet";
       pressScale.value = withSpring(1);
       if (!isLongPressed.value) {
-        runOnJS(router.push)(`/media-detail?id=${item.id}`);
+        scheduleOnRN(navigateToMediaDetail);
       }
     })
     .onFinalize(() => {
@@ -267,9 +274,9 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({
     onIndexChange?.(currentIndex);
   }, [currentIndex, onIndexChange]);
 
-  const updateIndex = (index: number) => {
+  const updateIndex = useCallback((index: number) => {
     setCurrentIndex(index);
-  };
+  }, []);
 
   const gesture = Gesture.Pan()
     .activeOffsetX([-10, 10])
@@ -289,7 +296,7 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({
         Math.min(media.length - 1, Math.round(projected))
       );
       activeIndex.value = withSpring(target);
-      runOnJS(updateIndex)(target);
+      scheduleOnRN(updateIndex, target);
     });
 
   if (media.length === 0) return null;
