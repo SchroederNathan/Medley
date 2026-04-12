@@ -6,7 +6,6 @@
     "orientation": "portrait",
     "icon": "./assets/icons/icon.png",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "scheme": "com.schroedernathan.medley",
     "splash": {
       "image": "./assets/icons/splash.png",
@@ -22,7 +21,6 @@
         "foregroundImage": "./assets/icons/adaptive-icon/foreground.png",
         "backgroundColor": "#171717"
       },
-      "edgeToEdgeEnabled": true,
       "package": "com.schroedernathan.medley"
     },
     "web": {
@@ -31,6 +29,12 @@
     "plugins": [
       "expo-router",
       "expo-font",
+      [
+        "expo-asset",
+        {
+          "assets": ["./assets/rive/warp_circle.riv"]
+        }
+      ],
       [
         "expo-dev-client",
         {
