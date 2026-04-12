@@ -44,7 +44,7 @@ export function useUpdateCollection() {
 
       // Invalidate user collections list
       queryClient.invalidateQueries({
-        queryKey: queryKeys.collections.all(user.id),
+        queryKey: queryKeys.collections.root(user.id),
       });
     },
   });
@@ -75,7 +75,7 @@ export function useUpdateCollectionWithItems() {
 
       // Invalidate user collections list
       queryClient.invalidateQueries({
-        queryKey: queryKeys.collections.all(user.id),
+        queryKey: queryKeys.collections.root(user.id),
       });
     },
   });

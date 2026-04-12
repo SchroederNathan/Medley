@@ -1,4 +1,5 @@
 import { supabase } from "../lib/utils";
+import { throwIfError, toAppError } from "../lib/app-error";
 
 export interface Profile {
   id: string;
@@ -29,7 +30,7 @@ export class ProfileService {
       if (error.code === "PGRST116") {
         return null;
       }
-      throw error;
+      throw toAppError(error, "Failed to load profile");
     }
 
     return data;
@@ -52,7 +53,7 @@ export class ProfileService {
       .select()
       .single();
 
-    if (error) throw error;
+    throwIfError(error, "Failed to update profile");
     return data;
   }
 
@@ -66,7 +67,7 @@ export class ProfileService {
       .select()
       .single();
 
-    if (error) throw error;
+    throwIfError(error, "Failed to create profile");
     return data;
   }
 
@@ -80,7 +81,7 @@ export class ProfileService {
       .select()
       .single();
 
-    if (error) throw error;
+    throwIfError(error, "Failed to save profile");
     return data;
   }
 
@@ -96,7 +97,7 @@ export class ProfileService {
     } = await supabase.auth.getSession();
 
     if (sessionError || !session) {
-      throw new Error("Authentication required");
+      throw toAppError(sessionError ?? new Error("Authentication required"));
     }
 
     // Use a fixed filename to replace the existing image
@@ -128,9 +129,7 @@ export class ProfileService {
       detectedContentType = response.headers.get("content-type");
     } catch (error) {
       console.error("Error reading image file:", error);
-      throw error instanceof Error
-        ? error
-        : new Error("Failed to read image file");
+      throw toAppError(error, "Failed to read avatar image");
     }
 
     // Determine content type
@@ -181,11 +180,11 @@ export class ProfileService {
             "Error uploading image (with upsert):",
             upsertResult.error
           );
-          throw upsertResult.error;
+          throw toAppError(upsertResult.error, "Failed to upload avatar");
         }
       } else {
         console.error("Error uploading image:", uploadResult.error);
-        throw uploadResult.error;
+        throw toAppError(uploadResult.error, "Failed to upload avatar");
       }
     }
 
@@ -209,7 +208,7 @@ export class ProfileService {
       // Rollback: delete uploaded image on profile update failure
       await supabase.storage.from("profile-images").remove([fileName]);
       console.error("Error updating profile:", updateResult.error);
-      throw updateResult.error;
+      throw toAppError(updateResult.error, "Failed to update avatar profile");
     }
 
     return cacheBustUrl;

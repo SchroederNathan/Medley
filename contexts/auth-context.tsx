@@ -1,11 +1,13 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { createContext, PropsWithChildren, useEffect, useState } from "react";
 import { queryClient } from "../lib/query-client";
+import {
+  clearPersistedQueryCache,
+  clearStoredAuthState,
+  setStoredAuthState,
+} from "../lib/storage";
 import { supabase } from "../lib/utils";
 import { ProfileService } from "../services/profileService";
-
-const authStorageKey = "authState";
 
 type User = {
   id?: string;
@@ -53,15 +55,6 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   const [user, setUser] = useState<User>({});
   const router = useRouter();
 
-  const storeAuthState = async (newState: { isLoggedIn: boolean }) => {
-    try {
-      const jsonValue = JSON.stringify(newState);
-      await AsyncStorage.setItem(authStorageKey, jsonValue);
-    } catch (error) {
-      console.error("Error storing auth state:", error);
-    }
-  };
-
   /**
    * Updates the user state from profile data
    * Use this after fetching profile via useUserProfile hook
@@ -79,7 +72,8 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         name: profile.name || prevUser.name,
         avatar_url: profile.avatar_url || prevUser.avatar_url,
         preferred_media:
-          profile.media_preferences?.preferred_media || prevUser.preferred_media,
+          profile.media_preferences?.preferred_media ||
+          prevUser.preferred_media,
       }));
     }
   };
@@ -112,7 +106,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
   const logIn = async (id: string) => {
     setIsLoggedIn(true);
-    storeAuthState({ isLoggedIn: true });
+    setStoredAuthState({ isLoggedIn: true });
     setUserId(id);
 
     // Fetch profile data using ProfileService
@@ -129,13 +123,13 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   const logOut = async () => {
     setIsLoggedIn(false);
     setUser({});
-    storeAuthState({ isLoggedIn: false });
+    clearStoredAuthState();
 
     await supabase.auth.signOut();
     try {
       await queryClient.cancelQueries();
       queryClient.clear();
-      await AsyncStorage.removeItem("RQ_CACHE");
+      clearPersistedQueryCache();
     } catch (e) {
       console.warn("Failed clearing persisted query cache", e);
     }
@@ -159,7 +153,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       if (userId) {
         setUser({ id: userId });
         setIsLoggedIn(true);
-        storeAuthState({ isLoggedIn: true });
+        setStoredAuthState({ isLoggedIn: true });
 
         // Fetch profile data using ProfileService
         try {
@@ -171,22 +165,8 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
           console.warn("Failed to fetch user profile on init:", error);
         }
       } else {
-        let authStorageValue: string | null = null;
-        try {
-          authStorageValue = await AsyncStorage.getItem(authStorageKey);
-        } catch (error) {
-          console.warn("Failed to read auth storage:", error);
-        }
-
-        if (authStorageValue !== null) {
-          try {
-            const auth = JSON.parse(authStorageValue);
-            const isLoggedIn = Boolean(auth.isLoggedIn);
-            setIsLoggedIn(isLoggedIn);
-          } catch (error) {
-            console.warn("Failed to parse auth storage:", error);
-          }
-        }
+        clearStoredAuthState();
+        setIsLoggedIn(false);
       }
 
       setIsReady(true);

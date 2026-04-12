@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
@@ -29,9 +28,8 @@ import { AuthContext } from "../../contexts/auth-context";
 import { ThemeContext } from "../../contexts/theme-context";
 import { useToast } from "../../contexts/toast-context";
 import { useSubmitReview } from "../../hooks/mutations";
+import { useUserMediaItem } from "../../hooks/use-user-media-item";
 import { fontFamily } from "../../lib/fonts";
-import { queryKeys } from "../../lib/query-keys";
-import { UserMediaService } from "../../services/userMediaService";
 import { Media } from "../../types/media";
 import { AnimatedIconButton } from "./animated-icon-button";
 import { BottomGradient } from "./bottom-gradient";
@@ -93,15 +91,7 @@ const ReviewInput: React.FC<ReviewInputProps> = ({ item, style }) => {
   const isSubmitting = submitReviewMutation.isPending;
 
   // Fetch existing review data
-  const { data: existingReview } = useQuery({
-    queryKey: queryKeys.userMediaItem.detail(user?.id ?? "", item.id),
-    queryFn: async () => {
-      if (!user?.id) return null;
-      return await UserMediaService.getUserMediaItem(user.id, item.id);
-    },
-    enabled: !!user?.id,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
+  const { data: existingReview } = useUserMediaItem(item.id);
 
   // Check if user has already reviewed (has rating or review text)
   const hasExistingReview =

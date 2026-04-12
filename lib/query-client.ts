@@ -1,21 +1,19 @@
 import { QueryClient } from "@tanstack/react-query";
+import { shouldRetryQuery } from "./app-error";
+
+export const QUERY_CACHE_BUSTER = "mmkv-v1";
+export const QUERY_CACHE_MAX_AGE = 1000 * 60 * 60 * 24;
 
 export const queryClient = new QueryClient({
   defaultOptions: {
+    mutations: {
+      networkMode: "online",
+    },
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 60 * 24, // 24 hours persisted cache
-      retry: (failureCount, error) => {
-        // Don't retry on 4xx errors (client errors)
-        if (
-          error instanceof Error &&
-          "status" in error &&
-          typeof error.status === "number"
-        ) {
-          return error.status >= 500; // Only retry on server errors
-        }
-        return failureCount < 3;
-      },
+      gcTime: QUERY_CACHE_MAX_AGE,
+      networkMode: "online",
+      retry: shouldRetryQuery,
+      staleTime: 1000 * 60 * 5,
     },
   },
 });

@@ -1,8 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useContext, useMemo } from "react";
 import { AuthContext } from "../contexts/auth-context";
-import { queryKeys } from "../lib/query-keys";
-import { UserMediaService } from "../services/userMediaService";
+import { userMediaQueryOptions } from "../lib/query-options";
 import { Media } from "../types/media";
 
 /**
@@ -13,34 +12,46 @@ export function useUserMedia(searchQuery?: string) {
   const { user, isLoggedIn } = useContext(AuthContext);
 
   const query = useQuery<Media[]>({
-    queryKey: queryKeys.userMedia.all(user?.id ?? ""),
+    ...userMediaQueryOptions(user?.id ?? ""),
     enabled: isLoggedIn && !!user?.id,
-    queryFn: async () => {
-      if (!user?.id) throw new Error("No user ID");
-      return UserMediaService.getUserMediaWithDetails(user.id);
-    },
-    staleTime: 1000 * 60 * 10, // 10 minutes
   });
+  const {
+    data,
+    error,
+    fetchStatus,
+    isError,
+    isLoading,
+    isPending,
+    isRefetching,
+    refetch,
+    status,
+  } = query;
 
   // Client-side search filtering
   const filteredData = useMemo(() => {
-    if (!query.data || !searchQuery?.trim()) {
-      return query.data || [];
+    if (!data || !searchQuery?.trim()) {
+      return data || [];
     }
 
     const normalizedQuery = searchQuery.toLowerCase().trim();
-    return query.data.filter(
+    return data.filter(
       (item) =>
         item.title?.toLowerCase().includes(normalizedQuery) ||
         item.description?.toLowerCase().includes(normalizedQuery) ||
         item.media_type?.toLowerCase().includes(normalizedQuery)
     );
-  }, [query.data, searchQuery]);
+  }, [data, searchQuery]);
 
   return {
-    ...query,
-    data: searchQuery?.trim() ? filteredData : query.data,
-    // Expose filtered data separately if needed
+    data: searchQuery?.trim() ? filteredData : data,
+    error,
+    fetchStatus,
+    isError,
+    isLoading,
+    isPending,
+    isRefetching,
+    refetch,
     searchResults: filteredData,
+    status,
   };
 }

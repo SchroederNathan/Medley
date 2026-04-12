@@ -1,4 +1,5 @@
 import { supabase } from "../lib/utils";
+import { throwIfError, toAppError } from "../lib/app-error";
 import { Media } from "../types/media";
 
 export interface CreateCollectionParams {
@@ -31,6 +32,14 @@ export interface CollectionWithItems extends Collection {
 }
 
 export class CollectionService {
+  private static sortCollectionItems(collection: CollectionWithItems) {
+    return {
+      ...collection,
+      collection_items: [...(collection.collection_items || [])].sort(
+        (a, b) => (a.position || 0) - (b.position || 0)
+      ),
+    };
+  }
   /**
    * Creates a collection with its items
    * Returns the created collection with all its items
@@ -55,9 +64,7 @@ export class CollectionService {
       .single();
 
     if (collectionError) {
-      throw new Error(
-        `Failed to create collection: ${collectionError.message}`
-      );
+      throw toAppError(collectionError, "Failed to create collection");
     }
 
     // Step 2: Create collection items if there are any
@@ -75,7 +82,7 @@ export class CollectionService {
       if (itemsError) {
         // Rollback: delete the collection if items fail
         await supabase.from("collections").delete().eq("id", collection.id);
-        throw new Error(`Failed to add items: ${itemsError.message}`);
+        throw toAppError(itemsError, "Failed to add collection items");
       }
     }
 
@@ -102,8 +109,10 @@ export class CollectionService {
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
 
-    if (error) throw error;
-    return (data as CollectionWithItems[]) ?? [];
+    throwIfError(error, "Failed to load collections");
+    return ((data as CollectionWithItems[]) ?? []).map((collection) =>
+      this.sortCollectionItems(collection)
+    );
   }
 
   /**
@@ -131,9 +140,9 @@ export class CollectionService {
       if (error.code === "PGRST116") {
         return null;
       }
-      throw error;
+      throw toAppError(error, "Failed to load collection");
     }
-    return data as CollectionWithItems;
+    return this.sortCollectionItems(data as CollectionWithItems);
   }
 
   /**
@@ -154,7 +163,7 @@ export class CollectionService {
       .select()
       .single();
 
-    if (error) throw error;
+    throwIfError(error, "Failed to update collection");
     return data;
   }
 
@@ -167,7 +176,7 @@ export class CollectionService {
       .delete()
       .eq("id", collectionId);
 
-    if (error) throw error;
+    throwIfError(error, "Failed to delete collection");
   }
 
   /**
@@ -186,7 +195,7 @@ export class CollectionService {
       .limit(1);
 
     if (positionError) {
-      throw new Error(`Failed to get max position: ${positionError.message}`);
+      throw toAppError(positionError, "Failed to get collection position");
     }
 
     const nextPosition = (maxPositionData?.[0]?.position || 0) + 1;
@@ -201,9 +210,7 @@ export class CollectionService {
       });
 
     if (insertError) {
-      throw new Error(
-        `Failed to add media to collection: ${insertError.message}`
-      );
+      throw toAppError(insertError, "Failed to add media to collection");
     }
 
     return { success: true };
@@ -222,7 +229,7 @@ export class CollectionService {
       .eq("collection_id", collectionId)
       .eq("media_id", mediaId);
 
-    if (error) throw error;
+    throwIfError(error, "Failed to remove media from collection");
   }
 
   /**
@@ -249,9 +256,7 @@ export class CollectionService {
       .eq("id", collectionId);
 
     if (collectionError) {
-      throw new Error(
-        `Failed to update collection: ${collectionError.message}`
-      );
+      throw toAppError(collectionError, "Failed to update collection");
     }
 
     // Step 2: Delete all existing collection items
@@ -261,8 +266,9 @@ export class CollectionService {
       .eq("collection_id", collectionId);
 
     if (deleteError) {
-      throw new Error(
-        `Failed to delete existing items: ${deleteError.message}`
+      throw toAppError(
+        deleteError,
+        "Failed to delete existing collection items"
       );
     }
 
@@ -279,7 +285,7 @@ export class CollectionService {
         .insert(collectionItems);
 
       if (itemsError) {
-        throw new Error(`Failed to add items: ${itemsError.message}`);
+        throw toAppError(itemsError, "Failed to add updated collection items");
       }
     }
 

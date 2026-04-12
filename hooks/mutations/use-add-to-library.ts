@@ -32,17 +32,18 @@ export function useAddToLibrary() {
       }
       return UserMediaService.addToUserList(user.id, mediaId, status, rating);
     },
-    onSuccess: () => {
+    onSuccess: (userMediaItem, { mediaId }) => {
       if (!user?.id) return;
 
-      // Invalidate user media queries
+      queryClient.setQueryData(
+        queryKeys.userMediaItem.detail(user.id, mediaId),
+        userMediaItem
+      );
       queryClient.invalidateQueries({
-        queryKey: queryKeys.userMedia.all(user.id),
+        queryKey: queryKeys.userMedia.root(user.id),
       });
-
-      // Invalidate recommendations since they depend on user's library
       queryClient.invalidateQueries({
-        queryKey: ["recommendations"],
+        queryKey: queryKeys.recommendations.root(user.id),
       });
     },
   });
@@ -62,17 +63,21 @@ export function useRemoveFromLibrary() {
       }
       return UserMediaService.removeFromUserList(user.id, mediaId);
     },
-    onSuccess: () => {
+    onSuccess: (_, mediaId) => {
       if (!user?.id) return;
 
-      // Invalidate user media queries
+      queryClient.setQueryData(
+        queryKeys.userMediaItem.detail(user.id, mediaId),
+        null
+      );
       queryClient.invalidateQueries({
-        queryKey: queryKeys.userMedia.all(user.id),
+        queryKey: queryKeys.userMedia.root(user.id),
       });
-
-      // Invalidate recommendations
       queryClient.invalidateQueries({
-        queryKey: ["recommendations"],
+        queryKey: queryKeys.userReviews.root(user.id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.recommendations.root(user.id),
       });
     },
   });
@@ -98,17 +103,18 @@ export function useUpdateMediaStatus() {
       }
       return UserMediaService.updateStatus(user.id, mediaId, status);
     },
-    onSuccess: (_, { mediaId }) => {
+    onSuccess: (userMediaItem, { mediaId }) => {
       if (!user?.id) return;
 
-      // Invalidate user media queries
+      queryClient.setQueryData(
+        queryKeys.userMediaItem.detail(user.id, mediaId),
+        userMediaItem
+      );
       queryClient.invalidateQueries({
-        queryKey: queryKeys.userMedia.all(user.id),
+        queryKey: queryKeys.userMedia.root(user.id),
       });
-
-      // Invalidate specific user media item
       queryClient.invalidateQueries({
-        queryKey: queryKeys.userMediaItem.detail(user.id, mediaId),
+        queryKey: queryKeys.recommendations.root(user.id),
       });
     },
   });

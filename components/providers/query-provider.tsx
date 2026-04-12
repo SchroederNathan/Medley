@@ -1,24 +1,39 @@
 import React from "react";
-import { queryClient } from "../../lib/query-client";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { focusManager } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
-import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
+import { useAppState } from "../../hooks/use-app-state";
+import { useOnlineManager } from "../../hooks/use-online-manager";
+import { createMMKVPersister } from "../../lib/mmkv-persister";
+import {
+  queryClient,
+  QUERY_CACHE_BUSTER,
+  QUERY_CACHE_MAX_AGE,
+} from "../../lib/query-client";
+import { nativeStorage, storageKeys } from "../../lib/storage";
 
 interface QueryProviderProps {
   children: React.ReactNode;
 }
 
+const persister = createMMKVPersister({
+  key: storageKeys.queryCache,
+  storage: nativeStorage,
+});
+
 export function QueryProvider({ children }: QueryProviderProps) {
-  const persister = createAsyncStoragePersister({
-    storage: AsyncStorage,
-    key: "RQ_CACHE",
-    throttleTime: 2000,
+  useOnlineManager();
+  useAppState((status) => {
+    focusManager.setFocused(status === "active");
   });
 
   return (
     <PersistQueryClientProvider
       client={queryClient}
-      persistOptions={{ persister }}
+      persistOptions={{
+        buster: QUERY_CACHE_BUSTER,
+        maxAge: QUERY_CACHE_MAX_AGE,
+        persister,
+      }}
     >
       {children}
     </PersistQueryClientProvider>

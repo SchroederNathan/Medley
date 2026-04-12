@@ -25,27 +25,18 @@ export function useSubmitReview() {
       }
       return UserMediaService.submitReview(user.id, mediaId, rating, review);
     },
-    onSuccess: (_, { mediaId }) => {
+    onSuccess: (userMediaItem, { mediaId }) => {
       if (!user?.id) return;
 
-      // Invalidate user media queries
+      queryClient.setQueryData(
+        queryKeys.userMediaItem.detail(user.id, mediaId),
+        userMediaItem
+      );
       queryClient.invalidateQueries({
-        queryKey: queryKeys.userMedia.all(user.id),
+        queryKey: queryKeys.userMedia.root(user.id),
       });
-
-      // Invalidate user reviews
       queryClient.invalidateQueries({
-        queryKey: queryKeys.userReviews.all(user.id),
-      });
-
-      // Invalidate specific review for this media
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.userReviews.byMedia(user.id, mediaId),
-      });
-
-      // Invalidate specific user media item
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.userMediaItem.detail(user.id, mediaId),
+        queryKey: queryKeys.userReviews.root(user.id),
       });
     },
   });

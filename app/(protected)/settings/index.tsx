@@ -1,4 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useContext, useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -6,6 +5,7 @@ import Button from "../../../components/ui/button";
 import { AuthContext } from "../../../contexts/auth-context";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { queryClient } from "../../../lib/query-client";
+import { clearPersistedQueryCache } from "../../../lib/storage";
 const SettingsScreen = () => {
   const { theme } = useContext(ThemeContext);
   const authContext = useContext(AuthContext);
@@ -25,10 +25,8 @@ const SettingsScreen = () => {
             try {
               setIsResetting(true);
               await queryClient.cancelQueries();
-              queryClient.clear();
-              await AsyncStorage.removeItem("RQ_CACHE");
-              await queryClient.invalidateQueries({ type: "all" });
-              await queryClient.refetchQueries({ type: "all" });
+              clearPersistedQueryCache();
+              await queryClient.resetQueries({ type: "all" });
             } catch (e) {
               console.warn("Failed to reset query cache", e);
             } finally {

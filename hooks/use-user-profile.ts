@@ -1,8 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useContext } from "react";
 import { AuthContext } from "../contexts/auth-context";
-import { queryKeys } from "../lib/query-keys";
-import { Profile, ProfileService } from "../services/profileService";
+import { userProfileQueryOptions } from "../lib/query-options";
+import { useUploadAvatar } from "./mutations/use-upload-avatar";
+import { Profile } from "../services/profileService";
 
 /**
  * Hook for fetching the current user's profile
@@ -11,17 +12,8 @@ export function useUserProfile() {
   const { user, isLoggedIn } = useContext(AuthContext);
 
   return useQuery<Profile | null>({
-    queryKey: queryKeys.userProfile.detail(user?.id ?? ""),
-    queryFn: async () => {
-      if (!user?.id) throw new Error("No user ID");
-      return ProfileService.getProfile(user.id);
-    },
+    ...userProfileQueryOptions(user?.id ?? ""),
     enabled: isLoggedIn && !!user?.id,
-    // Longer stale time because profiles rarely change
-    staleTime: 1000 * 60 * 30, // 30 minutes
-    gcTime: 1000 * 60 * 60 * 24, // 24 hours
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
   });
 }
 
@@ -31,16 +23,8 @@ export function useUserProfile() {
  */
 export function useUserProfileById(userId?: string) {
   return useQuery<Profile | null>({
-    queryKey: queryKeys.userProfile.detail(userId ?? ""),
-    queryFn: async () => {
-      if (!userId) throw new Error("No user ID provided");
-      return ProfileService.getProfile(userId);
-    },
+    ...userProfileQueryOptions(userId ?? ""),
     enabled: !!userId,
-    staleTime: 1000 * 60 * 30, // 30 minutes
-    gcTime: 1000 * 60 * 60 * 24, // 24 hours
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
   });
 }
 
@@ -50,24 +34,7 @@ export function useUserProfileById(userId?: string) {
  * @deprecated Use useUploadAvatar from hooks/mutations instead
  */
 export function useUploadProfileImage() {
-  const { user } = useContext(AuthContext);
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (imageUri: string) => {
-      if (!user?.id) {
-        throw new Error("User must be logged in");
-      }
-      return ProfileService.uploadAvatar(user.id, imageUri);
-    },
-    onSuccess: () => {
-      if (!user?.id) return;
-      // Invalidate and refetch the user profile to get the updated avatar_url
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.userProfile.detail(user.id),
-      });
-    },
-  });
+  return useUploadAvatar();
 }
 
 /**
@@ -79,11 +46,7 @@ export function usePrefetchUserProfile() {
 
   const prefetchProfile = async () => {
     if (isLoggedIn && user?.id) {
-      await queryClient.prefetchQuery({
-        queryKey: queryKeys.userProfile.detail(user.id),
-        queryFn: () => ProfileService.getProfile(user.id!),
-        staleTime: 1000 * 60 * 30,
-      });
+      await queryClient.prefetchQuery(userProfileQueryOptions(user.id));
     }
   };
 

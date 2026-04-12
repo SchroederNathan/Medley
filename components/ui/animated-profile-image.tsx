@@ -24,10 +24,8 @@ import {
   useZoomAnimation,
 } from "../../contexts/zoom-animation-context";
 import { ThemeContext } from "../../contexts/theme-context";
-import {
-  useUploadProfileImage,
-  useUserProfile,
-} from "../../hooks/use-user-profile";
+import { useUploadAvatar } from "../../hooks/mutations";
+import { useUserProfile } from "../../hooks/use-user-profile";
 import { fontFamily } from "../../lib/fonts";
 import { AddImageIcon } from "./svg-icons";
 
@@ -39,7 +37,7 @@ export const AnimatedProfileImage: FC = () => {
   const { width: screenWidth } = useWindowDimensions();
   const { data: profile } = useUserProfile();
   const { theme } = useContext(ThemeContext);
-  const uploadMutation = useUploadProfileImage();
+  const uploadMutation = useUploadAvatar();
   const [isPickingImage, setIsPickingImage] = useState(false);
 
   // Profile specific dimension
@@ -54,7 +52,6 @@ export const AnimatedProfileImage: FC = () => {
     blurIntensity,
     dimOpacity: closeBtnOpacity,
     extraContentOpacity: changeImageRowOpacity,
-    open,
     close,
     snapToCenter,
   } = useZoomAnimation();

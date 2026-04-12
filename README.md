@@ -1,12 +1,12 @@
 <img src="assets/images/medley-readme.png" alt="Medley" width="100%" />
 
-A simple media discovery app built with Expo + React Native, Expo Router, Supabase, and TanStack Query. It includes **coming soon**
+A simple native media discovery app built with Expo, React Native, Expo Router, Supabase, and TanStack Query.
 
 ### Features
 
 - **Expo Router**: File‑system routing with protected `(tabs)` and auth screens
 - **Supabase**: Email/password auth, session handling, and basic profile storage
-- **TanStack Query**: Data fetching with AsyncStorage persistence
+- **TanStack Query**: Data fetching with MMKV-backed native persistence
 - **UI components**: Carousel, Media cards, Search, Buttons, Inputs
 - **Custom fonts**: Plus Jakarta Sans and Tanker
 
@@ -31,7 +31,6 @@ npm start
 # Or run directly on a platform
 npm run ios     # iOS simulator
 npm run android # Android emulator/device
-npm run web     # Web
 ```
 
 ### Environment Variables
@@ -56,7 +55,6 @@ The most useful npm scripts:
 npm start     # Start the Expo dev server
 npm run ios   # Run iOS (Expo Run / prebuild flow)
 npm run android
-npm run web
 npm run lint  # Lint the project
 ```
 
@@ -75,13 +73,13 @@ assets/                     # Images, icons, fonts
 
 ### Tech Stack
 
-- React Native 0.79, Expo 53
-- Expo Router 5
+- React Native 0.83, Expo 55
+- Expo Router 6
 - Supabase JS 2
 - TanStack Query 5
+- MMKV native persistence
 
 ### Troubleshooting
 
 - If `.env` changes are not reflected, stop and restart the dev server.
 - iOS/Android builds may require opening the native projects once after `npm run ios`/`android` to finish installing pods/gradle deps.
-

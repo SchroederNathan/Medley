@@ -30,7 +30,7 @@ export function useCreateCollection() {
 
       // Invalidate user collections list
       queryClient.invalidateQueries({
-        queryKey: queryKeys.collections.all(user.id),
+        queryKey: queryKeys.collections.root(user.id),
       });
     },
   });
@@ -52,7 +52,7 @@ export function useDeleteCollection() {
 
       // Invalidate user collections list
       queryClient.invalidateQueries({
-        queryKey: queryKeys.collections.all(user.id),
+        queryKey: queryKeys.collections.root(user.id),
       });
 
       // Remove the specific collection from cache
@@ -90,7 +90,7 @@ export function useAddToCollection() {
 
       // Invalidate user collections list (to update item counts, etc.)
       queryClient.invalidateQueries({
-        queryKey: queryKeys.collections.all(user.id),
+        queryKey: queryKeys.collections.root(user.id),
       });
     },
   });
@@ -123,7 +123,7 @@ export function useRemoveFromCollection() {
 
       // Invalidate user collections list
       queryClient.invalidateQueries({
-        queryKey: queryKeys.collections.all(user.id),
+        queryKey: queryKeys.collections.root(user.id),
       });
     },
   });

@@ -2,6 +2,7 @@
 // Works with your existing media table structure
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "./query-keys";
 import { supabase } from "./utils";
 
 type MediaType = "movie" | "tv" | "game";
@@ -334,7 +335,7 @@ export const useRecommendations = (
   targetMediaType: MediaType
 ) => {
   return useQuery({
-    queryKey: ["recommendations", userId, targetMediaType],
+    queryKey: queryKeys.genreRecommendations.list(userId, targetMediaType),
     queryFn: () =>
       MediaGenreService.getRecommendations(
         supabase,
@@ -353,7 +354,7 @@ export const useUserMediaWithGenres = (
   status?: string
 ) => {
   return useQuery({
-    queryKey: ["user-media-genres", userId, mediaType, status],
+    queryKey: queryKeys.mediaGenres.list(userId, mediaType, status),
     queryFn: () =>
       MediaGenreService.getUserMediaWithGenres(
         supabase,

@@ -1,4 +1,5 @@
 import { supabase } from "../lib/utils";
+import { throwIfError, toAppError } from "../lib/app-error";
 import { Media } from "../types/media";
 
 export type UserMediaStatus =
@@ -35,20 +36,34 @@ export class UserMediaService {
     mediaId: string,
     status: UserMediaStatus = "want",
     rating?: number
-  ) {
-    const { data, error } = await supabase.from("user_media").upsert(
-      {
-        user_id: userId,
-        media_id: mediaId,
-        status,
-        user_rating: rating,
-        added_at: new Date().toISOString(),
-      },
-      { onConflict: "user_id,media_id" }
-    );
+  ): Promise<UserMediaItem> {
+    const { data, error } = await supabase
+      .from("user_media")
+      .upsert(
+        {
+          user_id: userId,
+          media_id: mediaId,
+          status,
+          user_rating: rating,
+          added_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id,media_id" }
+      )
+      .select()
+      .single();
 
-    if (error) throw error;
-    return data;
+    throwIfError(error, "Failed to save media");
+
+    const savedRecord = Array.isArray(data) ? data[0] : data;
+    if (!savedRecord) {
+      const record = await this.getUserMediaItem(userId, mediaId);
+      if (!record) {
+        throw toAppError(new Error("Media item was not returned after save"));
+      }
+      return record;
+    }
+
+    return savedRecord as UserMediaItem;
   }
 
   /**
@@ -60,7 +75,7 @@ export class UserMediaService {
       .select("*")
       .eq("user_id", userId)
       .order("added_at", { ascending: false });
-    if (error) throw error;
+    throwIfError(error, "Failed to load user media");
     return data ?? [];
   }
 
@@ -76,7 +91,7 @@ export class UserMediaService {
       .eq("user_id", userId)
       .order("added_at", { ascending: false });
 
-    if (userMediaError) throw userMediaError;
+    throwIfError(userMediaError, "Failed to load user media");
     const mediaIds = (userMediaRows || []).map((r: any) => r.media_id);
     if (mediaIds.length === 0) return [];
 
@@ -85,7 +100,7 @@ export class UserMediaService {
       .from("media")
       .select("*")
       .in("id", mediaIds);
-    if (mediaError) throw mediaError;
+    throwIfError(mediaError, "Failed to load media details");
 
     // 3) Preserve user_media order (added_at desc)
     const orderMap = new Map<string, number>();
@@ -116,7 +131,7 @@ export class UserMediaService {
     if (status) query = query.eq("status", status);
 
     const { data, error } = await query.order("added_at", { ascending: false });
-    if (error) throw error;
+    throwIfError(error, "Failed to load media genres");
     return data ?? [];
   }
 
@@ -128,7 +143,7 @@ export class UserMediaService {
       .from("user_media_with_genres")
       .select("unified_genres")
       .eq("user_id", userId);
-    if (error) throw error;
+    throwIfError(error, "Failed to load genre preferences");
 
     const counts: Record<string, number> = {};
     (data || []).forEach((row: any) => {
@@ -157,7 +172,7 @@ export class UserMediaService {
       if (error.code === "PGRST116") {
         return null;
       }
-      throw error;
+      throw toAppError(error, "Failed to load user media item");
     }
     return data;
   }
@@ -175,7 +190,7 @@ export class UserMediaService {
       .not("review", "is", null)
       .order("added_at", { ascending: false });
 
-    if (userMediaError) throw userMediaError;
+    throwIfError(userMediaError, "Failed to load user reviews");
     if (!userMediaRows || userMediaRows.length === 0) return [];
 
     const mediaIds = userMediaRows.map((r: any) => r.media_id);
@@ -186,7 +201,7 @@ export class UserMediaService {
       .select("*")
       .in("id", mediaIds);
 
-    if (mediaError) throw mediaError;
+    throwIfError(mediaError, "Failed to load reviewed media details");
 
     // Create a map of media by ID
     const mediaMap = new Map<string, Media>();
@@ -221,19 +236,33 @@ export class UserMediaService {
     mediaId: string,
     rating: number,
     review: string
-  ) {
-    const { data, error } = await supabase.from("user_media").upsert(
-      {
-        user_id: userId,
-        media_id: mediaId,
-        user_rating: rating,
-        review: review.trim() || null,
-      },
-      { onConflict: "user_id,media_id" }
-    );
+  ): Promise<UserMediaItem> {
+    const { data, error } = await supabase
+      .from("user_media")
+      .upsert(
+        {
+          user_id: userId,
+          media_id: mediaId,
+          user_rating: rating,
+          review: review.trim() || null,
+        },
+        { onConflict: "user_id,media_id" }
+      )
+      .select()
+      .single();
 
-    if (error) throw error;
-    return data;
+    throwIfError(error, "Failed to submit review");
+
+    const savedRecord = Array.isArray(data) ? data[0] : data;
+    if (!savedRecord) {
+      const record = await this.getUserMediaItem(userId, mediaId);
+      if (!record) {
+        throw toAppError(new Error("Review was not returned after save"));
+      }
+      return record;
+    }
+
+    return savedRecord as UserMediaItem;
   }
 
   /**
@@ -246,7 +275,7 @@ export class UserMediaService {
       .eq("user_id", userId)
       .eq("media_id", mediaId);
 
-    if (error) throw error;
+    throwIfError(error, "Failed to remove media from library");
   }
 
   /**
@@ -265,7 +294,7 @@ export class UserMediaService {
       .select()
       .single();
 
-    if (error) throw error;
+    throwIfError(error, "Failed to update media status");
     return data;
   }
 

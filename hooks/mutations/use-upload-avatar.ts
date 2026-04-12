@@ -19,17 +19,18 @@ export function useUploadAvatar() {
       }
       return ProfileService.uploadAvatar(user.id, imageUri);
     },
-    onSuccess: () => {
+    onSuccess: (avatarUrl) => {
       if (!user?.id) return;
 
-      // Invalidate and refetch the user profile
+      queryClient.setQueryData(
+        queryKeys.userProfile.detail(user.id),
+        (currentProfile: { avatar_url?: string } | null | undefined) =>
+          currentProfile
+            ? { ...currentProfile, avatar_url: avatarUrl }
+            : currentProfile
+      );
       queryClient.invalidateQueries({
-        queryKey: queryKeys.userProfile.detail(user.id),
-      });
-
-      // Force immediate refetch
-      queryClient.refetchQueries({
-        queryKey: queryKeys.userProfile.detail(user.id),
+        queryKey: queryKeys.userProfile.root(user.id),
       });
     },
   });
@@ -55,12 +56,15 @@ export function useUpdateProfile() {
       }
       return ProfileService.updateProfile(user.id, updates);
     },
-    onSuccess: () => {
+    onSuccess: (profile) => {
       if (!user?.id) return;
 
-      // Invalidate the user profile
+      queryClient.setQueryData(queryKeys.userProfile.detail(user.id), profile);
       queryClient.invalidateQueries({
-        queryKey: queryKeys.userProfile.detail(user.id),
+        queryKey: queryKeys.userProfile.root(user.id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.media.preferredRoot(user.id),
       });
     },
   });
