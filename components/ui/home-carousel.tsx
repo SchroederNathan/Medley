@@ -48,12 +48,12 @@ interface GalleryCardProps {
   totalItems: number;
 }
 
-const GalleryCard: React.FC<GalleryCardProps> = ({
+const GalleryCard = function GalleryCard({
   item,
   index,
   activeIndex,
   totalItems,
-}) => {
+}: GalleryCardProps) {
   const router = useRouter();
   const pressScale = useSharedValue(1);
   const cardRef = useRef<View>(null);
@@ -72,7 +72,7 @@ const GalleryCard: React.FC<GalleryCardProps> = ({
   }, [router, item.id]);
 
   const resetPressScale = useCallback(() => {
-    pressScale.value = withSpring(1);
+    pressScale.set(withSpring(1));
   }, [pressScale]);
 
   const { longPressGesture, panGesture, isLongPressed, overlayOpen } =
@@ -128,19 +128,19 @@ const GalleryCard: React.FC<GalleryCardProps> = ({
   const longPressWithScale = longPressGesture
     .onBegin(() => {
       "worklet";
-      pressScale.value = withSpring(0.95);
+      pressScale.set(withSpring(0.95));
     })
     .onFinalize(() => {
       "worklet";
-      if (overlayOpen.value === 0) {
-        pressScale.value = withSpring(1);
+      if (overlayOpen.get() === 0) {
+        pressScale.set(withSpring(1));
       }
     });
 
   const pan = panGesture.onFinalize(() => {
     "worklet";
-    if (overlayOpen.value === 0) {
-      pressScale.value = withSpring(1);
+    if (overlayOpen.get() === 0) {
+      pressScale.set(withSpring(1));
     }
   });
 
@@ -148,18 +148,18 @@ const GalleryCard: React.FC<GalleryCardProps> = ({
     .maxDuration(500)
     .onBegin(() => {
       "worklet";
-      pressScale.value = withSpring(0.95);
+      pressScale.set(withSpring(0.95));
     })
     .onEnd(() => {
       "worklet";
-      pressScale.value = withSpring(1);
-      if (!isLongPressed.value) {
+      pressScale.set(withSpring(1));
+      if (!isLongPressed.get()) {
         scheduleOnRN(navigateToMediaDetail);
       }
     })
     .onFinalize(() => {
       "worklet";
-      pressScale.value = withSpring(1);
+      pressScale.set(withSpring(1));
     });
 
   const composedGesture = Gesture.Simultaneous(
@@ -168,7 +168,7 @@ const GalleryCard: React.FC<GalleryCardProps> = ({
   );
 
   const animatedStyle = useAnimatedStyle(() => {
-    const active = activeIndex.value;
+    const active = activeIndex.get();
     const diff = index - active;
 
     // Gallery influence: strongest when activeIndex near 0
@@ -197,7 +197,7 @@ const GalleryCard: React.FC<GalleryCardProps> = ({
     const translateX = galleryFactor * stackX + (1 - galleryFactor) * centeredX;
     const scale =
       (galleryFactor * stackScale + (1 - galleryFactor) * centeredScale) *
-      pressScale.value;
+      pressScale.get();
 
     // Static z-index: card 0 always on top, descending order
     const zIndex = totalItems - index;
@@ -209,7 +209,7 @@ const GalleryCard: React.FC<GalleryCardProps> = ({
   });
 
   const overlayStyle = useAnimatedStyle(() => {
-    const active = activeIndex.value;
+    const active = activeIndex.get();
     const diff = index - active;
     const absDiff = Math.abs(diff);
 
@@ -282,20 +282,20 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({
     .activeOffsetX([-10, 10])
     .failOffsetY([-10, 10])
     .onStart(() => {
-      startIndex.value = activeIndex.value;
+      startIndex.set(activeIndex.get());
     })
     .onUpdate((e) => {
       const newIndex =
-        startIndex.value - e.translationX / (ITEM_WIDTH + ITEM_SPACING);
-      activeIndex.value = Math.max(0, Math.min(media.length - 1, newIndex));
+        startIndex.get() - e.translationX / (ITEM_WIDTH + ITEM_SPACING);
+      activeIndex.set(Math.max(0, Math.min(media.length - 1, newIndex)));
     })
     .onEnd((e) => {
-      const projected = activeIndex.value - e.velocityX / 1000;
+      const projected = activeIndex.get() - e.velocityX / 1000;
       const target = Math.max(
         0,
         Math.min(media.length - 1, Math.round(projected))
       );
-      activeIndex.value = withSpring(target);
+      activeIndex.set(withSpring(target));
       scheduleOnRN(updateIndex, target);
     });
 
