@@ -7,11 +7,6 @@
     "icon": "./assets/icons/icon.png",
     "userInterfaceStyle": "automatic",
     "scheme": "com.schroedernathan.medley",
-    "splash": {
-      "image": "./assets/icons/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#171717"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.schroedernathan.medley"
@@ -29,6 +24,19 @@
     "plugins": [
       "expo-router",
       "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FFFFFF",
+          "image": "./assets/icons/splash.png",
+          "resizeMode": "contain",
+          "dark": {
+            "backgroundColor": "#0A0A0A",
+            "image": "./assets/icons/splash.png",
+            "resizeMode": "contain"
+          }
+        }
+      ],
       [
         "expo-asset",
         {
@@ -56,8 +64,7 @@
           "color": "#171717",
           "sounds": []
         }
-      ],
-      ["react-native-bootsplash", { "assetsDir": "assets/bootsplash" }]
+      ]
     ],
     "extra": {
       "router": {},

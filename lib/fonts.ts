@@ -67,8 +67,7 @@ export const fontFamily = {
   },
 };
 
-// Hook to load fonts with splash screen
-// Note: Splash screen hiding is now controlled by SplashController in app/_layout.tsx
+// Hook to load fonts; native splash hide is gated in app/_layout.tsx (SplashHideGate).
 export const useAppFonts = () => {
   const [loaded, error] = useFonts(fontAssets);
 
