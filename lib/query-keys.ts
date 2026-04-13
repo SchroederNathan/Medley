@@ -85,6 +85,13 @@ export const queryKeys = {
         "all",
         normalizeRecommendationFilters(filters),
       ] as const,
+    favorites: (userId: string, filters?: RecommendationFilters) =>
+      [
+        "recommendations",
+        userId,
+        "favorites",
+        normalizeRecommendationFilters(filters),
+      ] as const,
     byType: (
       userId: string,
       mediaType: string,

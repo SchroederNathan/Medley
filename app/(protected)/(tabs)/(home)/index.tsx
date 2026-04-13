@@ -11,25 +11,21 @@ import Svg, {
 } from "react-native-svg";
 import { AnimatedBlur } from "../../../../components/ui/animated-blur";
 import { AnimatedChevron } from "../../../../components/ui/animated-chevron";
-import Button from "../../../../components/ui/button";
 import Carousel from "../../../../components/ui/carousel";
 import HomeBackdrop from "../../../../components/ui/home-backdrop";
 import HomeCarousel from "../../../../components/ui/home-carousel";
 import ProfileButton from "../../../../components/ui/profile-button";
 import { PullToSearchContent } from "../../../../components/ui/pull-to-search-content";
 import { SharedHeader } from "../../../../components/ui/shared-header";
-import { AuthContext } from "../../../../contexts/auth-context";
 import { ContentReadyContext } from "../../../../contexts/content-ready-context";
 import { ThemeContext } from "../../../../contexts/theme-context";
 import { usePopularMovies } from "../../../../hooks/use-popular-movies";
 import { useRecommendations } from "../../../../hooks/use-recommendations";
 import { useSharedSearch } from "../../../../hooks/use-shared-search";
 import { fontFamily } from "../../../../lib/fonts";
-import { sendPushNotification } from "../../../../lib/notifications";
 
 const IndexScreen = () => {
   const { theme } = useContext(ThemeContext);
-  const { user } = useContext(AuthContext);
   const { setContentReady } = useContext(ContentReadyContext);
   const {
     query,
@@ -40,6 +36,9 @@ const IndexScreen = () => {
     handleSearchClear,
   } = useSharedSearch();
   const paddingBottom = useSafeAreaInsets().bottom + 72;
+  const favoriteRecommendations = useRecommendations({
+    kind: "favorites",
+  });
   const recommendedGames = useRecommendations({
     kind: "type",
     mediaType: "game",
@@ -58,6 +57,7 @@ const IndexScreen = () => {
   // Mark content as ready when all recommendations have loaded (successfully or with error)
   useEffect(() => {
     const allQueriesFinished =
+      !favoriteRecommendations.isLoading &&
       !recommendedGames.isLoading &&
       !recommendedMovies.isLoading &&
       !popularMovies.isLoading &&
@@ -67,12 +67,22 @@ const IndexScreen = () => {
       setContentReady(true);
     }
   }, [
+    favoriteRecommendations.isLoading,
     recommendedGames.isLoading,
     recommendedMovies.isLoading,
     popularMovies.isLoading,
     recommendedTvShows.isLoading,
     setContentReady,
   ]);
+
+  useEffect(() => {
+    if (favoriteRecommendations.isError) {
+      console.warn(
+        "Failed to load favorite recommendations",
+        favoriteRecommendations.error
+      );
+    }
+  }, [favoriteRecommendations.error, favoriteRecommendations.isError]);
 
   // const getTimeBasedGreeting = () => {
   //   const hour = new Date().getHours();
@@ -143,36 +153,25 @@ const IndexScreen = () => {
 
         {/* Main content - always show recommendations */}
         <View style={{ paddingBottom: paddingBottom }}>
-          <Button
-            title="Send Push Notification"
-            styles={{ marginVertical: 16 }}
-            onPress={() => {
-              sendPushNotification({
-                userId: user?.id as string,
-                body: "Hello, this is a test push notification",
-              });
-            }}
-          />
+          {favoriteRecommendations.data &&
+          favoriteRecommendations.data.length > 0 ? (
+            <Carousel
+              style={{ marginTop: 0 }}
+              media={favoriteRecommendations.data}
+              title="Based on your favorites"
+            />
+          ) : null}
           <Carousel
-            style={{ marginTop: 0 }}
+            style={{
+              marginTop:
+                favoriteRecommendations.data &&
+                favoriteRecommendations.data.length > 0
+                  ? 32
+                  : 0,
+            }}
             media={popularMovies.data ?? []}
             title="Popular Movies"
           />
-          {/* <Carousel
-            style={{ marginTop: 32 }}
-            media={recommendedMovies.data ?? []}
-            title="Movies for you"
-          />
-          <Carousel
-            style={{ marginTop: 32 }}
-            media={recommendedGames.data ?? []}
-            title="Games for you"
-          />
-          <Carousel
-            style={{ marginTop: 32 }}
-            media={recommendedTvShows.data ?? []}
-            title="TV for you"
-          /> */}
         </View>
       </PullToSearchContent>
 

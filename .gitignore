@@ -43,6 +43,11 @@ yarn-error.*
 
 # Supabase
 supabase/*
+!supabase/functions/
+supabase/functions/*
+!supabase/functions/favorite-recommendations/
+supabase/functions/favorite-recommendations/*
+!supabase/functions/favorite-recommendations/index.ts
 
 CLAUDE.md
 AGENTS.md

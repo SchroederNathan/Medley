@@ -20,6 +20,7 @@ import { Media, TvEpisode } from "../types/media";
 
 export type RecommendationQueryInput =
   | { kind: "all"; filters?: RecommendationFilters }
+  | { kind: "favorites"; filters?: RecommendationFilters }
   | { kind: "type"; mediaType: MediaTypeDb; filters?: RecommendationFilters }
   | {
       kind: "similar";
@@ -143,6 +144,16 @@ export function recommendationsQueryOptions(options: {
       return queryOptions<Media[]>({
         queryFn: () => RecommendationService.getAll(userId, request.filters),
         queryKey: queryKeys.recommendations.all(userId, request.filters),
+        staleTime: 1000 * 60 * 15,
+      });
+    case "favorites":
+      return queryOptions<Media[]>({
+        queryFn: () =>
+          RecommendationService.getFromFavorites(userId, request.filters),
+        queryKey: queryKeys.recommendations.favorites(userId, request.filters),
+        refetchOnMount: "always",
+        refetchOnReconnect: true,
+        refetchOnWindowFocus: true,
         staleTime: 1000 * 60 * 15,
       });
     case "type":

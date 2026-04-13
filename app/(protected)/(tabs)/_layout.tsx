@@ -1,4 +1,3 @@
-import * as Haptics from "expo-haptics";
 import {
   TabList,
   Tabs,
@@ -7,7 +6,7 @@ import {
   TabTriggerSlotProps,
 } from "expo-router/ui";
 import React, { useContext } from "react";
-import { Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -16,18 +15,18 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Rive from "rive-react-native";
 import { BottomGradient } from "../../../components/ui/bottom-gradient";
+import {
+  HomeFilledIcon,
+  HomeOutlineIcon,
+  LibraryFilledIcon,
+  LibraryOutlineIcon,
+  ProfileFilledIcon,
+  ProfileOutlineIcon,
+  SocialFilledIcon,
+  SocialOutlineIcon,
+} from "../../../components/ui/svg-icons";
 import { HomeAnimationProvider } from "../../../contexts/home-animation-context";
 import { ThemeContext } from "../../../contexts/theme-context";
-import {
-  HomeOutlineIcon,
-  HomeFilledIcon,
-  SocialOutlineIcon,
-  SocialFilledIcon,
-  LibraryOutlineIcon,
-  LibraryFilledIcon,
-  ProfileOutlineIcon,
-  ProfileFilledIcon,
-} from "../../../components/ui/svg-icons";
 
 type TabButtonProps = TabTriggerSlotProps & {
   outlineIcon: React.ComponentType<{ size?: number; color?: string }>;
@@ -45,9 +44,9 @@ const TabButton: React.FC<TabButtonProps> = ({
   const iconColor = isFocused ? theme.text : theme.secondaryText;
 
   return (
-    <TouchableOpacity onPress={onPress || undefined} style={styles.tabTrigger}>
+    <Pressable onPress={onPress || undefined} style={styles.tabTrigger}>
       <IconComponent size={24} color={iconColor} />
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 
