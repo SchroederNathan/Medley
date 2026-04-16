@@ -22,11 +22,15 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
+import { themes } from "../../constants/colors";
 import { ThemeContext } from "../../contexts/theme-context";
 import { useRadialOverlay } from "../../hooks/use-radial-overlay";
 import { Media } from "../../types/media";
 import GradientSweepOverlay from "./gradient-sweep-overlay";
-import { BookmarkIcon, ShareIcon, StarIcon } from "./svg-icons";
+import { BookmarkIcon, ShareIcon, StarIcon, StarSolidIcon } from "./svg-icons";
+
+const STAR_SIZE = 10;
+const STAR_GAP = 1;
 
 // Gradient overlay moved to shared component
 
@@ -36,12 +40,14 @@ const MediaCard = ({
   height = 200,
   style,
   isTouchable = true,
+  rating,
 }: {
   media: Media;
   width?: DimensionValue;
   height?: DimensionValue;
   style?: ViewStyle;
   isTouchable?: boolean;
+  rating?: number;
 }) => {
   const { theme } = useContext(ThemeContext);
   const router = useRouter();
@@ -190,6 +196,38 @@ const MediaCard = ({
       cancelAnimation(pulse);
     };
   }, [isLoading, pulse]);
+  const starOverlay = useMemo(() => {
+    if (rating == null) return null;
+    const clamped = Math.max(0, Math.min(5, rating));
+    if (clamped <= 0) return null;
+    const fullStars = Math.floor(clamped);
+    const hasHalf = clamped - fullStars >= 0.5;
+    if (fullStars === 0 && !hasHalf) return null;
+
+    return (
+      <View pointerEvents="none" style={styles.stars}>
+        {Array.from({ length: fullStars }).map((_, i) => (
+          <View
+            key={`full-${i}`}
+            style={i > 0 ? { marginLeft: STAR_GAP } : undefined}
+          >
+            <StarSolidIcon size={STAR_SIZE} color={theme.secondaryText} />
+          </View>
+        ))}
+        {hasHalf && (
+          <View
+            style={[
+              styles.halfStarWrap,
+              fullStars > 0 ? { marginLeft: STAR_GAP } : undefined,
+            ]}
+          >
+            <StarSolidIcon size={STAR_SIZE} color={theme.secondaryText} />
+          </View>
+        )}
+      </View>
+    );
+  }, [rating]);
+
   const cardContent = (
     <>
       {isLoading && (
@@ -216,41 +254,50 @@ const MediaCard = ({
     </>
   );
 
+  const accessibilityLabel =
+    rating != null && rating > 0
+      ? `${media.title ?? "Media"}, rated ${rating} out of 5`
+      : undefined;
+
   if (isTouchable) {
     return (
-      <GestureDetector gesture={composedGesture}>
-        <Animated.View
-          ref={cardRef}
-          style={[
-            styles.container,
-            {
-              height: height,
-              width: width,
-              backgroundColor: theme.buttonBackground,
-            },
-            scaleStyle,
-            style,
-          ]}
-        >
-          {cardContent}
-        </Animated.View>
-      </GestureDetector>
+      <View style={[{ width }, style]} accessibilityLabel={accessibilityLabel}>
+        <GestureDetector gesture={composedGesture}>
+          <Animated.View
+            ref={cardRef}
+            style={[
+              styles.container,
+              {
+                height: height,
+                width: "100%",
+                backgroundColor: theme.buttonBackground,
+              },
+              scaleStyle,
+            ]}
+          >
+            {cardContent}
+          </Animated.View>
+        </GestureDetector>
+        {starOverlay}
+      </View>
     );
   }
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          height: height,
-          width: width,
-          backgroundColor: theme.buttonBackground,
-        },
-        style,
-      ]}
-    >
-      {cardContent}
+    <View style={[{ width }, style]} accessibilityLabel={accessibilityLabel}>
+      <View
+        style={[
+          styles.container,
+          {
+            height: height,
+            width: "100%",
+            backgroundColor: theme.buttonBackground,
+          },
+        ]}
+      >
+        {cardContent}
+      </View>
+      {starOverlay}
     </View>
   );
 };
@@ -270,5 +317,17 @@ const styles = StyleSheet.create({
   touchableContent: {
     width: "100%",
     height: "100%",
+  },
+
+  stars: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 4,
+  },
+
+  halfStarWrap: {
+    width: STAR_SIZE / 2,
+    height: STAR_SIZE,
+    overflow: "hidden",
   },
 });

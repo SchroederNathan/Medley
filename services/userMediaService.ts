@@ -87,7 +87,7 @@ export class UserMediaService {
     // 1) Fetch the user's list from user_media
     const { data: userMediaRows, error: userMediaError } = await supabase
       .from("user_media")
-      .select("media_id, added_at")
+      .select("media_id, added_at, user_rating")
       .eq("user_id", userId)
       .order("added_at", { ascending: false });
 
@@ -102,14 +102,21 @@ export class UserMediaService {
       .in("id", mediaIds);
     throwIfError(mediaError, "Failed to load media details");
 
-    // 3) Preserve user_media order (added_at desc)
+    // 3) Preserve user_media order (added_at desc) and attach user_rating
     const orderMap = new Map<string, number>();
-    mediaIds.forEach((id: string, idx: number) => orderMap.set(id, idx));
-    const sorted = (mediaRows as Media[]).slice().sort((a, b) => {
-      const ai = orderMap.get(a.id) ?? 0;
-      const bi = orderMap.get(b.id) ?? 0;
-      return ai - bi;
+    const ratingMap = new Map<string, number | null>();
+    (userMediaRows || []).forEach((row: any, idx: number) => {
+      orderMap.set(row.media_id, idx);
+      ratingMap.set(row.media_id, row.user_rating ?? null);
     });
+    const sorted = (mediaRows as Media[])
+      .slice()
+      .sort((a, b) => {
+        const ai = orderMap.get(a.id) ?? 0;
+        const bi = orderMap.get(b.id) ?? 0;
+        return ai - bi;
+      })
+      .map((m) => ({ ...m, user_rating: ratingMap.get(m.id) ?? null }));
 
     return sorted;
   }

@@ -79,4 +79,5 @@ export type Media = {
   metadata: MediaMetadata;
   created_at: string;
   updated_at: string;
+  user_rating?: number | null;
 };

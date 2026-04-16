@@ -163,6 +163,7 @@ const LibraryScreen = () => {
                           media={item}
                           width={CARD_WIDTH}
                           height={CARD_HEIGHT}
+                          rating={item.user_rating ?? undefined}
                         />
                       )}
                       masonry
