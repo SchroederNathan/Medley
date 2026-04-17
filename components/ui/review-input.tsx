@@ -4,7 +4,6 @@ import { useRouter } from "expo-router";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   Dimensions,
-  Keyboard,
   Platform,
   Pressable,
   ScrollView,
@@ -16,7 +15,10 @@ import {
   View,
   ViewStyle,
 } from "react-native";
-import { KeyboardStickyView } from "react-native-keyboard-controller";
+import {
+  KeyboardController,
+  KeyboardStickyView,
+} from "react-native-keyboard-controller";
 import Animated, {
   interpolate,
   useAnimatedStyle,
@@ -229,20 +231,55 @@ const ReviewInput: React.FC<ReviewInputProps> = ({ item, style }) => {
     return { opacity };
   });
 
-  const handleFocus = () => {
+  // Track modal open state explicitly so it is not coupled to the
+  // TextInput's focus state. Coupling the two previously caused stray
+  // onBlur events (e.g. from re-focusing on iOS, or the user swiping
+  // the keyboard away) to collapse the modal unexpectedly.
+  const isOpenRef = useRef(false);
+  // Track whether the TextInput has ever been focused, so we know
+  // whether to use the initial-focus path or the "resume" path on open.
+  const hasBeenFocusedRef = useRef(false);
+
+  // Preload the keyboard on iOS so the first open doesn't lag.
+  useEffect(() => {
+    if (Platform.OS === "ios") {
+      KeyboardController.preload();
+    }
+  }, []);
+
+  const openModal = () => {
+    if (isOpenRef.current) return;
+    isOpenRef.current = true;
     focusProgress.set(withSpring(1));
-    textInputRef.current?.focus();
     scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+
+    if (hasBeenFocusedRef.current) {
+      // On subsequent opens, the TextInput is still the first responder
+      // because we used `dismiss({ keepFocus: true })` to close. Calling
+      // .focus() on an already-focused input is a no-op and won't raise
+      // the keyboard, so use the library's `setFocusTo("current")` which
+      // is explicitly designed for this case (re-raises the keyboard
+      // for the last focused input).
+      KeyboardController.setFocusTo("current");
+    } else {
+      // First open: the input has never been focused, so .focus() is
+      // needed to make it the first responder and raise the keyboard.
+      hasBeenFocusedRef.current = true;
+      textInputRef.current?.focus();
+    }
   };
 
-  const handleBlur = () => {
+  const closeModal = () => {
+    if (!isOpenRef.current) return;
+    isOpenRef.current = false;
     focusProgress.set(withSpring(0));
-  };
-
-  const handleBackdropPress = () => {
-    Keyboard.dismiss();
-    textInputRef.current?.blur();
-    handleBlur();
+    // `dismiss({ keepFocus: true })` hides the keyboard WITHOUT blurring
+    // the TextInput. This avoids a pernicious race: `dismiss()` resolves
+    // asynchronously, and its blur can arrive AFTER the next openModal's
+    // focus() — causing the keyboard to flash up and immediately back
+    // down. By keeping focus, the input remains the first responder and
+    // re-opens simply re-raise the keyboard via `setFocusTo("current")`.
+    KeyboardController.dismiss({ keepFocus: true });
   };
 
   const handleSubmit = async () => {
@@ -273,9 +310,7 @@ const ReviewInput: React.FC<ReviewInputProps> = ({ item, style }) => {
         onSuccess: () => {
           // Reset the loaded media ID so the form reloads fresh data
           lastLoadedMediaId.current = null;
-          // Close the form
-          textInputRef.current?.blur();
-          handleBlur();
+          closeModal();
           showToast({
             message: hasExistingReview
               ? "Review updated successfully"
@@ -302,7 +337,7 @@ const ReviewInput: React.FC<ReviewInputProps> = ({ item, style }) => {
           tint="dark"
           style={StyleSheet.absoluteFill}
         />
-        <TouchableWithoutFeedback onPress={handleBackdropPress}>
+        <TouchableWithoutFeedback onPress={closeModal}>
           <View style={StyleSheet.absoluteFill} />
         </TouchableWithoutFeedback>
       </Animated.View>
@@ -348,7 +383,7 @@ const ReviewInput: React.FC<ReviewInputProps> = ({ item, style }) => {
               >
                 <Pressable
                   style={styles.placeholderPress}
-                  onPress={handleFocus}
+                  onPress={openModal}
                 >
                   <Text
                     style={[
@@ -367,7 +402,7 @@ const ReviewInput: React.FC<ReviewInputProps> = ({ item, style }) => {
                   icon={
                     <XIcon size={24} strokeWidth={2.5} color={theme.text} />
                   }
-                  onPress={handleBackdropPress}
+                  onPress={closeModal}
                   accessibilityLabel="Close"
                   backgroundColor="none"
                   hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
@@ -437,7 +472,6 @@ const ReviewInput: React.FC<ReviewInputProps> = ({ item, style }) => {
                       style={[styles.input, { color: theme.inputText }]}
                       multiline
                       scrollEnabled={false} // Allow it to grow
-                      onBlur={handleBlur}
                     />
                   </View>
                 </ScrollView>
