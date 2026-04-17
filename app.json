@@ -64,6 +64,12 @@
           "color": "#171717",
           "sounds": []
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow Medley to use your location to show movie showtimes at theaters near you."
+        }
       ]
     ],
     "extra": {

@@ -158,6 +158,12 @@ export const queryKeys = {
     list: (userId: string, mediaType: string) =>
       ["genreRecommendations", userId, mediaType] as const,
   },
+
+  // Local movie showtimes (bucketed coords keep nearby users on one cache entry)
+  showtimes: {
+    list: (latBucket: number, lngBucket: number, date: string) =>
+      ["showtimes", latBucket, lngBucket, date] as const,
+  },
 } as const;
 
 // Helper type for extracting query key types
