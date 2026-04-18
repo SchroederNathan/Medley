@@ -45,6 +45,7 @@ export type GetShowtimesParams = {
   lat: number;
   lng: number;
   date?: string;
+  windowStart?: string;
   radius?: number;
   units?: "km" | "mi";
 };
@@ -64,6 +65,8 @@ export class ShowtimesService {
     url.searchParams.set("lat", String(params.lat));
     url.searchParams.set("lng", String(params.lng));
     if (params.date) url.searchParams.set("date", params.date);
+    if (params.windowStart)
+      url.searchParams.set("windowStart", params.windowStart);
     if (params.radius != null)
       url.searchParams.set("radius", String(params.radius));
     if (params.units) url.searchParams.set("units", params.units);

@@ -381,10 +381,7 @@ const ReviewInput: React.FC<ReviewInputProps> = ({ item, style }) => {
               <Animated.View
                 style={[styles.placeholderWrap, rPlaceholderStyle]}
               >
-                <Pressable
-                  style={styles.placeholderPress}
-                  onPress={openModal}
-                >
+                <Pressable style={styles.placeholderPress} onPress={openModal}>
                   <Text
                     style={[
                       styles.placeholderText,

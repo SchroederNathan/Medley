@@ -37,11 +37,13 @@ function normalizeTitle(raw: string): string {
 type UseShowtimesArgs = {
   coords: UserCoords | null;
   date?: string;
+  windowStart?: string;
 };
 
-export function useShowtimes({ coords, date }: UseShowtimesArgs) {
+export function useShowtimes({ coords, date, windowStart }: UseShowtimesArgs) {
   const { isLoggedIn } = useContext(AuthContext);
   const resolvedDate = date ?? todayLocalDate();
+  const resolvedWindowStart = windowStart ?? resolvedDate;
 
   const latBucket = coords ? bucket(coords.lat) : 0;
   const lngBucket = coords ? bucket(coords.lng) : 0;
@@ -53,6 +55,7 @@ export function useShowtimes({ coords, date }: UseShowtimesArgs) {
         date: resolvedDate,
         lat: coords!.lat,
         lng: coords!.lng,
+        windowStart: resolvedWindowStart,
       }),
     queryKey: queryKeys.showtimes.list(latBucket, lngBucket, resolvedDate),
     staleTime: 1000 * 60 * 60, // 1 hour
@@ -64,9 +67,13 @@ export function useShowtimes({ coords, date }: UseShowtimesArgs) {
  * Fetches showtimes for the user's location and picks the entry matching `media`.
  * Matches first by `media_id`, then falls back to normalized title + year.
  */
-export function useShowtimesForMedia(media: Media | null | undefined) {
+export function useShowtimesForMedia(
+  media: Media | null | undefined,
+  date?: string,
+  windowStart?: string
+) {
   const { coords, status, requestLocation } = useUserLocation();
-  const query = useShowtimes({ coords });
+  const query = useShowtimes({ coords, date, windowStart });
 
   const movie: ShowtimesMovie | null = useMemo(() => {
     if (!media || !query.data) return null;

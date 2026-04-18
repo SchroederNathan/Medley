@@ -20,6 +20,7 @@ import Animated, {
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
+  withTiming,
 } from "react-native-reanimated";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
@@ -116,8 +117,13 @@ type TabPagerProps = {
   selectedKey: string;
   onChange: (key: string, index: number) => void;
   style?: ViewStyle;
-  pages: React.ReactNode[];
+  pages?: React.ReactNode[];
   centerTabs?: boolean;
+  renderTab?: (
+    item: TabItem,
+    selected: boolean,
+    index: number
+  ) => React.ReactNode;
 };
 
 // animated tab pager with smooth indicator
@@ -128,7 +134,9 @@ const TabPager = ({
   style,
   pages,
   centerTabs = false,
+  renderTab,
 }: TabPagerProps) => {
+  const hasPages = !!pages && pages.length > 0;
   const { theme } = useContext(ThemeContext);
   const { width: windowWidth } = useWindowDimensions();
 
@@ -157,10 +165,16 @@ const TabPager = ({
   // Create a shared value for the current tab index (fractional during swipes)
   const indexDecimal = useSharedValue(selectedIndex);
 
-  // Update indexDecimal when selectedKey changes
+  // Update indexDecimal when selectedKey changes. With swipeable pages the
+  // page scroll handler drives indexDecimal smoothly, so we just snap here.
+  // Without pages we animate it ourselves so the indicator still slides.
   React.useEffect(() => {
-    indexDecimal.value = selectedIndex;
-  }, [selectedIndex]);
+    if (hasPages) {
+      indexDecimal.value = selectedIndex;
+    } else {
+      indexDecimal.value = withTiming(selectedIndex, { duration: 220 });
+    }
+  }, [selectedIndex, hasPages, indexDecimal]);
 
   // Worklet-optimized scroll handler tracks horizontal offset for indicator positioning
   const scrollHandler = useAnimatedScrollHandler({
@@ -281,13 +295,15 @@ const TabPager = ({
         pressStartIndex.value = indexDecimal.value;
       })();
       onChange(item.key, index);
-      if (measuredWidth && scrollRef.current) {
+      if (hasPages && measuredWidth && scrollRef.current) {
         scrollRef.current.scrollTo({
           x: index * measuredWidth,
           animated: true,
         });
       }
     };
+
+    const selected = item.key === selectedKey;
 
     return (
       <TouchableOpacity
@@ -303,22 +319,29 @@ const TabPager = ({
           });
         }}
       >
-        <Text
-          style={{
-            color: theme.text,
-            fontFamily: fontFamily.tanker.regular,
-            fontSize: 20,
-            letterSpacing: 0.3,
-          }}
-        >
-          {item.title}
-        </Text>
+        {renderTab ? (
+          renderTab(item, selected, index)
+        ) : (
+          <Text
+            style={{
+              color: theme.text,
+              fontFamily: fontFamily.tanker.regular,
+              fontSize: 20,
+              letterSpacing: 0.3,
+            }}
+          >
+            {item.title}
+          </Text>
+        )}
       </TouchableOpacity>
     );
   };
 
   return (
-    <View style={[styles.container, style]} onLayout={onContainerLayout}>
+    <View
+      style={[hasPages && styles.container, style]}
+      onLayout={onContainerLayout}
+    >
       {/* Header section with tabs and indicator */}
       <View
         style={[styles.header, centerTabs && styles.headerCentered]}
@@ -358,34 +381,38 @@ const TabPager = ({
         />
       </View>
 
-      {/* Swipeable pages filling remaining space */}
-      <Animated.ScrollView
-        ref={scrollRef}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onScroll={pageScrollHandler}
-        scrollEventThrottle={16}
-        onMomentumScrollEnd={(e) => {
-          const x = e.nativeEvent.contentOffset.x;
-          const index = measuredWidth ? Math.round(x / measuredWidth) : 0;
-          const key = tabs[index]?.key;
-          if (key && key !== selectedKey) {
-            onChange(key, index);
-          }
-        }}
-        contentContainerStyle={{
-          width: measuredWidth * Math.max(1, tabs.length),
-          paddingHorizontal: 20,
-        }}
-        style={styles.pages}
-      >
-        {pages.map((node, i) => (
-          <View key={tabs[i]?.key ?? String(i)} style={{ width: ScreenWidth }}>
-            {node}
-          </View>
-        ))}
-      </Animated.ScrollView>
+      {hasPages ? (
+        <Animated.ScrollView
+          ref={scrollRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onScroll={pageScrollHandler}
+          scrollEventThrottle={16}
+          onMomentumScrollEnd={(e) => {
+            const x = e.nativeEvent.contentOffset.x;
+            const index = measuredWidth ? Math.round(x / measuredWidth) : 0;
+            const key = tabs[index]?.key;
+            if (key && key !== selectedKey) {
+              onChange(key, index);
+            }
+          }}
+          contentContainerStyle={{
+            width: measuredWidth * Math.max(1, tabs.length),
+            paddingHorizontal: 20,
+          }}
+          style={styles.pages}
+        >
+          {pages!.map((node, i) => (
+            <View
+              key={tabs[i]?.key ?? String(i)}
+              style={{ width: ScreenWidth }}
+            >
+              {node}
+            </View>
+          ))}
+        </Animated.ScrollView>
+      ) : null}
     </View>
   );
 };

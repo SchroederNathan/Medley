@@ -43,11 +43,23 @@ yarn-error.*
 
 # Supabase
 supabase/*
+!supabase/migrations/
+!supabase/migrations/*.sql
 !supabase/functions/
 supabase/functions/*
 !supabase/functions/favorite-recommendations/
 supabase/functions/favorite-recommendations/*
 !supabase/functions/favorite-recommendations/index.ts
+!supabase/functions/showtimes/
+supabase/functions/showtimes/*
+!supabase/functions/showtimes/index.ts
+!supabase/functions/showtimes/cache-logic.ts
+!supabase/functions/showtimes/README.md
+!supabase/functions/showtimes-cron/
+supabase/functions/showtimes-cron/*
+!supabase/functions/showtimes-cron/index.ts
+!supabase/functions/showtimes-cron/cache-logic.ts
+!supabase/functions/showtimes-cron/README.md
 
 CLAUDE.md
 AGENTS.md
