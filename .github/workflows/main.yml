@@ -12,7 +12,7 @@ concurrency:
 jobs:
   ios:
     name: iOS → TestFlight
-    runs-on: macos-14 # free on public repos
+    runs-on: macos-15
     timeout-minutes: 90
     steps:
       - name: Checkout
