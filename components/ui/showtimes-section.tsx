@@ -2,17 +2,15 @@ import * as Haptics from "expo-haptics";
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  LayoutChangeEvent,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 import Animated, {
-  FadeIn,
-  FadeOut,
-  LinearTransition,
   useAnimatedStyle,
-  useSharedValue,
   withTiming,
 } from "react-native-reanimated";
 
@@ -22,7 +20,6 @@ import { fontFamily } from "../../lib/fonts";
 import { ShowtimeEntry } from "../../services/showtimesService";
 import { Media } from "../../types/media";
 import { ChevronDown } from "./svg-icons";
-import TabPager from "./tab-pager";
 
 type ShowtimesSectionProps = {
   media: Media;
@@ -33,6 +30,26 @@ type TheaterGroup = {
   theaterName: string;
   times: ShowtimeEntry[];
 };
+
+type DateTab = {
+  key: string;
+  weekday: string;
+  dayNumber: string;
+};
+
+type TabLayout = {
+  x: number;
+  width: number;
+};
+
+const weekdayFormatter = new Intl.DateTimeFormat(undefined, {
+  weekday: "short",
+});
+
+const timeFormatter = new Intl.DateTimeFormat(undefined, {
+  hour: "numeric",
+  minute: "2-digit",
+});
 
 function todayLocalDate(): string {
   const now = new Date();
@@ -70,9 +87,7 @@ function parseYmd(ymd: string): Date {
 function weekdayLabel(ymd: string, index: number): string {
   if (index === 0) return "Today";
   try {
-    return new Intl.DateTimeFormat(undefined, { weekday: "short" }).format(
-      parseYmd(ymd)
-    );
+    return weekdayFormatter.format(parseYmd(ymd));
   } catch {
     return "";
   }
@@ -85,11 +100,9 @@ function dayNum(ymd: string): string {
 function formatTime(dateTime: string): string {
   const parsed = new Date(dateTime);
   if (Number.isNaN(parsed.getTime())) return dateTime;
+
   try {
-    return new Intl.DateTimeFormat(undefined, {
-      hour: "numeric",
-      minute: "2-digit",
-    }).format(parsed);
+    return timeFormatter.format(parsed);
   } catch {
     return dateTime;
   }
@@ -119,87 +132,116 @@ type TheaterAccordionItemProps = {
   theater: TheaterGroup;
   expanded: boolean;
   onToggle: () => void;
+  themeStyles: ReturnType<typeof createThemeStyles>;
 };
 
 const TheaterAccordionItem: React.FC<TheaterAccordionItemProps> = ({
   theater,
   expanded,
   onToggle,
+  themeStyles,
 }) => {
-  const { theme } = useContext(ThemeContext);
-  const progress = useSharedValue(expanded ? 1 : 0);
-
-  useEffect(() => {
-    progress.value = withTiming(expanded ? 1 : 0, { duration: 220 });
-  }, [expanded, progress]);
-
-  const chevronStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${progress.value * 180}deg` }],
-  }));
-
   return (
-    <Animated.View layout={LinearTransition.duration(220)}>
+    <View style={styles.theaterCard}>
       <Pressable
         onPress={onToggle}
         style={({ pressed }) => [
           styles.theaterHeader,
-          { opacity: pressed ? 0.6 : 1 },
+          pressed && styles.pressed,
         ]}
       >
         <Text
-          style={[styles.theaterName, { color: theme.text }]}
+          style={[styles.theaterName, themeStyles.primaryText]}
           numberOfLines={1}
         >
           {theater.theaterName}
         </Text>
-        <Animated.View style={chevronStyle}>
-          <ChevronDown size={18} color={theme.secondaryText} />
-        </Animated.View>
+        <View
+          style={expanded ? styles.chevronExpanded : styles.chevronCollapsed}
+        >
+          <ChevronDown size={18} color={themeStyles.secondaryText.color} />
+        </View>
       </Pressable>
       {expanded ? (
-        <Animated.View
-          entering={FadeIn.duration(180)}
-          exiting={FadeOut.duration(140)}
-          style={[styles.chipRow, styles.chipRowExpanded]}
-        >
-          {theater.times.map((time, idx) => (
+        <View style={[styles.chipRow, styles.chipRowExpanded]}>
+          {theater.times.map((time) => (
             <View
-              key={`${theater.theaterId}-${time.dateTime}-${idx}`}
-              style={[
-                styles.chip,
-                {
-                  backgroundColor: theme.card,
-                  borderColor: theme.border,
-                },
-              ]}
+              key={`${theater.theaterId}-${time.dateTime}-${time.bargain ? "b" : "n"}`}
+              style={[styles.timeChip, themeStyles.timeChip]}
             >
-              <Text
-                style={[
-                  styles.chipText,
-                  {
-                    color: theme.text,
-                  },
-                ]}
-              >
+              <Text style={[styles.timeChipText, themeStyles.primaryText]}>
                 {formatTime(time.dateTime)}
               </Text>
             </View>
           ))}
-        </Animated.View>
+        </View>
       ) : null}
-    </Animated.View>
+    </View>
   );
 };
+
+function createThemeStyles(theme: {
+  background?: string;
+  card: string;
+  border: string;
+  text: string;
+  secondaryText: string;
+}) {
+  return {
+    chipSelectedDayText: {
+      color: theme.text,
+    },
+    chipSelectedNumberText: {
+      color: theme.text,
+    },
+    chipUnselectedDayText: {
+      color: theme.text,
+    },
+    chipUnselectedNumberText: {
+      color: theme.text,
+    },
+    emptyText: {
+      color: theme.secondaryText,
+    },
+    pill: {
+      backgroundColor: theme.card,
+      borderColor: theme.border,
+    },
+    pillText: {
+      color: theme.text,
+    },
+    primaryText: {
+      color: theme.text,
+    },
+    secondaryText: {
+      color: theme.secondaryText,
+    },
+    tabIndicator: {
+      backgroundColor: theme.text,
+    },
+    timeChip: {
+      backgroundColor: theme.card,
+      borderColor: theme.border,
+    },
+  };
+}
 
 export const ShowtimesSection: React.FC<ShowtimesSectionProps> = ({
   media,
 }) => {
   const { theme } = useContext(ThemeContext);
+  const themeStyles = useMemo(() => createThemeStyles(theme), [theme]);
   const [todayYmd, setTodayYmd] = useState(() => todayLocalDate());
   const dateOptions = useMemo(() => buildNextSevenDates(todayYmd), [todayYmd]);
   const [selectedDate, setSelectedDate] = useState(() => dateOptions[0] ?? "");
-  const dateTabs = useMemo(
-    () => dateOptions.map((ymd) => ({ key: ymd, title: ymd })),
+
+  const dateTabs = useMemo<DateTab[]>(
+    () =>
+      dateOptions.map((ymd, index) => ({
+        dayNumber: dayNum(ymd),
+        key: ymd,
+        weekday: weekdayLabel(ymd, index),
+      })),
     [dateOptions]
   );
 
@@ -219,44 +261,42 @@ export const ShowtimesSection: React.FC<ShowtimesSectionProps> = ({
       if (timeoutId) clearTimeout(timeoutId);
     };
   }, []);
-
-  useEffect(() => {
-    setSelectedDate((current) => {
-      if (current && dateOptions.includes(current)) return current;
-      return dateOptions[0] ?? "";
-    });
-  }, [dateOptions]);
+  const activeDate =
+    selectedDate && dateOptions.includes(selectedDate)
+      ? selectedDate
+      : (dateOptions[0] ?? "");
 
   const { movie, locationStatus, requestLocation, query } =
-    useShowtimesForMedia(media, selectedDate, todayYmd);
+    useShowtimesForMedia(media, activeDate, todayYmd);
 
   const theaters = useMemo(
     () => (movie ? groupByTheater(movie.showtimes) : []),
     [movie]
   );
 
-  const [expandedTheaters, setExpandedTheaters] = useState<Set<string>>(
-    new Set()
+  const [theaterOverrides, setTheaterOverrides] = useState<
+    Record<string, boolean | undefined>
+  >(() => ({}));
+  const [tabLayouts, setTabLayouts] = useState<Record<string, TabLayout>>(
+    () => ({})
   );
+  const activeTabLayout = tabLayouts[activeDate];
 
-  const theatersKey = useMemo(
-    () => theaters.map((t) => t.theaterId).join("|"),
-    [theaters]
-  );
-
-  useEffect(() => {
-    setExpandedTheaters(new Set(theaters.slice(0, 3).map((t) => t.theaterId)));
-  }, [theatersKey]);
+  const indicatorStyle = useAnimatedStyle(() => ({
+    left: withTiming(activeTabLayout?.x ?? 0, { duration: 220 }),
+    opacity: withTiming(activeTabLayout ? 1 : 0, { duration: 180 }),
+    width: withTiming(activeTabLayout?.width ?? 0, { duration: 220 }),
+  }));
 
   const toggleTheater = (theaterId: string) => {
-    setExpandedTheaters((prev) => {
-      const next = new Set(prev);
-      if (next.has(theaterId)) {
-        next.delete(theaterId);
-      } else {
-        next.add(theaterId);
-      }
-      return next;
+    setTheaterOverrides((prev) => {
+      const defaultExpanded = theaters
+        .slice(0, 3)
+        .some((theater) => theater.theaterId === theaterId);
+      return {
+        ...prev,
+        [theaterId]: !(prev[theaterId] ?? defaultExpanded),
+      };
     });
   };
 
@@ -276,14 +316,11 @@ export const ShowtimesSection: React.FC<ShowtimesSectionProps> = ({
           }}
           style={({ pressed }) => [
             styles.pill,
-            {
-              backgroundColor: theme.card,
-              borderColor: theme.border,
-              opacity: pressed ? 0.7 : 1,
-            },
+            themeStyles.pill,
+            pressed && styles.pressed,
           ]}
         >
-          <Text style={[styles.pillText, { color: theme.text }]}>
+          <Text style={[styles.pillText, themeStyles.pillText]}>
             Enable location to see showtimes
           </Text>
         </Pressable>
@@ -301,53 +338,82 @@ export const ShowtimesSection: React.FC<ShowtimesSectionProps> = ({
     return null;
   }
 
+  const handleDateTabLayout = (key: string) => (event: LayoutChangeEvent) => {
+    const { width, x } = event.nativeEvent.layout;
+    setTabLayouts((prev) => {
+      const existing = prev[key];
+      if (existing && existing.width === width && existing.x === x) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [key]: { width, x },
+      };
+    });
+  };
+
   return (
-    <Animated.View
-      style={styles.container}
-      layout={LinearTransition.duration(220)}
-    >
-      <Text style={[styles.title, { color: theme.text }]}>
+    <View style={styles.container}>
+      <Text style={[styles.title, themeStyles.primaryText]}>
         Showtimes near you
       </Text>
-      {dateTabs.length > 0 && (
-        <TabPager
-          tabs={dateTabs}
-          selectedKey={selectedDate}
-          onChange={(key) => setSelectedDate(key)}
-          style={styles.datePager}
-          renderTab={(item, selected, index) => (
-            <View style={styles.dateTabContent}>
-              <Text
-                style={{
-                  color: selected ? theme.text : theme.secondaryText,
-                  fontFamily: fontFamily.tanker.regular,
-                  fontSize: 18,
-                  letterSpacing: 0.3,
-                }}
-              >
-                {weekdayLabel(item.key, index)}
-              </Text>
-              <Text
-                style={{
-                  color: selected ? theme.text : theme.secondaryText,
-                  fontFamily: fontFamily.plusJakarta.semiBold,
-                  fontSize: 14,
-                  marginTop: 2,
-                }}
-              >
-                {dayNum(item.key)}
-              </Text>
-            </View>
-          )}
-        />
-      )}
+
+      {dateTabs.length > 0 ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.dateTabRow}
+        >
+          <View style={styles.dateTabsTrack}>
+            {dateTabs.map((tab) => {
+              const selected = tab.key === activeDate;
+              return (
+                <Pressable
+                  key={tab.key}
+                  onLayout={handleDateTabLayout(tab.key)}
+                  onPress={() => setSelectedDate(tab.key)}
+                  style={styles.dateTab}
+                >
+                  <Text
+                    style={[
+                      styles.dateTabDayText,
+                      selected
+                        ? themeStyles.chipSelectedDayText
+                        : themeStyles.chipUnselectedDayText,
+                    ]}
+                  >
+                    {tab.weekday}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.dateTabNumberText,
+                      selected
+                        ? themeStyles.chipSelectedNumberText
+                        : themeStyles.chipUnselectedNumberText,
+                    ]}
+                  >
+                    {tab.dayNumber}
+                  </Text>
+                </Pressable>
+              );
+            })}
+            <Animated.View
+              style={[
+                styles.dateTabIndicator,
+                themeStyles.tabIndicator,
+                indicatorStyle,
+              ]}
+            />
+          </View>
+        </ScrollView>
+      ) : null}
 
       {query.isLoading && !query.data ? (
         <ActivityIndicator color={theme.secondaryText} />
       ) : null}
 
       {query.isError ? (
-        <Text style={[styles.empty, { color: theme.secondaryText }]}>
+        <Text style={[styles.empty, themeStyles.emptyText]}>
           Could not load showtimes. Try again later.
         </Text>
       ) : null}
@@ -356,54 +422,122 @@ export const ShowtimesSection: React.FC<ShowtimesSectionProps> = ({
       !query.isFetching &&
       query.data &&
       (!movie || theaters.length === 0) ? (
-        <Text style={[styles.empty, { color: theme.secondaryText }]}>
+        <Text style={[styles.empty, themeStyles.emptyText]}>
           No local showtimes for this date.
         </Text>
       ) : null}
 
       {theaters.length > 0 ? (
-        <Animated.View
-          style={{ gap: 16 }}
-          layout={LinearTransition.duration(220)}
-        >
+        <View style={styles.theaterList}>
           {theaters.map((theater) => (
             <TheaterAccordionItem
               key={theater.theaterId}
               theater={theater}
-              expanded={expandedTheaters.has(theater.theaterId)}
+              expanded={
+                theaterOverrides[theater.theaterId] ??
+                theaters
+                  .slice(0, 3)
+                  .some((item) => item.theaterId === theater.theaterId)
+              }
               onToggle={() => toggleTheater(theater.theaterId)}
+              themeStyles={themeStyles}
             />
           ))}
-        </Animated.View>
+        </View>
       ) : null}
-    </Animated.View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  chevronCollapsed: {
+    transform: [{ rotate: "0deg" }],
+  },
+  chevronExpanded: {
+    transform: [{ rotate: "180deg" }],
+  },
   container: {
     gap: 12,
   },
-  title: {
-    fontSize: 20,
-    fontFamily: fontFamily.plusJakarta.bold,
-    marginBottom: 4,
+  dateTab: {
+    alignItems: "center",
+    minWidth: 84,
+    paddingHorizontal: 10,
+    paddingBottom: 8,
+    position: "relative",
+  },
+  dateTabDayText: {
+    fontFamily: fontFamily.tanker.regular,
+    fontSize: 18,
+    letterSpacing: 0.3,
+  },
+  dateTabIndicator: {
+    borderRadius: 2.5,
+    bottom: 0,
+    height: 2.5,
+    left: 0,
+    opacity: 0,
+    position: "absolute",
+  },
+  dateTabNumberText: {
+    fontFamily: fontFamily.plusJakarta.semiBold,
+    fontSize: 14,
+    marginTop: 2,
+  },
+  dateTabRow: {
+    paddingHorizontal: 2,
+  },
+  dateTabsTrack: {
+    gap: 32,
+    paddingBottom: 2,
+    position: "relative",
+    flexDirection: "row",
   },
   empty: {
-    fontSize: 14,
     fontFamily: fontFamily.plusJakarta.medium,
+    fontSize: 14,
+  },
+  pill: {
+    alignSelf: "flex-start",
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  pillText: {
+    fontFamily: fontFamily.plusJakarta.semiBold,
+    fontSize: 13,
+  },
+  pressed: {
+    opacity: 0.7,
+  },
+  theaterCard: {
+    gap: 2,
   },
   theaterHeader: {
-    flexDirection: "row",
     alignItems: "center",
+    flexDirection: "row",
+    gap: 12,
     justifyContent: "space-between",
     paddingVertical: 6,
-    gap: 12,
+  },
+  theaterList: {
+    gap: 16,
   },
   theaterName: {
     flex: 1,
-    fontSize: 15,
     fontFamily: fontFamily.plusJakarta.semiBold,
+    fontSize: 15,
+  },
+  timeChip: {
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  timeChipText: {
+    fontFamily: fontFamily.plusJakarta.medium,
+    fontSize: 13,
   },
   chipRow: {
     flexDirection: "row",
@@ -413,33 +547,10 @@ const styles = StyleSheet.create({
   chipRowExpanded: {
     marginTop: 8,
   },
-  chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  chipText: {
-    fontSize: 13,
-    fontFamily: fontFamily.plusJakarta.medium,
-  },
-  pill: {
-    alignSelf: "flex-start",
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 999,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  pillText: {
-    fontSize: 13,
-    fontFamily: fontFamily.plusJakarta.semiBold,
-  },
-  datePager: {
-    marginHorizontal: -20,
-  },
-  dateTabContent: {
-    alignItems: "center",
-    minWidth: 36,
+  title: {
+    fontFamily: fontFamily.plusJakarta.bold,
+    fontSize: 20,
+    marginBottom: 4,
   },
 });
 

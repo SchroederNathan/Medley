@@ -11,12 +11,6 @@ import {
 import { Media } from "../types/media";
 import { UserCoords, useUserLocation } from "./use-user-location";
 
-// Round coords to ~2 decimals (~1 km) so nearby users share a cache entry
-const COORD_BUCKET = 100;
-function bucket(value: number): number {
-  return Math.round(value * COORD_BUCKET) / COORD_BUCKET;
-}
-
 function todayLocalDate(): string {
   const now = new Date();
   const y = now.getFullYear();
@@ -45,9 +39,6 @@ export function useShowtimes({ coords, date, windowStart }: UseShowtimesArgs) {
   const resolvedDate = date ?? todayLocalDate();
   const resolvedWindowStart = windowStart ?? resolvedDate;
 
-  const latBucket = coords ? bucket(coords.lat) : 0;
-  const lngBucket = coords ? bucket(coords.lng) : 0;
-
   return useQuery<ShowtimesResponse>({
     enabled: isLoggedIn && !!coords,
     queryFn: () =>
@@ -57,7 +48,11 @@ export function useShowtimes({ coords, date, windowStart }: UseShowtimesArgs) {
         lng: coords!.lng,
         windowStart: resolvedWindowStart,
       }),
-    queryKey: queryKeys.showtimes.list(latBucket, lngBucket, resolvedDate),
+    queryKey: queryKeys.showtimes.list(
+      coords?.lat ?? 0,
+      coords?.lng ?? 0,
+      resolvedDate
+    ),
     staleTime: 1000 * 60 * 60, // 1 hour
     gcTime: 1000 * 60 * 60 * 6,
   });

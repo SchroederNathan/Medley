@@ -419,11 +419,6 @@ const MediaDetailScreen = () => {
                   <TrailerThumbnail trailer={media.metadata.trailer} />
                 </View>
               )}
-            {media.media_type === "movie" && (
-              <View style={{ marginTop: 24 }}>
-                <ShowtimesSection media={media} />
-              </View>
-            )}
             {media.media_type === "tv_show" &&
               (media.metadata?.seasons?.length ?? 0) > 0 && (
                 <View style={{ marginTop: 24 }}>
@@ -446,6 +441,11 @@ const MediaDetailScreen = () => {
             {recs.length > 0 && (
               <View style={{ marginTop: 24 }}>
                 <Carousel title="You might also like" media={recs as any} />
+              </View>
+            )}
+            {media.media_type === "movie" && (
+              <View style={{ marginTop: 24 }}>
+                <ShowtimesSection media={media} />
               </View>
             )}
           </View>

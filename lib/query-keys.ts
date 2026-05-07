@@ -159,10 +159,10 @@ export const queryKeys = {
       ["genreRecommendations", userId, mediaType] as const,
   },
 
-  // Local movie showtimes (bucketed coords keep nearby users on one cache entry)
+  // Local movie showtimes cached per exact coordinate pair and date.
   showtimes: {
-    list: (latBucket: number, lngBucket: number, date: string) =>
-      ["showtimes", latBucket, lngBucket, date] as const,
+    list: (lat: number, lng: number, date: string) =>
+      ["showtimes", "exact-v1", lat, lng, date] as const,
   },
 } as const;
 

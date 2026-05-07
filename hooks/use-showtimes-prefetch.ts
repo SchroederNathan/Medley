@@ -6,11 +6,6 @@ import { queryKeys } from "../lib/query-keys";
 import { ShowtimesService } from "../services/showtimesService";
 import { UserCoords, useUserLocation } from "./use-user-location";
 
-const COORD_BUCKET = 100;
-function bucket(value: number): number {
-  return Math.round(value * COORD_BUCKET) / COORD_BUCKET;
-}
-
 function todayLocalDate(): string {
   const now = new Date();
   const y = now.getFullYear();
@@ -24,8 +19,6 @@ export function prefetchShowtimesForDate(
   coords: UserCoords,
   date: string
 ) {
-  const latBucket = bucket(coords.lat);
-  const lngBucket = bucket(coords.lng);
   return queryClient.prefetchQuery({
     gcTime: 1000 * 60 * 60 * 6,
     queryFn: () =>
@@ -35,7 +28,7 @@ export function prefetchShowtimesForDate(
         lng: coords.lng,
         windowStart: date,
       }),
-    queryKey: queryKeys.showtimes.list(latBucket, lngBucket, date),
+    queryKey: queryKeys.showtimes.list(coords.lat, coords.lng, date),
     staleTime: 1000 * 60 * 60,
   });
 }

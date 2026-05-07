@@ -4,11 +4,10 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 import {
-  addDaysYmd,
-  groupRowsToShowtimesResponse,
-  roundBucket,
-  SHOWTIMES_FRESH_MS,
-  syncShowtimesFromTms,
+  buildShowtimesResponse,
+  collectYearsFromTms,
+  fetchTmsMovies,
+  loadMediaByYearKeys,
 } from "./cache-logic.ts";
 
 const corsHeaders = {
@@ -100,70 +99,33 @@ serve(async (req) => {
     const unitsRaw = (searchParams.get("units") || "km").toLowerCase();
     const units: "km" | "mi" = unitsRaw === "mi" ? "mi" : "km";
 
-    const latBucket = roundBucket(lat);
-    const lngBucket = roundBucket(lng);
-
     const supabase = createClient(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    await supabase.from("showtime_location_buckets").upsert(
-      {
-        lat_bucket: latBucket,
-        lng_bucket: lngBucket,
-        last_seen_at: new Date().toISOString(),
-      },
-      { onConflict: "lat_bucket,lng_bucket" }
-    );
+    const tmsMovies = await fetchTmsMovies({
+      lat,
+      lng,
+      // Keep `windowStart` in the request contract for client compatibility,
+      // but fetch only the requested date and rely on client-side caching.
+      startDate: date,
+      numDays: 1,
+      radius,
+      units,
+      apiKey: tmsApiKey,
+    });
 
-    const { data: fetchRow } = await supabase
-      .from("showtime_fetches")
-      .select("fetched_at")
-      .eq("lat_bucket", latBucket)
-      .eq("lng_bucket", lngBucket)
-      .eq("show_date", date)
-      .maybeSingle();
+    const years = collectYearsFromTms(tmsMovies);
+    const mediaByKey = await loadMediaByYearKeys(supabase, years);
 
-    let needsTms = true;
-    if (fetchRow?.fetched_at) {
-      const age = Date.now() - new Date(fetchRow.fetched_at).getTime();
-      needsTms = age >= SHOWTIMES_FRESH_MS;
-    }
-
-    if (needsTms) {
-      const weekDates = Array.from({ length: 7 }, (_, i) =>
-        addDaysYmd(windowStart, i)
-      );
-      const inWeekWindow = weekDates.includes(date);
-
-      await syncShowtimesFromTms(supabase, {
-        lat,
-        lng,
-        latBucket,
-        lngBucket,
-        startDate: inWeekWindow ? windowStart : date,
-        numDays: inWeekWindow ? 7 : 1,
-        radius,
-        units,
-        tmsApiKey,
-      });
-    }
-
-    const { data: rows, error: readErr } = await supabase
-      .from("movie_showtimes")
-      .select("*")
-      .eq("lat_bucket", latBucket)
-      .eq("lng_bucket", lngBucket)
-      .eq("show_date", date);
-
-    if (readErr) throw readErr;
-
-    const body = groupRowsToShowtimesResponse(rows ?? [], {
+    const body = buildShowtimesResponse({
       date,
       lat,
       lng,
       radius,
       units,
+      tmsMovies,
+      mediaByKey,
     });
 
     return new Response(JSON.stringify(body), {
