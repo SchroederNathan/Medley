@@ -1,0 +1,53 @@
+name: Build & Submit to TestFlight
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Don't cancel in-progress submissions — let them finish so TestFlight stays consistent
+concurrency:
+  group: ios-testflight
+  cancel-in-progress: false
+
+jobs:
+  build-and-submit:
+    name: iOS → TestFlight
+    runs-on: macos-14 
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build iOS .ipa locally
+        run: |
+          eas build \
+            --platform ios \
+            --profile production \
+            --local \
+            --non-interactive \
+            --output ./build.ipa
+
+      - name: Submit to TestFlight
+        run: |
+          eas submit \
+            --platform ios \
+            --path ./build.ipa \
+            --profile production \
+            --non-interactive
