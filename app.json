@@ -9,7 +9,10 @@
     "scheme": "com.schroedernathan.medley",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.schroedernathan.medley"
+      "bundleIdentifier": "com.schroedernathan.medley",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
