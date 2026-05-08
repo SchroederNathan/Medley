@@ -1,0 +1,96 @@
+name: PR Preview Build
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: preview-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ios:
+    name: iOS Preview Build
+    runs-on: macos-26
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build iOS .ipa locally (preview)
+        run: |
+          eas build \
+            --platform ios \
+            --profile preview \
+            --local \
+            --non-interactive \
+            --output ./build.ipa
+
+      - name: Upload preview .ipa
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-preview-${{ github.event.pull_request.number || github.run_id }}
+          path: ./build.ipa
+          retention-days: 14
+
+  android:
+    name: Android Preview Build
+    if: false # temporarily disabled to match production workflow
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Android .apk locally (preview)
+        run: |
+          eas build \
+            --platform android \
+            --profile preview \
+            --local \
+            --non-interactive \
+            --output ./build.apk
+
+      - name: Upload preview .apk
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-preview-${{ github.event.pull_request.number || github.run_id }}
+          path: ./build.apk
+          retention-days: 14
