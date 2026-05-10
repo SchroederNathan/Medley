@@ -3,6 +3,7 @@ import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   LayoutChangeEvent,
+  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -15,7 +16,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { ThemeContext } from "../../contexts/theme-context";
-import { useShowtimesForMedia } from "../../hooks/use-showtimes";
+import { useShowtimesForMovie } from "../../hooks/use-showtimes";
 import { fontFamily } from "../../lib/fonts";
 import { ShowtimeEntry } from "../../services/showtimesService";
 import { Media } from "../../types/media";
@@ -28,6 +29,7 @@ type ShowtimesSectionProps = {
 type TheaterGroup = {
   theaterId: string;
   theaterName: string;
+  distance: number | null;
   times: ShowtimeEntry[];
 };
 
@@ -116,6 +118,7 @@ function groupByTheater(showtimes: ShowtimeEntry[]): TheaterGroup[] {
       existing.times.push(s);
     } else {
       map.set(s.theaterId, {
+        distance: s.distance,
         theaterId: s.theaterId,
         theaterName: s.theaterName,
         times: [s],
@@ -125,7 +128,15 @@ function groupByTheater(showtimes: ShowtimeEntry[]): TheaterGroup[] {
   for (const group of map.values()) {
     group.times.sort((a, b) => a.dateTime.localeCompare(b.dateTime));
   }
-  return Array.from(map.values());
+  // Sort theaters by distance (closest first); theaters without a known
+  // distance fall to the bottom and are alphabetized among themselves.
+  return Array.from(map.values()).sort((a, b) => {
+    if (a.distance == null && b.distance == null)
+      return a.theaterName.localeCompare(b.theaterName);
+    if (a.distance == null) return 1;
+    if (b.distance == null) return -1;
+    return a.distance - b.distance;
+  });
 }
 
 type TheaterAccordionItemProps = {
@@ -267,7 +278,7 @@ export const ShowtimesSection: React.FC<ShowtimesSectionProps> = ({
       : (dateOptions[0] ?? "");
 
   const { movie, locationStatus, requestLocation, query } =
-    useShowtimesForMedia(media, activeDate, todayYmd);
+    useShowtimesForMovie(media, activeDate);
 
   const theaters = useMemo(
     () => (movie ? groupByTheater(movie.showtimes) : []),
@@ -300,20 +311,33 @@ export const ShowtimesSection: React.FC<ShowtimesSectionProps> = ({
     });
   };
 
-  if (
-    (locationStatus === "undetermined" || locationStatus === "denied") &&
+  const needsLocationPrompt =
+    (locationStatus === "undetermined" ||
+      locationStatus === "denied" ||
+      locationStatus === "unavailable") &&
     !movie &&
-    !query.data
-  ) {
-    if (locationStatus !== "undetermined") return null;
+    !query.data;
+
+  if (needsLocationPrompt) {
+    const pillCopy =
+      locationStatus === "undetermined"
+        ? "Enable location to see showtimes"
+        : locationStatus === "denied"
+          ? "Location denied — open Settings to enable"
+          : "Turn on Location Services for showtimes";
+    const onPillPress = () => {
+      Haptics.selectionAsync();
+      if (locationStatus === "undetermined") {
+        requestLocation();
+      } else {
+        Linking.openSettings();
+      }
+    };
 
     return (
       <View style={styles.container}>
         <Pressable
-          onPress={() => {
-            Haptics.selectionAsync();
-            requestLocation();
-          }}
+          onPress={onPillPress}
           style={({ pressed }) => [
             styles.pill,
             themeStyles.pill,
@@ -321,7 +345,7 @@ export const ShowtimesSection: React.FC<ShowtimesSectionProps> = ({
           ]}
         >
           <Text style={[styles.pillText, themeStyles.pillText]}>
-            Enable location to see showtimes
+            {pillCopy}
           </Text>
         </Pressable>
       </View>

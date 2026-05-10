@@ -54,13 +54,25 @@ export function useUserLocation() {
 
   const fetchLocation = useCallback(async (forceRefresh = false) => {
     try {
-      const services = await Location.hasServicesEnabledAsync();
-      if (!services) {
+      // hasServicesEnabledAsync can return undefined on iOS 17+ because
+      // CLLocationManager.locationServicesEnabled() is deprecated and runs on
+      // the main thread. Treat only literal `false` as "off" and let the
+      // permission request itself surface real failures.
+      const services = await Location.hasServicesEnabledAsync().catch(
+        () => undefined
+      );
+      if (services === false) {
         setStatus("unavailable");
         return null;
       }
 
-      let perm = await Location.getForegroundPermissionsAsync();
+      let perm: Location.LocationPermissionResponse;
+      try {
+        perm = await Location.getForegroundPermissionsAsync();
+      } catch {
+        setStatus("unavailable");
+        return null;
+      }
       if (perm.status === "undetermined" || perm.canAskAgain) {
         if (perm.status !== "granted") {
           perm = await Location.requestForegroundPermissionsAsync();
@@ -99,8 +111,7 @@ export function useUserLocation() {
       writeCache({ ...next, capturedAt: Date.now() });
       setCoords(next);
       return next;
-    } catch (error) {
-      console.warn("useUserLocation fetch failed", error);
+    } catch {
       setStatus("unavailable");
       return null;
     }

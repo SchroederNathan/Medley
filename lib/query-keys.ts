@@ -167,7 +167,7 @@ export const queryKeys = {
   // Local movie showtimes cached per exact coordinate pair and date.
   showtimes: {
     list: (lat: number, lng: number, date: string) =>
-      ["showtimes", "exact-v1", lat, lng, date] as const,
+      ["showtimes", "v2", lat, lng, date] as const,
   },
 } as const;
 

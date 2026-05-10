@@ -1,51 +1,34 @@
 import { createHttpError, toAppError } from "../lib/app-error";
 import { supabase } from "../lib/utils";
 
-export type ShowtimesTheater = {
-  id: string;
-  name: string;
-};
-
 export type ShowtimeEntry = {
   theaterId: string;
   theaterName: string;
   dateTime: string;
   bargain: boolean;
+  distance: number | null;
 };
 
 export type ShowtimesMovie = {
   tmsId: string;
-  rootId: string;
   title: string;
   releaseYear: number | null;
   runTimeMinutes: number | null;
   rating: string | null;
-  genres: string[];
-  directors: string[];
-  topCast: string[];
   posterUrl: string | null;
   shortDescription: string | null;
-  media_id: string | null;
   showtimes: ShowtimeEntry[];
 };
 
 export type ShowtimesResponse = {
   date: string;
-  location: {
-    lat: number;
-    lng: number;
-    radius: number;
-    units: "km" | "mi";
-  };
-  theaters: ShowtimesTheater[];
   movies: ShowtimesMovie[];
 };
 
 export type GetShowtimesParams = {
   lat: number;
   lng: number;
-  date?: string;
-  windowStart?: string;
+  date: string;
   radius?: number;
   units?: "km" | "mi";
 };
@@ -64,9 +47,7 @@ export class ShowtimesService {
     const url = new URL(`${supabaseUrl}/functions/v1/showtimes`);
     url.searchParams.set("lat", String(params.lat));
     url.searchParams.set("lng", String(params.lng));
-    if (params.date) url.searchParams.set("date", params.date);
-    if (params.windowStart)
-      url.searchParams.set("windowStart", params.windowStart);
+    url.searchParams.set("date", params.date);
     if (params.radius != null)
       url.searchParams.set("radius", String(params.radius));
     if (params.units) url.searchParams.set("units", params.units);
