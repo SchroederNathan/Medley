@@ -1,74 +1,29 @@
-name: PR Preview Build
-
-on:
-  pull_request:
-    branches: [main]
-  workflow_dispatch:
-
-concurrency:
-  group: preview-build-${{ github.ref }}
-  cancel-in-progress: true
+name: preview
+on: pull_request
 
 jobs:
-  ios:
-    name: iOS Preview Build
-    runs-on: macos-26
-    timeout-minutes: 90
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Setup Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Setup EAS
-        uses: expo/expo-github-action@v8
-        with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build iOS .ipa locally (preview)
-        run: |
-          eas build \
-            --platform ios \
-            --profile preview \
-            --local \
-            --non-interactive \
-            --output ./build.ipa
-
-      - name: Upload preview .ipa
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-preview-${{ github.event.pull_request.number || github.run_id }}
-          path: ./build.ipa
-          retention-days: 14
-
-  android:
-    name: Android Preview Build
-    if: false # temporarily disabled to match production workflow
+  update:
+    name: EAS Update
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
-      - name: Checkout
+      - name: Check for EXPO_TOKEN
+        run: |
+          if [ -z "${{ secrets.EXPO_TOKEN }}" ]; then
+            echo "You must provide an EXPO_TOKEN secret linked to this project's Expo account in this repo's secrets. Learn more: https://docs.expo.dev/eas-update/github-actions"
+            exit 1
+          fi
+
+      - name: Checkout repository
         uses: actions/checkout@v5
 
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: 22
-          cache: npm
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
+          cache: yarn
 
       - name: Setup EAS
         uses: expo/expo-github-action@v8
@@ -77,20 +32,9 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Install dependencies
-        run: npm ci
+        run: yarn install
 
-      - name: Build Android .apk locally (preview)
-        run: |
-          eas build \
-            --platform android \
-            --profile preview \
-            --local \
-            --non-interactive \
-            --output ./build.apk
-
-      - name: Upload preview .apk
-        uses: actions/upload-artifact@v4
+      - name: Create preview
+        uses: expo/expo-github-action/preview@v8
         with:
-          name: android-preview-${{ github.event.pull_request.number || github.run_id }}
-          path: ./build.apk
-          retention-days: 14
+          command: eas update --auto

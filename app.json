@@ -19,7 +19,13 @@
         "foregroundImage": "./assets/icons/adaptive-icon/foreground.png",
         "backgroundColor": "#171717"
       },
-      "package": "com.schroedernathan.medley"
+      "package": "com.schroedernathan.medley",
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/icons/favicon.png"
@@ -85,6 +91,12 @@
     },
     "experiments": {
       "reactCompiler": true
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/f9b4bb48-9ccf-4ba5-a2f9-9afe99770ee4"
     }
   }
 }
