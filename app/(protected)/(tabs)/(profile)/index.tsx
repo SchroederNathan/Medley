@@ -659,6 +659,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
     alignSelf: "flex-end",
+    marginRight: 20,
     marginBottom: 16,
   },
   sortLabel: {
