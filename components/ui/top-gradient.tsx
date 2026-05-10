@@ -18,7 +18,7 @@ export const TopGradient = ({ height = 4 }: TopGradientProps) => {
     // 0.9 → 0 alpha creates a soft fade; height * 1.2 covers overscroll and header parallax.
     return (
       <LinearGradient
-        style={[StyleSheet.absoluteFillObject, { height: height * 1.2 }]}
+        style={[StyleSheet.absoluteFill, { height: height * 1.2 }]}
         colors={["rgba(23, 23, 23, 0.9)", "rgba(23, 23, 23, 0)"]}
         locations={[0.75, 1]}
       />

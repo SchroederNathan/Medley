@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
     height: ITEM_HEIGHT,
   },
   darkOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "black",
   },
   paginationContainer: {

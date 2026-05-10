@@ -43,7 +43,9 @@
       [
         "expo-asset",
         {
-          "assets": ["./assets/rive/warp_circle.riv"]
+          "assets": [
+            "./assets/rive/warp_circle.riv"
+          ]
         }
       ],
       [
@@ -53,7 +55,7 @@
         }
       ],
       [
-        "@sentry/react-native/expo",
+        "@sentry/react-native",
         {
           "url": "https://sentry.io/",
           "project": "react-native",

@@ -5,26 +5,10 @@ import { StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
 
-type Buy = {
-  logo_path: string;
-  provider_id: number; // Defaults to 0
-  provider_name: string;
-  display_priority: number; // Defaults to 0
-}[];
-
-type Streaming = {
-  logo_path: string;
-  provider_id: number; // Defaults to 0
-  provider_name: string;
-  display_priority: number; // Defaults to 0
-}[];
-
-type PlatformType = Buy | Streaming | Rental;
-
 type Platform = {
-  provider_name: string;
-  logo_path: string;
-  type: PlatformType;
+  name: string;
+  logo_url: string | number;
+  url: string;
 };
 
 // Placeholder data with 10 empty cast members

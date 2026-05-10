@@ -31,14 +31,13 @@ export async function registerForPushNotificationsAsync(): Promise<RegisterResul
       }
     }
 
-    const { status: existingStatus } =
-      await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-    if (existingStatus !== "granted") {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
+    const existing = await Notifications.getPermissionsAsync();
+    let granted = existing.granted;
+    if (!granted) {
+      const requested = await Notifications.requestPermissionsAsync();
+      granted = requested.granted;
     }
-    if (finalStatus !== "granted") {
+    if (!granted) {
       return { token: null, error: "Notification permissions not granted" };
     }
 

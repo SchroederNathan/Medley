@@ -87,7 +87,7 @@ export const AnimatedIconButton: React.FC<AnimatedIconButtonProps> = ({
       <View
         pointerEvents="none"
         style={[
-          StyleSheet.absoluteFillObject,
+          StyleSheet.absoluteFill,
           { backgroundColor, borderRadius: size / 2, zIndex: -1 },
         ]}
       />

@@ -153,7 +153,7 @@ export const PullToSearchContent: FC<PullToSearchContentProps> = ({
       <Animated.View
         style={[
           rMainTopGradientStyle,
-          StyleSheet.absoluteFillObject,
+          StyleSheet.absoluteFill,
           { height: grossHeight, zIndex: 0 },
         ]}
       >
@@ -164,7 +164,7 @@ export const PullToSearchContent: FC<PullToSearchContentProps> = ({
       <Animated.View
         style={[
           rSearchTopGradientStyle,
-          StyleSheet.absoluteFillObject,
+          StyleSheet.absoluteFill,
           { height: grossHeight, zIndex: 50 },
         ]}
       >

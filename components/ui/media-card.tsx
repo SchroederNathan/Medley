@@ -234,7 +234,7 @@ const MediaCard = ({
         <Animated.View
           pointerEvents="none"
           style={[
-            StyleSheet.absoluteFillObject,
+            StyleSheet.absoluteFill,
             { backgroundColor: theme.buttonBackground },
             skeletonStyle,
           ]}

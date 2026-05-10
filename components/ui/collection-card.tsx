@@ -149,9 +149,8 @@ const CollectionCard = ({
                 text: "Delete",
                 style: "destructive",
                 onPress: async () => {
-                  const userId = user?.id || "";
                   try {
-                    await CollectionService.deleteCollection(id, userId);
+                    await CollectionService.deleteCollection(id);
                     showToast({
                       message: `${title} deleted`,
                     });

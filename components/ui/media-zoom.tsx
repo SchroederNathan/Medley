@@ -1,5 +1,5 @@
 import { BlurView } from "expo-blur";
-import { Image } from "expo-image";
+import { Image, type ImageStyle } from "expo-image";
 import { X } from "lucide-react-native";
 import { FC, Ref } from "react";
 import {
@@ -161,7 +161,7 @@ export const MediaZoomOverlay: FC<{ imageUri?: string }> = ({
         <AnimatedImage
           source={{ uri: displayImageUri }}
           contentFit="cover"
-          style={[rImageStyle, styles.zoomedImage]}
+          style={[rImageStyle, styles.zoomedImage as ImageStyle]}
         />
 
         {activeTitle ? (

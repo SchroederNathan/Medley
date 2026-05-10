@@ -31,7 +31,6 @@ import {
   Trash,
 } from "../../../components/ui/svg-icons";
 import { TruncatedText } from "../../../components/ui/truncated-text";
-import { AuthContext } from "../../../contexts/auth-context";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { useToast } from "../../../contexts/toast-context";
 import { useCollection } from "../../../hooks/use-collection";
@@ -157,7 +156,6 @@ const formatCollectionDate = (dateString: string): string => {
 const CollectionDetail = () => {
   const { theme } = useContext(ThemeContext);
   const safeAreaInsets = useSafeAreaInsets();
-  const { user } = useContext(AuthContext);
   // Route param
   const { id } = useLocalSearchParams();
   const collectionId = Array.isArray(id) ? id[0] : id;
@@ -488,7 +486,6 @@ const CollectionDetail = () => {
                   { color: theme.secondaryText },
                 ]}
                 containerStyle={styles.descriptionContainer}
-                backgroundColor={theme.background}
               />
             ) : null}
 
@@ -574,9 +571,8 @@ const CollectionDetail = () => {
             destructive: true,
             icon: <Trash size={20} color={theme.destructive} />,
             onPress: async () => {
-              const userId = user?.id || "";
               try {
-                await CollectionService.deleteCollection(collectionId, userId);
+                await CollectionService.deleteCollection(collectionId);
                 setShowActionMenu(false);
                 router.back();
                 setTimeout(() => {
