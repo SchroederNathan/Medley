@@ -75,6 +75,11 @@ export const queryKeys = {
     detail: (collectionId: string) => ["collection", collectionId] as const,
   },
 
+  // Follows
+  follows: {
+    counts: (userId: string) => ["followCounts", userId] as const,
+  },
+
   // Recommendations
   recommendations: {
     root: (userId: string) => ["recommendations", userId] as const,

@@ -4,6 +4,7 @@ import {
   CollectionService,
   CollectionWithItems,
 } from "../services/collectionService";
+import { FollowsService } from "../services/followsService";
 import { MediaService } from "../services/mediaService";
 import { Profile, ProfileService } from "../services/profileService";
 import {
@@ -68,6 +69,20 @@ export function userCollectionsQueryOptions(userId: string) {
   return queryOptions<CollectionWithItems[]>({
     queryFn: () => CollectionService.getUserCollections(userId),
     queryKey: queryKeys.collections.all(userId),
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function followCountsQueryOptions(userId: string) {
+  return queryOptions<{ followers: number; following: number }>({
+    queryFn: async () => {
+      const [followers, following] = await Promise.all([
+        FollowsService.getFollowerCount(userId),
+        FollowsService.getFollowingCount(userId),
+      ]);
+      return { followers, following };
+    },
+    queryKey: queryKeys.follows.counts(userId),
     staleTime: 1000 * 60 * 5,
   });
 }

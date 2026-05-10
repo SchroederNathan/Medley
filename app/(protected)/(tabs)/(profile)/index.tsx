@@ -1,5 +1,7 @@
+import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
-import React, { useContext, useRef, useState } from "react";
+import { ArrowUpDown } from "lucide-react-native";
+import React, { useContext, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -24,17 +26,36 @@ import Svg, {
 } from "react-native-svg";
 import { AnimatedProfileImage } from "../../../../components/ui/animated-profile-image";
 import Button from "../../../../components/ui/button";
+import CollectionCard from "../../../../components/ui/collection-card";
 import { DefaultProfileImage } from "../../../../components/ui/default-profile-image";
+import MediaCard from "../../../../components/ui/media-card";
+import ActionMenu from "../../../../components/ui/sheets/action-menu";
 import { SettingsIcon } from "../../../../components/ui/svg-icons";
 import TabPager from "../../../../components/ui/tab-pager";
 import UserReviewCard from "../../../../components/ui/user-review-card";
+import { AuthContext } from "../../../../contexts/auth-context";
 import { ThemeContext } from "../../../../contexts/theme-context";
 import { ZoomAnimationProvider } from "../../../../contexts/zoom-animation-context";
+import { useFollowCounts } from "../../../../hooks/use-follow-counts";
+import { useUserCollections } from "../../../../hooks/use-user-collections";
+import { useUserMedia } from "../../../../hooks/use-user-media";
 import { useUserProfile } from "../../../../hooks/use-user-profile";
 import { useUserReviews } from "../../../../hooks/use-user-reviews";
 import { fontFamily } from "../../../../lib/fonts";
 
-const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get("window");
+const CARD_SPACING = 12;
+const CARD_WIDTH = (SCREEN_WIDTH - 40 - CARD_SPACING * 3) / 4;
+const CARD_HEIGHT = CARD_WIDTH * 1.5;
+
+type ReviewSort = "recent" | "oldest" | "rating-desc" | "rating-asc";
+
+const sortLabels: Record<ReviewSort, string> = {
+  recent: "Most Recent",
+  oldest: "Oldest",
+  "rating-desc": "Highest Rated",
+  "rating-asc": "Lowest Rated",
+};
 
 // Helper function to format review date
 const formatReviewDate = (dateString: string): string => {
@@ -53,6 +74,7 @@ const formatReviewDate = (dateString: string): string => {
 };
 
 const tabs = [
+  { key: "library", title: "Library" },
   { key: "reviews", title: "Reviews" },
   { key: "collections", title: "Collections" },
 ];
@@ -61,7 +83,8 @@ const ProfileScreen = () => {
   const { theme } = useContext(ThemeContext);
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [activeTab, setActiveTab] = useState<string>("reviews");
+  const { user } = useContext(AuthContext);
+  const [activeTab, setActiveTab] = useState<string>("library");
   const scrollViewRef = useRef<Animated.ScrollView>(null);
   const tabPagerContainerRef = useRef<View>(null);
   const scrollY = useSharedValue(0);
@@ -75,6 +98,45 @@ const ProfileScreen = () => {
     error: reviewsError,
     refetch: refetchReviews,
   } = useUserReviews();
+  const {
+    data: collections,
+    isLoading: collectionsLoading,
+    isFetching: collectionsFetching,
+    error: collectionsError,
+    refetch: refetchCollections,
+  } = useUserCollections();
+  const {
+    data: media,
+    isLoading: mediaLoading,
+    isRefetching: mediaFetching,
+    isError: mediaError,
+    refetch: refetchMedia,
+  } = useUserMedia();
+  const { data: followCounts } = useFollowCounts(user?.id);
+
+  const [reviewSort, setReviewSort] = useState<ReviewSort>("recent");
+  const [sortMenuVisible, setSortMenuVisible] = useState(false);
+
+  const sortedReviews = useMemo(() => {
+    if (!reviews) return [];
+    const copy = [...reviews];
+    switch (reviewSort) {
+      case "recent":
+        return copy.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      case "oldest":
+        return copy.sort(
+          (a, b) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+      case "rating-desc":
+        return copy.sort((a, b) => b.rating - a.rating);
+      case "rating-asc":
+        return copy.sort((a, b) => a.rating - b.rating);
+    }
+  }, [reviews, reviewSort]);
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -166,8 +228,14 @@ const ProfileScreen = () => {
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
-              refreshing={reviewsFetching}
-              onRefresh={() => refetchReviews()}
+              refreshing={
+                reviewsFetching || collectionsFetching || mediaFetching
+              }
+              onRefresh={() => {
+                refetchReviews();
+                refetchCollections();
+                refetchMedia();
+              }}
               tintColor={theme.text}
             />
           }
@@ -236,7 +304,9 @@ const ProfileScreen = () => {
           </Text>
           <View style={styles.profileInfoRow}>
             <Pressable style={styles.countContainer}>
-              <Text style={[styles.count, { color: theme.text }]}>0</Text>
+              <Text style={[styles.count, { color: theme.text }]}>
+                {followCounts?.followers ?? 0}
+              </Text>
               <Text style={[styles.countLabel, { color: theme.secondaryText }]}>
                 Followers
               </Text>
@@ -245,7 +315,9 @@ const ProfileScreen = () => {
               style={[styles.separator, { backgroundColor: theme.border }]}
             />
             <Pressable style={styles.countContainer}>
-              <Text style={[styles.count, { color: theme.text }]}>7</Text>
+              <Text style={[styles.count, { color: theme.text }]}>
+                {followCounts?.following ?? 0}
+              </Text>
               <Text style={[styles.countLabel, { color: theme.secondaryText }]}>
                 Following
               </Text>
@@ -277,7 +349,83 @@ const ProfileScreen = () => {
               style={{ marginHorizontal: -20 }}
               centerTabs={true}
               pages={[
+                <View key="library" style={{ flex: 1, paddingTop: 20 }}>
+                  {mediaLoading ? (
+                    <View style={styles.loadingContainer}>
+                      <ActivityIndicator size="small" />
+                      <Text
+                        style={{ color: theme.secondaryText, marginTop: 8 }}
+                      >
+                        Loading library...
+                      </Text>
+                    </View>
+                  ) : mediaError ? (
+                    <View style={styles.errorContainer}>
+                      <Text
+                        style={[
+                          styles.errorText,
+                          { color: theme.secondaryText },
+                        ]}
+                      >
+                        Failed to load library
+                      </Text>
+                    </View>
+                  ) : media && media.length > 0 ? (
+                    <FlashList
+                      data={media}
+                      renderItem={({ item }) => (
+                        <MediaCard
+                          media={item}
+                          width={CARD_WIDTH}
+                          height={CARD_HEIGHT}
+                          rating={item.user_rating ?? undefined}
+                        />
+                      )}
+                      masonry
+                      numColumns={4}
+                      keyExtractor={(item) => item.id}
+                      ItemSeparatorComponent={() => (
+                        <View style={{ height: CARD_SPACING }} />
+                      )}
+                      contentContainerStyle={{
+                        paddingTop: 0,
+                        marginRight: 28,
+                        paddingBottom: 100,
+                      }}
+                      scrollEnabled={false}
+                      showsVerticalScrollIndicator={false}
+                    />
+                  ) : (
+                    <View style={styles.emptyContainer}>
+                      <Text
+                        style={[
+                          styles.emptyText,
+                          { color: theme.secondaryText },
+                        ]}
+                      >
+                        Nothing tracked yet
+                      </Text>
+                    </View>
+                  )}
+                </View>,
                 <View key="reviews" style={{ flex: 1, paddingTop: 20 }}>
+                  {sortedReviews.length > 0 && (
+                    <Pressable
+                      onPress={() => setSortMenuVisible(true)}
+                      style={styles.sortButton}
+                      hitSlop={8}
+                    >
+                      <ArrowUpDown size={16} color={theme.secondaryText} />
+                      <Text
+                        style={[
+                          styles.sortLabel,
+                          { color: theme.secondaryText },
+                        ]}
+                      >
+                        {sortLabels[reviewSort]}
+                      </Text>
+                    </Pressable>
+                  )}
                   {reviewsLoading ? (
                     <View style={styles.loadingContainer}>
                       <ActivityIndicator size="small" />
@@ -298,12 +446,12 @@ const ProfileScreen = () => {
                         Failed to load reviews
                       </Text>
                     </View>
-                  ) : reviews && reviews.length > 0 ? (
-                    reviews.map((review, index) => (
+                  ) : sortedReviews.length > 0 ? (
+                    sortedReviews.map((review, index) => (
                       <View
                         key={review.id}
                         style={
-                          index < reviews.length - 1
+                          index < sortedReviews.length - 1
                             ? styles.reviewCardContainer
                             : undefined
                         }
@@ -333,14 +481,78 @@ const ProfileScreen = () => {
                 </View>,
                 <View
                   key="collections"
-                  style={{ flex: 1, paddingTop: 20 }}
-                ></View>,
+                  style={{ flex: 1, paddingTop: 20, gap: 16 }}
+                >
+                  {collectionsLoading ? (
+                    <View style={styles.loadingContainer}>
+                      <ActivityIndicator size="small" />
+                      <Text
+                        style={{ color: theme.secondaryText, marginTop: 8 }}
+                      >
+                        Loading collections...
+                      </Text>
+                    </View>
+                  ) : collectionsError ? (
+                    <View style={styles.errorContainer}>
+                      <Text
+                        style={[
+                          styles.errorText,
+                          { color: theme.secondaryText },
+                        ]}
+                      >
+                        Failed to load collections
+                      </Text>
+                    </View>
+                  ) : collections && collections.length > 0 ? (
+                    collections.map((collection) => (
+                      <CollectionCard
+                        key={collection.id}
+                        id={collection.id}
+                        title={collection.name}
+                        ranked={collection.ranked}
+                        mediaItems={
+                          collection.collection_items
+                            ?.sort((a, b) => a.position - b.position)
+                            .map((item) => item.media) ?? []
+                        }
+                        onPress={() => {
+                          router.push(`/collection/${collection.id}`);
+                        }}
+                      />
+                    ))
+                  ) : (
+                    <View style={styles.emptyContainer}>
+                      <Text
+                        style={[
+                          styles.emptyText,
+                          { color: theme.secondaryText },
+                        ]}
+                      >
+                        No collections yet
+                      </Text>
+                    </View>
+                  )}
+                </View>,
               ]}
             />
           </View>
         </Animated.ScrollView>
       </View>
       <AnimatedProfileImage />
+      <ActionMenu
+        visible={sortMenuVisible}
+        onClose={() => setSortMenuVisible(false)}
+        actions={(
+          ["recent", "oldest", "rating-desc", "rating-asc"] as ReviewSort[]
+        ).map((key) => ({
+          title: sortLabels[key],
+          icon: null,
+          onPress: () => {
+            setReviewSort(key);
+            setSortMenuVisible(false);
+          },
+        }))}
+      />
     </ZoomAnimationProvider>
   );
 };
@@ -441,5 +653,16 @@ const styles = StyleSheet.create({
   },
   reviewCardContainer: {
     marginBottom: 32,
+  },
+  sortButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    alignSelf: "flex-end",
+    marginBottom: 16,
+  },
+  sortLabel: {
+    fontFamily: fontFamily.plusJakarta.medium,
+    fontSize: 14,
   },
 });
