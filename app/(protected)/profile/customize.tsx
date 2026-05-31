@@ -2,10 +2,7 @@ import { useRouter } from "expo-router";
 import { GripVertical, Plus } from "lucide-react-native";
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import DraggableFlatList, {
-  RenderItemParams,
-  ScaleDecorator,
-} from "react-native-draggable-flatlist";
+import Sortable, { type SortableGridRenderItem } from "react-native-sortables";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../../../components/ui/button";
 import { Switch } from "../../../components/ui/switch";
@@ -66,33 +63,23 @@ const ProfileCustomize = () => {
     );
   };
 
-  const renderItem = useCallback(
-    ({ item, drag, isActive }: RenderItemParams<ProfileBlockConfig>) => {
+  const renderItem = useCallback<SortableGridRenderItem<ProfileBlockConfig>>(
+    ({ item }) => {
       const definition = getBlockDefinition(item.kind);
       return (
-        <ScaleDecorator>
-          <View
-            style={[
-              styles.row,
-              { backgroundColor: theme.card, opacity: isActive ? 0.8 : 1 },
-            ]}
-          >
-            <TouchableOpacity
-              onLongPress={drag}
-              disabled={isActive}
-              hitSlop={8}
-            >
-              <GripVertical color={theme.secondaryText} />
-            </TouchableOpacity>
-            <Text style={[styles.rowTitle, { color: theme.text }]}>
-              {definition?.title ?? item.kind}
-            </Text>
-            <Switch
-              value={item.enabled}
-              onValueChange={() => toggleEnabled(item.id)}
-            />
-          </View>
-        </ScaleDecorator>
+        <View style={[styles.row, { backgroundColor: theme.card }]}>
+          {/* Only the grip activates the drag, so the Switch stays tappable. */}
+          <Sortable.Handle>
+            <GripVertical color={theme.secondaryText} />
+          </Sortable.Handle>
+          <Text style={[styles.rowTitle, { color: theme.text }]}>
+            {definition?.title ?? item.kind}
+          </Text>
+          <Switch
+            value={item.enabled}
+            onValueChange={() => toggleEnabled(item.id)}
+          />
+        </View>
       );
     },
     [theme, toggleEnabled]
@@ -107,36 +94,43 @@ const ProfileCustomize = () => {
         Drag to reorder. Toggle blocks on or off.
       </Text>
 
-      <DraggableFlatList
+      <Sortable.Grid
+        columns={1}
         data={blocks}
-        onDragEnd={({ data }) => setBlocks(data)}
-        keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        ListFooterComponent={
-          missingKinds.length > 0 ? (
-            <View style={styles.addSection}>
-              <Text style={[styles.addHeading, { color: theme.secondaryText }]}>
-                Add a block
-              </Text>
-              {missingKinds.map((kind) => (
-                <TouchableOpacity
-                  key={kind}
-                  onPress={() => addBlock(kind)}
-                  style={[styles.addRow, { borderColor: theme.border }]}
-                  activeOpacity={0.7}
-                >
-                  <Plus size={20} color={theme.text} />
-                  <Text style={[styles.rowTitle, { color: theme.text }]}>
-                    {getBlockDefinition(kind)?.title ?? kind}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          ) : null
-        }
+        keyExtractor={(item) => item.id}
+        rowGap={12}
+        customHandle
+        sortEnabled={blocks.length > 1}
+        onDragEnd={({ data }) => setBlocks(data)}
+        hapticsEnabled
+        activeItemScale={1.03}
+        activeItemOpacity={0.9}
+        inactiveItemOpacity={1}
       />
+
+      {missingKinds.length > 0 && (
+        <View style={styles.addSection}>
+          <Text style={[styles.addHeading, { color: theme.secondaryText }]}>
+            Add a block
+          </Text>
+          {missingKinds.map((kind) => (
+            <TouchableOpacity
+              key={kind}
+              onPress={() => addBlock(kind)}
+              style={[styles.addRow, { borderColor: theme.border }]}
+              activeOpacity={0.7}
+            >
+              <Plus size={20} color={theme.text} />
+              <Text style={[styles.rowTitle, { color: theme.text }]}>
+                {getBlockDefinition(kind)?.title ?? kind}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
+      <View style={styles.spacer} />
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
         <Button
@@ -167,9 +161,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     fontFamily: fontFamily.plusJakarta.regular,
   },
-  listContent: {
-    gap: 12,
-    paddingBottom: 24,
+  spacer: {
+    flex: 1,
   },
   row: {
     flexDirection: "row",
