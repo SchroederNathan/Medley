@@ -1,5 +1,6 @@
 import { supabase } from "../lib/utils";
 import { throwIfError, toAppError } from "../lib/app-error";
+import { ProfileLayout } from "../lib/profile-blocks/types";
 
 export interface Profile {
   id: string;
@@ -10,6 +11,7 @@ export interface Profile {
     onboarding_completed?: boolean;
     completed_at?: string;
   };
+  profile_layout?: ProfileLayout | null;
   created_at?: string;
   updated_at?: string;
 }

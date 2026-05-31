@@ -4,6 +4,7 @@ import {
   CollectionService,
   CollectionWithItems,
 } from "../services/collectionService";
+import { FavouritesService } from "../services/favouritesService";
 import { FollowsService } from "../services/followsService";
 import { MediaService } from "../services/mediaService";
 import { Profile, ProfileService } from "../services/profileService";
@@ -69,6 +70,14 @@ export function userCollectionsQueryOptions(userId: string) {
   return queryOptions<CollectionWithItems[]>({
     queryFn: () => CollectionService.getUserCollections(userId),
     queryKey: queryKeys.collections.all(userId),
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function favouritesQueryOptions(userId: string) {
+  return queryOptions<Media[]>({
+    queryFn: () => FavouritesService.getFavourites(userId),
+    queryKey: queryKeys.favourites.all(userId),
     staleTime: 1000 * 60 * 5,
   });
 }

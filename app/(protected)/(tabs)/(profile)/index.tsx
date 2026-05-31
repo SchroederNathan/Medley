@@ -1,4 +1,5 @@
 import { FlashList } from "@shopify/flash-list";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { ArrowUpDown } from "lucide-react-native";
 import React, { useContext, useMemo, useRef, useState } from "react";
@@ -36,12 +37,15 @@ import UserReviewCard from "../../../../components/ui/user-review-card";
 import { AuthContext } from "../../../../contexts/auth-context";
 import { ThemeContext } from "../../../../contexts/theme-context";
 import { ZoomAnimationProvider } from "../../../../contexts/zoom-animation-context";
+import ProfileBlockList from "../../../../components/profile/profile-block-list";
 import { useFollowCounts } from "../../../../hooks/use-follow-counts";
+import { useProfileLayout } from "../../../../hooks/use-profile-layout";
 import { useUserCollections } from "../../../../hooks/use-user-collections";
 import { useUserMedia } from "../../../../hooks/use-user-media";
 import { useUserProfile } from "../../../../hooks/use-user-profile";
 import { useUserReviews } from "../../../../hooks/use-user-reviews";
 import { fontFamily } from "../../../../lib/fonts";
+import { queryKeys } from "../../../../lib/query-keys";
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_SPACING = 12;
@@ -84,6 +88,8 @@ const ProfileScreen = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user } = useContext(AuthContext);
+  const queryClient = useQueryClient();
+  const profileLayout = useProfileLayout();
   const [activeTab, setActiveTab] = useState<string>("library");
   const scrollViewRef = useRef<Animated.ScrollView>(null);
   const tabPagerContainerRef = useRef<View>(null);
@@ -235,6 +241,14 @@ const ProfileScreen = () => {
                 refetchReviews();
                 refetchCollections();
                 refetchMedia();
+                if (user?.id) {
+                  queryClient.invalidateQueries({
+                    queryKey: queryKeys.favourites.root(user.id),
+                  });
+                  queryClient.invalidateQueries({
+                    queryKey: queryKeys.userProfile.root(user.id),
+                  });
+                }
               }}
               tintColor={theme.text}
             />
@@ -326,9 +340,19 @@ const ProfileScreen = () => {
 
           <Button
             title="Edit Profile"
-            onPress={() => {}}
+            onPress={() => router.push("/profile/customize")}
             styles={styles.editProfileButton}
           />
+
+          {user?.id && (
+            <View style={styles.blocksContainer}>
+              <ProfileBlockList
+                layout={profileLayout}
+                userId={user.id}
+                isOwnProfile={true}
+              />
+            </View>
+          )}
 
           <View
             ref={tabPagerContainerRef}
@@ -631,6 +655,10 @@ const styles = StyleSheet.create({
   },
   editProfileButton: {
     marginTop: 24,
+  },
+  blocksContainer: {
+    width: "100%",
+    marginTop: 32,
   },
   loadingContainer: {
     alignItems: "center",

@@ -34,6 +34,24 @@ const ProtectedLayout = () => {
       />
 
       <Stack.Screen
+        name="favourites/select"
+        options={{
+          headerShown: false,
+          presentation: "modal",
+          contentStyle: { backgroundColor: theme.background },
+        }}
+      />
+
+      <Stack.Screen
+        name="profile/customize"
+        options={{
+          headerShown: false,
+          presentation: "modal",
+          contentStyle: { backgroundColor: theme.background },
+        }}
+      />
+
+      <Stack.Screen
         name="save-media/index"
         options={{
           headerShown: false,

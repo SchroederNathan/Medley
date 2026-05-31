@@ -75,6 +75,12 @@ export const queryKeys = {
     detail: (collectionId: string) => ["collection", collectionId] as const,
   },
 
+  // Favourites
+  favourites: {
+    root: (userId: string) => ["favourites", userId] as const,
+    all: (userId: string) => ["favourites", userId] as const,
+  },
+
   // Follows
   follows: {
     counts: (userId: string) => ["followCounts", userId] as const,

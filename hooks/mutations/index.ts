@@ -21,5 +21,9 @@ export {
   useUpdateCollectionWithItems,
 } from "./use-update-collection";
 
+// Favourites mutations
+export { useSetFavourites } from "./use-set-favourites";
+
 // Profile mutations
 export { useUploadAvatar, useUpdateProfile } from "./use-upload-avatar";
+export { useUpdateProfileLayout } from "./use-update-profile-layout";
