@@ -35,6 +35,7 @@ import { SettingsIcon } from "../../../../components/ui/svg-icons";
 import TabPager from "../../../../components/ui/tab-pager";
 import UserReviewCard from "../../../../components/ui/user-review-card";
 import { AuthContext } from "../../../../contexts/auth-context";
+import { ProfileEditModeContext } from "../../../../contexts/profile-edit-mode-context";
 import { ThemeContext } from "../../../../contexts/theme-context";
 import { ZoomAnimationProvider } from "../../../../contexts/zoom-animation-context";
 import ProfileBlockList from "../../../../components/profile/profile-block-list";
@@ -91,6 +92,13 @@ const ProfileScreen = () => {
   const queryClient = useQueryClient();
   const profileLayout = useProfileLayout();
   const [activeTab, setActiveTab] = useState<string>("library");
+  // Which profile block is in inline edit mode (e.g. Favourites jiggle mode).
+  const [editingBlockId, setEditingBlockId] = useState<string | null>(null);
+  const editModeValue = useMemo(
+    () => ({ editingBlockId, setEditingBlockId }),
+    [editingBlockId]
+  );
+  const dismissEditMode = () => setEditingBlockId(null);
   const scrollViewRef = useRef<Animated.ScrollView>(null);
   const tabPagerContainerRef = useRef<View>(null);
   const scrollY = useSharedValue(0);
@@ -225,359 +233,374 @@ const ProfileScreen = () => {
   }
 
   return (
-    <ZoomAnimationProvider>
-      <View style={styles.container}>
-        <Animated.ScrollView
-          ref={scrollViewRef}
-          onScroll={scrollHandler}
-          scrollEventThrottle={16}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={
-                reviewsFetching || collectionsFetching || mediaFetching
-              }
-              onRefresh={() => {
-                refetchReviews();
-                refetchCollections();
-                refetchMedia();
-                if (user?.id) {
-                  queryClient.invalidateQueries({
-                    queryKey: queryKeys.favourites.root(user.id),
-                  });
-                  queryClient.invalidateQueries({
-                    queryKey: queryKeys.userProfile.root(user.id),
-                  });
+    <ProfileEditModeContext.Provider value={editModeValue}>
+      <ZoomAnimationProvider>
+        <View style={styles.container}>
+          <Animated.ScrollView
+            ref={scrollViewRef}
+            onScroll={scrollHandler}
+            onScrollBeginDrag={dismissEditMode}
+            scrollEventThrottle={16}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={
+                  reviewsFetching || collectionsFetching || mediaFetching
                 }
-              }}
-              tintColor={theme.text}
-            />
-          }
-          contentContainerStyle={{
-            paddingTop: insets.top + 20,
-            paddingHorizontal: 20,
-            alignItems: "center",
-            paddingBottom: 100,
-            // Ensure minimum height to allow scrolling even with minimal content
-            // Calculate: TabPager position + screen height - safe area top
-            // This ensures we can scroll TabPager to top but never past it
-            minHeight:
-              tabPagerHeaderY > 0
-                ? tabPagerHeaderY + SCREEN_HEIGHT - insets.top
-                : SCREEN_HEIGHT * 2,
-          }}
-        >
-          <Svg
-            width="150%"
-            height="100%"
-            viewBox="0 0 500 550"
-            style={styles.spotlightSvg}
+                onRefresh={() => {
+                  refetchReviews();
+                  refetchCollections();
+                  refetchMedia();
+                  if (user?.id) {
+                    queryClient.invalidateQueries({
+                      queryKey: queryKeys.favourites.root(user.id),
+                    });
+                    queryClient.invalidateQueries({
+                      queryKey: queryKeys.userProfile.root(user.id),
+                    });
+                  }
+                }}
+                tintColor={theme.text}
+              />
+            }
+            contentContainerStyle={{
+              paddingTop: insets.top + 20,
+              paddingHorizontal: 20,
+              alignItems: "center",
+              paddingBottom: 100,
+              // Ensure minimum height to allow scrolling even with minimal content
+              // Calculate: TabPager position + screen height - safe area top
+              // This ensures we can scroll TabPager to top but never past it
+              minHeight:
+                tabPagerHeaderY > 0
+                  ? tabPagerHeaderY + SCREEN_HEIGHT - insets.top
+                  : SCREEN_HEIGHT * 2,
+            }}
           >
-            <Defs>
-              <Filter
-                id="filter0_f_2_34"
-                x="-167.2"
-                y="-262.2"
-                width="700.02"
-                height="850.854"
-                filterUnits="userSpaceOnUse"
-              >
-                <FeFlood floodOpacity="0" result="BackgroundImageFix" />
-                <FeBlend
-                  mode="normal"
-                  in="SourceGraphic"
-                  in2="BackgroundImageFix"
-                  result="shape"
-                />
-                <FeGaussianBlur
-                  stdDeviation="61.85"
-                  result="effect1_foregroundBlur_2_34"
-                />
-              </Filter>
-            </Defs>
-            <Path
-              d="M-43.5 -81.5L7.5 -138.5L420.12 380.955L280.62 480.954L-43.5 -81.5Z"
-              fill="#D4D4D4"
-              fillOpacity="0.1"
-              filter="url(#filter0_f_2_34)"
-            />
-          </Svg>
-          <View style={[styles.header, { top: insets.top + 20 }]}>
-            <Pressable
-              onPress={() => router.push("/settings")}
-              style={{ padding: 10, marginRight: -10 }}
+            <Svg
+              width="150%"
+              height="100%"
+              viewBox="0 0 500 550"
+              style={styles.spotlightSvg}
             >
-              <SettingsIcon size={24} color={theme.text} />
-            </Pressable>
-          </View>
+              <Defs>
+                <Filter
+                  id="filter0_f_2_34"
+                  x="-167.2"
+                  y="-262.2"
+                  width="700.02"
+                  height="850.854"
+                  filterUnits="userSpaceOnUse"
+                >
+                  <FeFlood floodOpacity="0" result="BackgroundImageFix" />
+                  <FeBlend
+                    mode="normal"
+                    in="SourceGraphic"
+                    in2="BackgroundImageFix"
+                    result="shape"
+                  />
+                  <FeGaussianBlur
+                    stdDeviation="61.85"
+                    result="effect1_foregroundBlur_2_34"
+                  />
+                </Filter>
+              </Defs>
+              <Path
+                d="M-43.5 -81.5L7.5 -138.5L420.12 380.955L280.62 480.954L-43.5 -81.5Z"
+                fill="#D4D4D4"
+                fillOpacity="0.1"
+                filter="url(#filter0_f_2_34)"
+              />
+            </Svg>
+            <View style={[styles.header, { top: insets.top + 20 }]}>
+              <Pressable
+                onPress={() => router.push("/settings")}
+                style={{ padding: 10, marginRight: -10 }}
+              >
+                <SettingsIcon size={24} color={theme.text} />
+              </Pressable>
+            </View>
 
-          {/* Content */}
-          <DefaultProfileImage />
-          <Text style={[styles.name, { color: theme.text }]}>
-            {profile?.name}
-          </Text>
-          <View style={styles.profileInfoRow}>
-            <Pressable style={styles.countContainer}>
-              <Text style={[styles.count, { color: theme.text }]}>
-                {followCounts?.followers ?? 0}
-              </Text>
-              <Text style={[styles.countLabel, { color: theme.secondaryText }]}>
-                Followers
-              </Text>
-            </Pressable>
+            {/* Content. While a block is in edit mode, a tap anywhere in this
+              upper region (background, stats, header) dismisses it. Interactive
+              children and the favourites block claim their own taps first. */}
             <View
-              style={[styles.separator, { backgroundColor: theme.border }]}
-            />
-            <Pressable style={styles.countContainer}>
-              <Text style={[styles.count, { color: theme.text }]}>
-                {followCounts?.following ?? 0}
+              style={styles.editDismissArea}
+              onStartShouldSetResponder={() => editingBlockId !== null}
+              onResponderRelease={dismissEditMode}
+            >
+              <DefaultProfileImage />
+              <Text style={[styles.name, { color: theme.text }]}>
+                {profile?.name}
               </Text>
-              <Text style={[styles.countLabel, { color: theme.secondaryText }]}>
-                Following
-              </Text>
-            </Pressable>
-          </View>
+              <View style={styles.profileInfoRow}>
+                <Pressable style={styles.countContainer}>
+                  <Text style={[styles.count, { color: theme.text }]}>
+                    {followCounts?.followers ?? 0}
+                  </Text>
+                  <Text
+                    style={[styles.countLabel, { color: theme.secondaryText }]}
+                  >
+                    Followers
+                  </Text>
+                </Pressable>
+                <View
+                  style={[styles.separator, { backgroundColor: theme.border }]}
+                />
+                <Pressable style={styles.countContainer}>
+                  <Text style={[styles.count, { color: theme.text }]}>
+                    {followCounts?.following ?? 0}
+                  </Text>
+                  <Text
+                    style={[styles.countLabel, { color: theme.secondaryText }]}
+                  >
+                    Following
+                  </Text>
+                </Pressable>
+              </View>
 
-          <Button
-            title="Edit Profile"
-            onPress={() => router.push("/profile/customize")}
-            styles={styles.editProfileButton}
-          />
+              <Button
+                title="Edit Profile"
+                onPress={() => router.push("/profile/customize")}
+                styles={styles.editProfileButton}
+              />
 
-          {user?.id && (
-            <View style={styles.blocksContainer}>
-              <ProfileBlockList
-                layout={profileLayout}
-                userId={user.id}
-                isOwnProfile={true}
+              {user?.id && (
+                <View style={styles.blocksContainer}>
+                  <ProfileBlockList
+                    layout={profileLayout}
+                    userId={user.id}
+                    isOwnProfile={true}
+                  />
+                </View>
+              )}
+            </View>
+
+            <View
+              ref={tabPagerContainerRef}
+              style={{
+                flex: 1,
+                width: "100%",
+                marginTop: insets.top < 20 ? 52 : insets.top, // gives proper margin between follower/following count row and tab pager
+              }}
+              onLayout={() => {
+                // Measure position after layout
+                measureTabPagerPosition();
+              }}
+            >
+              <TabPager
+                tabs={tabs}
+                selectedKey={activeTab}
+                onChange={handleTabChange}
+                style={{ marginHorizontal: -20 }}
+                centerTabs={true}
+                pages={[
+                  <View key="library" style={{ flex: 1, paddingTop: 20 }}>
+                    {mediaLoading ? (
+                      <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="small" />
+                        <Text
+                          style={{ color: theme.secondaryText, marginTop: 8 }}
+                        >
+                          Loading library...
+                        </Text>
+                      </View>
+                    ) : mediaError ? (
+                      <View style={styles.errorContainer}>
+                        <Text
+                          style={[
+                            styles.errorText,
+                            { color: theme.secondaryText },
+                          ]}
+                        >
+                          Failed to load library
+                        </Text>
+                      </View>
+                    ) : media && media.length > 0 ? (
+                      <FlashList
+                        data={media}
+                        renderItem={({ item }) => (
+                          <MediaCard
+                            media={item}
+                            width={CARD_WIDTH}
+                            height={CARD_HEIGHT}
+                            rating={item.user_rating ?? undefined}
+                          />
+                        )}
+                        masonry
+                        numColumns={4}
+                        keyExtractor={(item) => item.id}
+                        ItemSeparatorComponent={() => (
+                          <View style={{ height: CARD_SPACING }} />
+                        )}
+                        contentContainerStyle={{
+                          paddingTop: 0,
+                          marginRight: 28,
+                          paddingBottom: 100,
+                        }}
+                        scrollEnabled={false}
+                        showsVerticalScrollIndicator={false}
+                      />
+                    ) : (
+                      <View style={styles.emptyContainer}>
+                        <Text
+                          style={[
+                            styles.emptyText,
+                            { color: theme.secondaryText },
+                          ]}
+                        >
+                          Nothing tracked yet
+                        </Text>
+                      </View>
+                    )}
+                  </View>,
+                  <View key="reviews" style={{ flex: 1, paddingTop: 20 }}>
+                    {sortedReviews.length > 0 && (
+                      <Pressable
+                        onPress={() => setSortMenuVisible(true)}
+                        style={styles.sortButton}
+                        hitSlop={8}
+                      >
+                        <ArrowUpDown size={16} color={theme.secondaryText} />
+                        <Text
+                          style={[
+                            styles.sortLabel,
+                            { color: theme.secondaryText },
+                          ]}
+                        >
+                          {sortLabels[reviewSort]}
+                        </Text>
+                      </Pressable>
+                    )}
+                    {reviewsLoading ? (
+                      <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="small" />
+                        <Text
+                          style={{ color: theme.secondaryText, marginTop: 8 }}
+                        >
+                          Loading reviews...
+                        </Text>
+                      </View>
+                    ) : reviewsError ? (
+                      <View style={styles.errorContainer}>
+                        <Text
+                          style={[
+                            styles.errorText,
+                            { color: theme.secondaryText },
+                          ]}
+                        >
+                          Failed to load reviews
+                        </Text>
+                      </View>
+                    ) : sortedReviews.length > 0 ? (
+                      sortedReviews.map((review, index) => (
+                        <View
+                          key={review.id}
+                          style={
+                            index < sortedReviews.length - 1
+                              ? styles.reviewCardContainer
+                              : undefined
+                          }
+                        >
+                          <UserReviewCard
+                            title={review.media.title}
+                            posterUrl={review.media.poster_url}
+                            review={review.review}
+                            rating={review.rating}
+                            mediaId={review.media.id}
+                            createdAt={formatReviewDate(review.createdAt)}
+                          />
+                        </View>
+                      ))
+                    ) : (
+                      <View style={styles.emptyContainer}>
+                        <Text
+                          style={[
+                            styles.emptyText,
+                            { color: theme.secondaryText },
+                          ]}
+                        >
+                          No reviews yet
+                        </Text>
+                      </View>
+                    )}
+                  </View>,
+                  <View
+                    key="collections"
+                    style={{ flex: 1, paddingTop: 20, gap: 16 }}
+                  >
+                    {collectionsLoading ? (
+                      <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="small" />
+                        <Text
+                          style={{ color: theme.secondaryText, marginTop: 8 }}
+                        >
+                          Loading collections...
+                        </Text>
+                      </View>
+                    ) : collectionsError ? (
+                      <View style={styles.errorContainer}>
+                        <Text
+                          style={[
+                            styles.errorText,
+                            { color: theme.secondaryText },
+                          ]}
+                        >
+                          Failed to load collections
+                        </Text>
+                      </View>
+                    ) : collections && collections.length > 0 ? (
+                      collections.map((collection) => (
+                        <CollectionCard
+                          key={collection.id}
+                          id={collection.id}
+                          title={collection.name}
+                          ranked={collection.ranked}
+                          mediaItems={
+                            collection.collection_items
+                              ?.sort((a, b) => a.position - b.position)
+                              .map((item) => item.media) ?? []
+                          }
+                          onPress={() => {
+                            router.push(`/collection/${collection.id}`);
+                          }}
+                        />
+                      ))
+                    ) : (
+                      <View style={styles.emptyContainer}>
+                        <Text
+                          style={[
+                            styles.emptyText,
+                            { color: theme.secondaryText },
+                          ]}
+                        >
+                          No collections yet
+                        </Text>
+                      </View>
+                    )}
+                  </View>,
+                ]}
               />
             </View>
-          )}
-
-          <View
-            ref={tabPagerContainerRef}
-            style={{
-              flex: 1,
-              width: "100%",
-              marginTop: insets.top < 20 ? 52 : insets.top, // gives proper margin between follower/following count row and tab pager
-            }}
-            onLayout={() => {
-              // Measure position after layout
-              measureTabPagerPosition();
-            }}
-          >
-            <TabPager
-              tabs={tabs}
-              selectedKey={activeTab}
-              onChange={handleTabChange}
-              style={{ marginHorizontal: -20 }}
-              centerTabs={true}
-              pages={[
-                <View key="library" style={{ flex: 1, paddingTop: 20 }}>
-                  {mediaLoading ? (
-                    <View style={styles.loadingContainer}>
-                      <ActivityIndicator size="small" />
-                      <Text
-                        style={{ color: theme.secondaryText, marginTop: 8 }}
-                      >
-                        Loading library...
-                      </Text>
-                    </View>
-                  ) : mediaError ? (
-                    <View style={styles.errorContainer}>
-                      <Text
-                        style={[
-                          styles.errorText,
-                          { color: theme.secondaryText },
-                        ]}
-                      >
-                        Failed to load library
-                      </Text>
-                    </View>
-                  ) : media && media.length > 0 ? (
-                    <FlashList
-                      data={media}
-                      renderItem={({ item }) => (
-                        <MediaCard
-                          media={item}
-                          width={CARD_WIDTH}
-                          height={CARD_HEIGHT}
-                          rating={item.user_rating ?? undefined}
-                        />
-                      )}
-                      masonry
-                      numColumns={4}
-                      keyExtractor={(item) => item.id}
-                      ItemSeparatorComponent={() => (
-                        <View style={{ height: CARD_SPACING }} />
-                      )}
-                      contentContainerStyle={{
-                        paddingTop: 0,
-                        marginRight: 28,
-                        paddingBottom: 100,
-                      }}
-                      scrollEnabled={false}
-                      showsVerticalScrollIndicator={false}
-                    />
-                  ) : (
-                    <View style={styles.emptyContainer}>
-                      <Text
-                        style={[
-                          styles.emptyText,
-                          { color: theme.secondaryText },
-                        ]}
-                      >
-                        Nothing tracked yet
-                      </Text>
-                    </View>
-                  )}
-                </View>,
-                <View key="reviews" style={{ flex: 1, paddingTop: 20 }}>
-                  {sortedReviews.length > 0 && (
-                    <Pressable
-                      onPress={() => setSortMenuVisible(true)}
-                      style={styles.sortButton}
-                      hitSlop={8}
-                    >
-                      <ArrowUpDown size={16} color={theme.secondaryText} />
-                      <Text
-                        style={[
-                          styles.sortLabel,
-                          { color: theme.secondaryText },
-                        ]}
-                      >
-                        {sortLabels[reviewSort]}
-                      </Text>
-                    </Pressable>
-                  )}
-                  {reviewsLoading ? (
-                    <View style={styles.loadingContainer}>
-                      <ActivityIndicator size="small" />
-                      <Text
-                        style={{ color: theme.secondaryText, marginTop: 8 }}
-                      >
-                        Loading reviews...
-                      </Text>
-                    </View>
-                  ) : reviewsError ? (
-                    <View style={styles.errorContainer}>
-                      <Text
-                        style={[
-                          styles.errorText,
-                          { color: theme.secondaryText },
-                        ]}
-                      >
-                        Failed to load reviews
-                      </Text>
-                    </View>
-                  ) : sortedReviews.length > 0 ? (
-                    sortedReviews.map((review, index) => (
-                      <View
-                        key={review.id}
-                        style={
-                          index < sortedReviews.length - 1
-                            ? styles.reviewCardContainer
-                            : undefined
-                        }
-                      >
-                        <UserReviewCard
-                          title={review.media.title}
-                          posterUrl={review.media.poster_url}
-                          review={review.review}
-                          rating={review.rating}
-                          mediaId={review.media.id}
-                          createdAt={formatReviewDate(review.createdAt)}
-                        />
-                      </View>
-                    ))
-                  ) : (
-                    <View style={styles.emptyContainer}>
-                      <Text
-                        style={[
-                          styles.emptyText,
-                          { color: theme.secondaryText },
-                        ]}
-                      >
-                        No reviews yet
-                      </Text>
-                    </View>
-                  )}
-                </View>,
-                <View
-                  key="collections"
-                  style={{ flex: 1, paddingTop: 20, gap: 16 }}
-                >
-                  {collectionsLoading ? (
-                    <View style={styles.loadingContainer}>
-                      <ActivityIndicator size="small" />
-                      <Text
-                        style={{ color: theme.secondaryText, marginTop: 8 }}
-                      >
-                        Loading collections...
-                      </Text>
-                    </View>
-                  ) : collectionsError ? (
-                    <View style={styles.errorContainer}>
-                      <Text
-                        style={[
-                          styles.errorText,
-                          { color: theme.secondaryText },
-                        ]}
-                      >
-                        Failed to load collections
-                      </Text>
-                    </View>
-                  ) : collections && collections.length > 0 ? (
-                    collections.map((collection) => (
-                      <CollectionCard
-                        key={collection.id}
-                        id={collection.id}
-                        title={collection.name}
-                        ranked={collection.ranked}
-                        mediaItems={
-                          collection.collection_items
-                            ?.sort((a, b) => a.position - b.position)
-                            .map((item) => item.media) ?? []
-                        }
-                        onPress={() => {
-                          router.push(`/collection/${collection.id}`);
-                        }}
-                      />
-                    ))
-                  ) : (
-                    <View style={styles.emptyContainer}>
-                      <Text
-                        style={[
-                          styles.emptyText,
-                          { color: theme.secondaryText },
-                        ]}
-                      >
-                        No collections yet
-                      </Text>
-                    </View>
-                  )}
-                </View>,
-              ]}
-            />
-          </View>
-        </Animated.ScrollView>
-      </View>
-      <AnimatedProfileImage />
-      <ActionMenu
-        visible={sortMenuVisible}
-        onClose={() => setSortMenuVisible(false)}
-        actions={(
-          ["recent", "oldest", "rating-desc", "rating-asc"] as ReviewSort[]
-        ).map((key) => ({
-          title: sortLabels[key],
-          icon: null,
-          onPress: () => {
-            setReviewSort(key);
-            setSortMenuVisible(false);
-          },
-        }))}
-      />
-    </ZoomAnimationProvider>
+          </Animated.ScrollView>
+        </View>
+        <AnimatedProfileImage />
+        <ActionMenu
+          visible={sortMenuVisible}
+          onClose={() => setSortMenuVisible(false)}
+          actions={(
+            ["recent", "oldest", "rating-desc", "rating-asc"] as ReviewSort[]
+          ).map((key) => ({
+            title: sortLabels[key],
+            icon: null,
+            onPress: () => {
+              setReviewSort(key);
+              setSortMenuVisible(false);
+            },
+          }))}
+        />
+      </ZoomAnimationProvider>
+    </ProfileEditModeContext.Provider>
   );
 };
 
@@ -659,6 +682,10 @@ const styles = StyleSheet.create({
   blocksContainer: {
     width: "100%",
     marginTop: 32,
+  },
+  editDismissArea: {
+    width: "100%",
+    alignItems: "center",
   },
   loadingContainer: {
     alignItems: "center",

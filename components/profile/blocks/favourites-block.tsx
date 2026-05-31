@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import Sortable, { type SortableGridRenderItem } from "react-native-sortables";
+import { useProfileEditMode } from "../../../contexts/profile-edit-mode-context";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { useFavourites } from "../../../hooks/use-favourites";
 import { useSetFavourites } from "../../../hooks/mutations";
@@ -25,25 +26,45 @@ const CARD_WIDTH =
   (SCREEN_WIDTH - 40 - GAP * (MAX_FAVOURITES - 1)) / MAX_FAVOURITES;
 const CARD_HEIGHT = CARD_WIDTH * 1.5;
 
-const FavouritesBlock = ({ userId, isOwnProfile }: ProfileBlockProps) => {
+const FavouritesBlock = ({
+  userId,
+  isOwnProfile,
+  config,
+}: ProfileBlockProps) => {
   const { theme } = useContext(ThemeContext);
   const router = useRouter();
   const { data: favourites } = useFavourites(userId);
   const setFavourites = useSetFavourites();
-  const [isEditing, setIsEditing] = useState(false);
+
+  // Edit state is shared via the profile context so tapping elsewhere / scrolling
+  // can dismiss it. Falls back to local state when rendered without a provider.
+  const editMode = useProfileEditMode();
+  const [localEditing, setLocalEditing] = useState(false);
+  const isEditing = editMode
+    ? editMode.editingBlockId === config.id
+    : localEditing;
+  const setEditing = useCallback(
+    (on: boolean) => {
+      if (editMode) editMode.setEditingBlockId(on ? config.id : null);
+      else setLocalEditing(on);
+    },
+    [editMode, config.id]
+  );
 
   const items = useMemo(() => favourites ?? [], [favourites]);
 
   // Edit mode (jiggle + delete badges) only applies to your own, non-empty
-  // favourites. Derived so we never reset state in an effect; `removeItem`
-  // clears the flag when the last card is deleted.
+  // favourites.
   const showEdit = isEditing && isOwnProfile && items.length > 0;
 
   const openDetail = useCallback(
     (id: string) => router.push(`/media-detail?id=${id}`),
     [router]
   );
-  const toggleEdit = useCallback(() => setIsEditing((prev) => !prev), []);
+  const toggleEdit = useCallback(
+    () => setEditing(!showEdit),
+    [setEditing, showEdit]
+  );
 
   const openAdd = useCallback(() => {
     router.push("/favourites/select?mode=add");
@@ -60,11 +81,11 @@ const FavouritesBlock = ({ userId, isOwnProfile }: ProfileBlockProps) => {
     (media: Media) => {
       const next = items.filter((item) => item.id !== media.id);
       if (next.length === 0) {
-        setIsEditing(false);
+        setEditing(false);
       }
       setFavourites.mutate(next);
     },
-    [items, setFavourites]
+    [items, setFavourites, setEditing]
   );
 
   const persistOrder = useCallback(
@@ -78,8 +99,8 @@ const FavouritesBlock = ({ userId, isOwnProfile }: ProfileBlockProps) => {
   // very gesture that picked the card up keeps dragging it as the row starts
   // jiggling -- no need to lift and press again.
   const handleDragStart = useCallback(() => {
-    if (isOwnProfile) setIsEditing(true);
-  }, [isOwnProfile]);
+    if (isOwnProfile) setEditing(true);
+  }, [isOwnProfile, setEditing]);
 
   const renderItem = useCallback<SortableGridRenderItem<Media>>(
     ({ item, index }) => (
@@ -131,7 +152,14 @@ const FavouritesBlock = ({ userId, isOwnProfile }: ProfileBlockProps) => {
   ));
 
   return (
-    <View style={styles.container}>
+    <View
+      style={styles.container}
+      // While editing, claim taps that land on the block itself so they don't
+      // bubble up to the profile's dismiss handler. Interactive children
+      // (cards, badges, the Done button) win the responder first, so this only
+      // catches taps on the block's own padding/gaps.
+      onStartShouldSetResponder={() => showEdit}
+    >
       <View style={styles.header}>
         <Text style={[styles.title, { color: theme.text }]}>Favourites</Text>
         {isOwnProfile && items.length > 0 && (
