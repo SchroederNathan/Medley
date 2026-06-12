@@ -8,6 +8,7 @@ import Animated, {
   useReducedMotion,
   useSharedValue,
   withRepeat,
+  withSequence,
   withTiming,
 } from "react-native-reanimated";
 import Sortable from "react-native-sortables";
@@ -59,23 +60,36 @@ const FavouriteCard = ({
     [media.id]
   );
 
+  // Each branch replaces the running animation by assigning a new one, which
+  // cancels the old one atomically on the UI thread. Never cancelAnimation()
+  // before the assignment: the cancel is async (a scheduled self-assign) and
+  // can land after the new animation has started, killing it and leaving the
+  // card frozen mid-wobble.
   useEffect(() => {
     if (!isEditing || reducedMotion) {
-      cancelAnimation(rotation);
       rotation.value = withTiming(0, { duration: 150 });
       return;
     }
-    rotation.value = -JIGGLE_ANGLE * direction;
-    rotation.value = withRepeat(
-      withTiming(JIGGLE_ANGLE * direction, {
-        duration: 140,
+    rotation.value = withSequence(
+      withTiming(-JIGGLE_ANGLE * direction, {
+        duration: 70,
         easing: Easing.inOut(Easing.ease),
       }),
-      -1,
-      true
+      withRepeat(
+        withTiming(JIGGLE_ANGLE * direction, {
+          duration: 140,
+          easing: Easing.inOut(Easing.ease),
+        }),
+        -1,
+        true
+      )
     );
-    return () => cancelAnimation(rotation);
   }, [isEditing, reducedMotion, direction, rotation]);
+
+  // Unmount-only: stop an infinite wobble that would otherwise keep ticking on
+  // the UI thread after the card is gone. Safe here because no replacement
+  // animation follows the cancel.
+  useEffect(() => () => cancelAnimation(rotation), [rotation]);
 
   const jiggleStyle = useAnimatedStyle(() => ({
     transform: [{ rotateZ: `${rotation.value}rad` }],
