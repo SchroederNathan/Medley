@@ -2,10 +2,18 @@ import { FlashList } from "@shopify/flash-list";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { ArrowUpDown } from "lucide-react-native";
-import React, { useContext, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   ActivityIndicator,
   Dimensions,
+  type GestureResponderEvent,
+  type LayoutRectangle,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -94,11 +102,34 @@ const ProfileScreen = () => {
   const [activeTab, setActiveTab] = useState<string>("library");
   // Which profile block is in inline edit mode (e.g. Favourites jiggle mode).
   const [editingBlockId, setEditingBlockId] = useState<string | null>(null);
+  // Window frame of the editing block, reported by the block itself.
+  const editingBlockFrame = useRef<LayoutRectangle | null>(null);
+  const setEditingBlockFrame = useCallback((frame: LayoutRectangle | null) => {
+    editingBlockFrame.current = frame;
+  }, []);
   const editModeValue = useMemo(
-    () => ({ editingBlockId, setEditingBlockId }),
-    [editingBlockId]
+    () => ({ editingBlockId, setEditingBlockId, setEditingBlockFrame }),
+    [editingBlockId, setEditingBlockFrame]
   );
   const dismissEditMode = () => setEditingBlockId(null);
+
+  // While a block is editing, claim (capture phase) any touch that starts
+  // outside its frame, before Pressables/cards underneath can take it. The
+  // claimed tap dismisses edit mode on release and never activates whatever
+  // was under the finger — same as iOS home-screen jiggle mode. Scroll
+  // gestures still win via responder termination, which also dismisses.
+  const shouldClaimOutsideTap = (event: GestureResponderEvent) => {
+    if (editingBlockId === null) return false;
+    const frame = editingBlockFrame.current;
+    if (!frame) return true;
+    const { pageX, pageY } = event.nativeEvent;
+    return !(
+      pageX >= frame.x &&
+      pageX <= frame.x + frame.width &&
+      pageY >= frame.y &&
+      pageY <= frame.y + frame.height
+    );
+  };
   const scrollViewRef = useRef<Animated.ScrollView>(null);
   const tabPagerContainerRef = useRef<View>(null);
   const scrollY = useSharedValue(0);
@@ -235,7 +266,12 @@ const ProfileScreen = () => {
   return (
     <ProfileEditModeContext.Provider value={editModeValue}>
       <ZoomAnimationProvider>
-        <View style={styles.container}>
+        <View
+          style={styles.container}
+          onStartShouldSetResponderCapture={shouldClaimOutsideTap}
+          onResponderRelease={dismissEditMode}
+          onResponderTerminate={dismissEditMode}
+        >
           <Animated.ScrollView
             ref={scrollViewRef}
             onScroll={scrollHandler}
@@ -321,14 +357,7 @@ const ProfileScreen = () => {
               </Pressable>
             </View>
 
-            {/* Content. While a block is in edit mode, a tap anywhere in this
-              upper region (background, stats, header) dismisses it. Interactive
-              children and the favourites block claim their own taps first. */}
-            <View
-              style={styles.editDismissArea}
-              onStartShouldSetResponder={() => editingBlockId !== null}
-              onResponderRelease={dismissEditMode}
-            >
+            <View style={styles.profileContent}>
               <DefaultProfileImage />
               <Text style={[styles.name, { color: theme.text }]}>
                 {profile?.name}
@@ -683,7 +712,7 @@ const styles = StyleSheet.create({
     width: "100%",
     marginTop: 32,
   },
-  editDismissArea: {
+  profileContent: {
     width: "100%",
     alignItems: "center",
   },

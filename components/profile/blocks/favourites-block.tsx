@@ -1,6 +1,13 @@
 import { useRouter } from "expo-router";
 import { Plus } from "lucide-react-native";
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Dimensions,
   StyleSheet,
@@ -56,6 +63,20 @@ const FavouritesBlock = ({
   // Edit mode (jiggle + delete badges) only applies to your own, non-empty
   // favourites.
   const showEdit = isEditing && isOwnProfile && items.length > 0;
+
+  // While editing, report the block's window frame so the profile screen can
+  // claim taps outside it and dismiss. Scrolling exits edit mode before the
+  // frame can go stale, so measuring once on entry is enough.
+  const containerRef = useRef<View>(null);
+  useEffect(() => {
+    if (!editMode || !showEdit) return;
+    containerRef.current?.measureInWindow((x, y, width, height) => {
+      editMode.setEditingBlockFrame({ x, y, width, height });
+    });
+    return () => {
+      editMode.setEditingBlockFrame(null);
+    };
+  }, [editMode, showEdit]);
 
   const openDetail = useCallback(
     (id: string) => router.push(`/media-detail?id=${id}`),
@@ -152,14 +173,7 @@ const FavouritesBlock = ({
   ));
 
   return (
-    <View
-      style={styles.container}
-      // While editing, claim taps that land on the block itself so they don't
-      // bubble up to the profile's dismiss handler. Interactive children
-      // (cards, badges, the Done button) win the responder first, so this only
-      // catches taps on the block's own padding/gaps.
-      onStartShouldSetResponder={() => showEdit}
-    >
+    <View ref={containerRef} style={styles.container}>
       <View style={styles.header}>
         <Text style={[styles.title, { color: theme.text }]}>Favourites</Text>
         {isOwnProfile && items.length > 0 && (
