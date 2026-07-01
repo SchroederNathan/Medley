@@ -72,7 +72,8 @@
     "typescript": "~6.0.3"
   },
   "trustedDependencies": [
-    "@sentry/cli"
+    "@sentry/cli",
+    "@shopify/react-native-skia"
   ],
   "overrides": {
     "expo": "$expo"

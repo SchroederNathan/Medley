@@ -2,6 +2,7 @@
   "expo": {
     "name": "Medley - Track & Discover",
     "slug": "medley",
+    "owner": "exponathan",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icons/icon.png",
@@ -21,8 +22,6 @@
       },
       "package": "com.schroedernathan.medley",
       "permissions": [
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION"
       ]
@@ -86,7 +85,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "f9b4bb48-9ccf-4ba5-a2f9-9afe99770ee4"
+        "projectId": "b35bc1be-98fb-44dc-83f4-8b1ad4ae44e8"
       }
     },
     "experiments": {
@@ -96,7 +95,7 @@
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/f9b4bb48-9ccf-4ba5-a2f9-9afe99770ee4"
+      "url": "https://u.expo.dev/b35bc1be-98fb-44dc-83f4-8b1ad4ae44e8"
     }
   }
 }
