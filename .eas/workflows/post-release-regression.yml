@@ -1,0 +1,52 @@
+# Post-release regression sweep: build main for the simulator and run the
+# full Maestro regression suite (every previously-fixed bug stays fixed).
+# On failure, dispatches the triage agent to investigate.
+#
+# The nightly simulator build this produces is also what get-build picks up
+# as the "pre-fix" build in agent-fix-verify.yml.
+name: Post-release regression sweep
+
+on:
+  push:
+    branches: ['main']
+  schedule:
+    - cron: '0 4 * * *'
+
+jobs:
+  build_sim:
+    name: Build main (simulator)
+    type: build
+    environment: production
+    params:
+      platform: ios
+      profile: simulator
+
+  regression_suite:
+    name: Run Maestro regression suite
+    type: maestro
+    needs: [build_sim]
+    params:
+      build_id: ${{ needs.build_sim.outputs.build_id }}
+      flow_path: .maestro/regressions
+      record_screen: true
+      retries: 1
+
+  dispatch_triage:
+    name: Kick off triage agent on failure
+    after: [regression_suite]
+    if: ${{ after.regression_suite.status == 'failure' }}
+    environment: production
+    steps:
+      - uses: eas/checkout
+      - name: Dispatch agent triage workflow
+        run: |
+          npx eas-cli@latest workflow:run .eas/workflows/agent-triage.yml
+
+  notify:
+    name: Notify Slack
+    type: slack
+    after: [regression_suite]
+    environment: production
+    params:
+      webhook_url: ${{ env.SLACK_WEBHOOK_URL }}
+      message: 'Medley regression sweep on main: ${{ after.regression_suite.status }}'

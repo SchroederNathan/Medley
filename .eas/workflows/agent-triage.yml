@@ -1,0 +1,47 @@
+# Headless Claude Code triages a Sentry error, proposes a fix, writes a Maestro
+# regression flow, and opens a PR labeled `agent-fix` (which triggers
+# agent-fix-verify.yml).
+#
+# Required EAS environment variables (production environment):
+#   CLAUDE_CODE_OAUTH_TOKEN - subscription auth for headless Claude Code.
+#                             Generate locally with `claude setup-token`
+#                             (valid one year). Do NOT also set
+#                             ANTHROPIC_API_KEY; it would take precedence
+#                             and bill the API instead of the subscription.
+#   SENTRY_AUTH_TOKEN   - Sentry API token (org: schroeder-nathan, project:
+#                         react-native); used for both issues and session replays
+#   GITHUB_TOKEN        - repo-scoped token; used to push the branch and open the PR
+name: Agent triage (Sentry → fix PR + Maestro repro)
+
+on:
+  # Daily sweep of the top new Sentry issue
+  schedule:
+    - cron: '0 6 * * 1-5'
+  # Per-error trigger, e.g. from a Sentry alert webhook relay:
+  #   eas workflow:run .eas/workflows/agent-triage.yml -F sentry_issue_id=MEDLEY-123
+  workflow_dispatch:
+    inputs:
+      sentry_issue_id:
+        description: 'Sentry issue short ID to investigate (omit to sweep the top new issue)'
+      release:
+        description: 'App release the error was first seen in'
+
+jobs:
+  investigate:
+    name: Gather context, propose fix, open PR
+    environment: production
+    steps:
+      - uses: eas/checkout
+      - uses: eas/install_node_modules
+      - name: Run triage agent
+        env:
+          SENTRY_ISSUE_ID: ${{ inputs.sentry_issue_id }}
+          APP_RELEASE: ${{ inputs.release }}
+        run: |
+          npm install -g @anthropic-ai/claude-code
+          claude -p "$(cat .agents/triage-prompt.md)" \
+            --allowedTools "Read" "Write" "Edit" "Glob" "Grep" "WebFetch" \
+              "Bash(git *)" "Bash(gh *)" "Bash(curl *)" "Bash(npm *)" \
+            --permission-mode acceptEdits \
+            --max-turns 80 \
+            --output-format json

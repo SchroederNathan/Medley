@@ -30,6 +30,12 @@ Sentry.init({
   // Enable Logs
   enableLogs: true,
 
+  // Session Replay: record every session that hits an error so the triage
+  // agent (.eas/workflows/agent-triage.yml) can reconstruct the user path.
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1.0,
+  integrations: [Sentry.mobileReplayIntegration()],
+
   // uncomment the line below to enable Spotlight (https://spotlightjs.com)
   // spotlight: __DEV__,
 });

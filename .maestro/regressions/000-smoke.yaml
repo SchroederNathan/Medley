@@ -1,0 +1,7 @@
+# Baseline smoke flow: app launches and renders onboarding.
+# Keeps the regression suite non-empty and catches hard launch crashes.
+appId: com.schroedernathan.medley
+---
+- launchApp:
+    clearState: true
+- assertVisible: "Get Started"

@@ -1,0 +1,63 @@
+# Red → green verification for agent-authored fix PRs.
+#
+# Runs the Maestro regression suite twice:
+#   1. against the latest pre-fix simulator build from main (must FAIL:
+#      proves the new flow actually reproduces the Sentry error)
+#   2. against a fresh build of the PR branch (must PASS: proves the fix)
+# then posts the verdict to the PR.
+#
+# The pre-fix build comes from post-release-regression.yml's nightly
+# simulator build of main via get-build.
+name: Verify agent fix (red → green)
+
+on:
+  pull_request_labeled:
+    labels: ['agent-fix']
+
+jobs:
+  get_broken_build:
+    name: Get pre-fix build from main
+    type: get-build
+    params:
+      platform: ios
+      profile: simulator
+
+  repro_on_broken:
+    name: 'RED: reproduce bug on pre-fix build'
+    type: maestro
+    needs: [get_broken_build]
+    params:
+      build_id: ${{ needs.get_broken_build.outputs.build_id }}
+      flow_path: .maestro/regressions
+      record_screen: true
+
+  build_fixed:
+    name: Build PR branch (simulator)
+    type: build
+    environment: production
+    params:
+      platform: ios
+      profile: simulator
+
+  verify_fix:
+    name: 'GREEN: verify fix on PR build'
+    type: maestro
+    needs: [build_fixed]
+    params:
+      build_id: ${{ needs.build_fixed.outputs.build_id }}
+      flow_path: .maestro/regressions
+      record_screen: true
+      retries: 1
+
+  report:
+    name: Post verdict to PR
+    type: github-comment
+    after: [repro_on_broken, verify_fix]
+    params:
+      payload: |
+        ## Agent fix verification
+
+        ${{ after.repro_on_broken.status == 'failure' ? '✅ Regression test reproduces the bug on the pre-fix build' : '⚠️ Regression test did NOT fail on the pre-fix build, so it may not reproduce the reported error' }}
+        ${{ after.verify_fix.status == 'success' ? '✅ Regression test passes on this PR, fix verified' : '❌ Regression test still fails on this PR' }}
+
+        Screen recordings of both runs are attached as artifacts on the Maestro jobs in this workflow run.
