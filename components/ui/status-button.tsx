@@ -55,9 +55,15 @@ const StatusButton = ({
   const buttonBackground =
     variant === "secondary"
       ? theme.secondaryButtonBackground
-      : theme.buttonBackground;
+      : theme.primaryButtonBackground;
   const buttonBorder =
-    variant === "secondary" ? theme.secondaryButtonBorder : theme.buttonBorder;
+    variant === "secondary"
+      ? theme.secondaryButtonBorder
+      : theme.primaryButtonBorder;
+  const buttonText =
+    variant === "secondary"
+      ? theme.secondaryButtonText
+      : theme.primaryButtonText;
 
   const statusOptions: { key: UserMediaStatus; label: string }[] =
     useMemo(() => {
@@ -144,14 +150,7 @@ const StatusButton = ({
           style={[styles.header, { backgroundColor: buttonBackground }]}
         >
           {icon && icon}
-          <Text
-            style={[
-              styles.buttonText,
-              {
-                color: variant === "secondary" ? theme.background : theme.text,
-              },
-            ]}
-          >
+          <Text style={[styles.buttonText, { color: buttonText }]}>
             {title}
           </Text>
         </BlurView>

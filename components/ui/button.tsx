@@ -34,9 +34,15 @@ const Button = ({
   const buttonBackground =
     variant === "secondary"
       ? theme.secondaryButtonBackground
-      : theme.buttonBackground;
+      : theme.primaryButtonBackground;
   const buttonBorder =
-    variant === "secondary" ? theme.secondaryButtonBorder : theme.buttonBorder;
+    variant === "secondary"
+      ? theme.secondaryButtonBorder
+      : theme.primaryButtonBorder;
+  const buttonText =
+    variant === "secondary"
+      ? theme.secondaryButtonText
+      : theme.primaryButtonText;
 
   // Shared value for scale animation
   const scale = useSharedValue(1);
@@ -107,15 +113,7 @@ const Button = ({
             />
             <Animated.View style={styles.pressableContent}>
               {icon && icon}
-              <Animated.Text
-                style={[
-                  styles.buttonText,
-                  {
-                    color:
-                      variant === "secondary" ? theme.background : theme.text,
-                  },
-                ]}
-              >
+              <Animated.Text style={[styles.buttonText, { color: buttonText }]}>
                 {title}
               </Animated.Text>
             </Animated.View>
