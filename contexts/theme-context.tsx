@@ -1,13 +1,18 @@
 import React, { createContext, useEffect, useState } from "react";
 import { useColorScheme } from "react-native";
-import { themes } from "../constants/colors";
+import { Theme, themes } from "../constants/colors";
 import { getStoredThemeMode, setStoredThemeMode } from "../lib/storage";
 
-export const ThemeContext = createContext({
+export const ThemeContext = createContext<{
+  theme: Theme;
+  themeMode: string; // "system", "light", or "dark"
+  toggleTheme: () => void;
+  updateThemeMode: (mode: string) => void;
+}>({
   theme: themes.dark,
-  themeMode: "system", // "system", "light", or "dark"
+  themeMode: "system",
   toggleTheme: () => {},
-  updateThemeMode: (mode: string) => {},
+  updateThemeMode: () => {},
 });
 
 const resolveThemeMode = (mode: string, systemColorScheme: string | null) => {

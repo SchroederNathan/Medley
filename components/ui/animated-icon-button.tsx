@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import {
   Insets,
   Pressable,
@@ -13,6 +13,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { ThemeContext } from "../../contexts/theme-context";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -37,7 +38,7 @@ export const AnimatedIconButton: React.FC<AnimatedIconButtonProps> = ({
   onPress,
   disabled,
   size = 40,
-  backgroundColor = "rgba(10, 10, 10, 0.7)",
+  backgroundColor,
   hitSlop = { top: 12, bottom: 12, left: 12, right: 12 },
   style,
   accessibilityLabel,
@@ -45,6 +46,8 @@ export const AnimatedIconButton: React.FC<AnimatedIconButtonProps> = ({
   accessibilityRole = "button",
   testID,
 }) => {
+  const { theme } = useContext(ThemeContext);
+  const resolvedBackground = backgroundColor ?? theme.fabButtonBackground;
   const pressScale = useSharedValue(1);
 
   const pressAnimatedStyle = useAnimatedStyle(() => {
@@ -88,7 +91,11 @@ export const AnimatedIconButton: React.FC<AnimatedIconButtonProps> = ({
         pointerEvents="none"
         style={[
           StyleSheet.absoluteFill,
-          { backgroundColor, borderRadius: size / 2, zIndex: -1 },
+          {
+            backgroundColor: resolvedBackground,
+            borderRadius: size / 2,
+            zIndex: -1,
+          },
         ]}
       />
     </AnimatedPressable>

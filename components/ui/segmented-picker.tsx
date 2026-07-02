@@ -102,6 +102,10 @@ const SegmentedPicker = ({
           {
             borderColor: theme.border,
             backgroundColor: theme.inputBackground,
+            boxShadow:
+              theme.mode === "dark"
+                ? "rgba(10, 10, 10, 0.5) 0 0 12px 0px inset"
+                : "rgba(10, 10, 10, 0.08) 0 0 12px 0px inset",
           },
         ]}
       >
@@ -160,7 +164,6 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     position: "relative",
     borderCurve: "continuous",
-    boxShadow: "rgba(10,10, 10, 0.5) 0 0 12px 0px inset",
   },
   thumb: {
     position: "absolute",

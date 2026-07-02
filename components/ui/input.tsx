@@ -1,7 +1,7 @@
 import MaskedView from "@react-native-masked-view/masked-view";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
-import React, { useContext, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   Pressable,
   StyleProp,
@@ -56,12 +56,7 @@ const Input = ({
   const INITIAL_FONT_SIZE = 16;
   const FLOATING_FONT_SIZE = 12; // Smaller font when floating
 
-  // Animation values - only vertical translation and fontSize
-  const labelTranslateY = useSharedValue(0);
-  const labelFontSize = useSharedValue(INITIAL_FONT_SIZE);
-  const labelOpacity = useSharedValue(0.6);
-
-  const isActive = isFocused || (value && value.length > 0);
+  const hasValue = !!value && value.length > 0;
 
   // Calculate initial vertical position
   // For single-line: center vertically to match TextInput text (BlurView centers content)
@@ -74,6 +69,40 @@ const Input = ({
   // Floating position: translate up, keep same left position
   const floatingLabelTop = FLOATING_PADDING_TOP; // 4px from container top
   const translateYOffset = floatingLabelTop - initialLabelTop; // How much to move up
+
+  // Animation values - only vertical translation and fontSize.
+  // Start floated when the field is pre-filled so the label never overlaps text.
+  const labelTranslateY = useSharedValue(hasValue ? translateYOffset : 0);
+  const labelFontSize = useSharedValue(
+    hasValue ? FLOATING_FONT_SIZE : INITIAL_FONT_SIZE
+  );
+  const labelOpacity = useSharedValue(hasValue ? 1 : 0.6);
+
+  const isActive = isFocused || hasValue;
+
+  // Keep the label floated when a value arrives programmatically (e.g. edit
+  // forms that load data after mount) and return it when the field is cleared.
+  useEffect(() => {
+    if (isFocused) return;
+    if (hasValue) {
+      labelTranslateY.value = withSpring(translateYOffset);
+      labelFontSize.value = withSpring(FLOATING_FONT_SIZE);
+      labelOpacity.value = withTiming(1, { duration: 100 });
+    } else {
+      labelTranslateY.value = withSpring(0);
+      labelFontSize.value = withSpring(INITIAL_FONT_SIZE);
+      labelOpacity.value = withTiming(0.6, { duration: 100 });
+    }
+  }, [
+    hasValue,
+    isFocused,
+    labelTranslateY,
+    labelFontSize,
+    labelOpacity,
+    translateYOffset,
+    FLOATING_FONT_SIZE,
+    INITIAL_FONT_SIZE,
+  ]);
 
   const handlePress = () => {
     textInputRef.current?.focus();
@@ -167,11 +196,15 @@ const Input = ({
             >
               <LinearGradient
                 locations={[0.5, 1]}
-                colors={["rgba(10, 10, 10, 0.5)", "transparent"]}
+                colors={[
+                  theme.mode === "dark"
+                    ? "rgba(10, 10, 10, 0.5)"
+                    : "rgba(255, 255, 255, 0.5)",
+                  "transparent",
+                ]}
                 style={StyleSheet.absoluteFill}
               />
-              {/* Dark tint matches app theme; actual blur amount is handled externally when needed. */}
-              <BlurView tint="dark" style={[StyleSheet.absoluteFill]} />
+              <BlurView tint={theme.mode} style={[StyleSheet.absoluteFill]} />
             </MaskedView>
           </View>
         )}

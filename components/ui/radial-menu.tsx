@@ -51,11 +51,16 @@ const ButtonItem: FC<ButtonItemProps> = ({
 }) => {
   const { theme } = useContext(ThemeContext);
   const secondaryBackgroundColor = theme.secondaryButtonBackground;
+  const inactiveBackgroundColor = theme.mode === "dark" ? "#1C1C1C" : "#FFFFFF";
+  const activeIconColor = theme.mode === "dark" ? "#000000" : "#FFFFFF";
+  const inactiveIconColor = theme.mode === "dark" ? "#FFFFFF" : "#171717";
 
   const rStyle = useAnimatedStyle(() => {
     const isActive = hoveredId.value === button.id;
     return {
-      backgroundColor: isActive ? secondaryBackgroundColor : "#1C1C1C",
+      backgroundColor: isActive
+        ? secondaryBackgroundColor
+        : inactiveBackgroundColor,
     };
   });
 
@@ -158,10 +163,10 @@ const ButtonItem: FC<ButtonItemProps> = ({
       pointerEvents={isTracking ? "auto" : "none"}
     >
       <Animated.View style={activeIconStyle}>
-        <Icon size={currentIconSize} color="#000000" />
+        <Icon size={currentIconSize} color={activeIconColor} />
       </Animated.View>
       <Animated.View style={inactiveIconStyle}>
-        <Icon size={currentIconSize} color="#FFFFFF" />
+        <Icon size={currentIconSize} color={inactiveIconColor} />
       </Animated.View>
     </Animated.View>
   );
@@ -434,7 +439,10 @@ export const RadialMenu: FC<RadialMenuProps> = ({
                 overflow: "visible",
                 fontSize: 40,
                 fontFamily: fontFamily.tanker.regular,
-                textShadowColor: "rgba(0,0,0,1)",
+                textShadowColor:
+                  theme.mode === "dark"
+                    ? "rgba(0,0,0,1)"
+                    : "rgba(255,255,255,0.9)",
                 textShadowOffset: { width: 0, height: 0 },
                 textShadowRadius: 8,
               }}

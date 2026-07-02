@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
   footer: {
     paddingTop: 16,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "rgba(255, 255, 255, 0.1)",
+    borderTopColor: "rgba(128, 128, 128, 0.25)",
   },
   footerText: {
     fontSize: 14,

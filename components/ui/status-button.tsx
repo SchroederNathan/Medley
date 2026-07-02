@@ -173,7 +173,16 @@ const StatusButton = ({
                 key={key}
                 style={[
                   styles.optionRow,
-                  { borderColor: theme.secondaryButtonBorder },
+                  {
+                    borderColor:
+                      theme.mode === "dark"
+                        ? theme.secondaryButtonBorder
+                        : theme.buttonBorder,
+                    backgroundColor:
+                      theme.mode === "dark"
+                        ? "rgba(255,255,255,0.04)"
+                        : "rgba(0,0,0,0.04)",
+                  },
                   index > 0 ? { marginTop: 8 } : null,
                   savingStatus === key && { opacity: 0.6 },
                 ]}
@@ -227,7 +236,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 1,
-    backgroundColor: "rgba(255,255,255,0.04)",
   },
   optionText: {
     fontSize: 14,

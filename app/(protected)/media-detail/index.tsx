@@ -60,6 +60,8 @@ interface BackdropImageProps {
 }
 
 const BackdropImage: FC<BackdropImageProps> = ({ imageUri }) => {
+  const { theme } = useContext(ThemeContext);
+  const scrimRgb = theme.mode === "dark" ? "10,10,10" : "255,255,255";
   return (
     <View style={{ width: BACKDROP_WIDTH, height: BACKDROP_HEIGHT }}>
       {/* Base crisp image layer */}
@@ -75,7 +77,7 @@ const BackdropImage: FC<BackdropImageProps> = ({ imageUri }) => {
       />
       {/* Linear gradient overlay */}
       <LinearGradient
-        colors={["rgba(10,10,10,0)", "rgba(10,10,10,1)"]}
+        colors={[`rgba(${scrimRgb},0)`, `rgba(${scrimRgb},1)`]}
         locations={[0, 1]}
         style={StyleSheet.absoluteFill}
       />
