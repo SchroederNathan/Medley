@@ -6,7 +6,7 @@ import { useRecommendations } from "./use-recommendations";
 export const useCollectionSearch = (initialMedia?: Media[]) => {
   const [query, setQuery] = useState("");
   const [selectedMedia, setSelectedMedia] = useState<Media[]>(
-    initialMedia || [],
+    initialMedia || []
   );
   const prevInitialMediaRef = React.useRef<Media[] | undefined>(initialMedia);
 

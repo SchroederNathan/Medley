@@ -36,7 +36,10 @@ interface ShimmerAnimationConfigBase {
 
 export type ShimmerAnimationConfig =
   | (ShimmerAnimationConfigBase & { type: "timing"; config?: WithTimingConfig })
-  | (ShimmerAnimationConfigBase & { type: "spring"; config?: WithSpringConfig });
+  | (ShimmerAnimationConfigBase & {
+      type: "spring";
+      config?: WithSpringConfig;
+    });
 
 /**
  * Overlay width value.
@@ -104,7 +107,10 @@ export interface UseShimmerAnimationConfig
   extends
     Pick<ShimmerContextValue, "containerWidth" | "containerHeight">,
     Required<Pick<ShimmerOverlayProps, "trackAngle" | "overlayAngle">>,
-    Pick<ShimmerOverlayProps, "duration" | "initialDelay" | "repeatDelay" | "animation"> {
+    Pick<
+      ShimmerOverlayProps,
+      "duration" | "initialDelay" | "repeatDelay" | "animation"
+    > {
   /** Resolved overlay width (pixels). Derived from the width prop. */
   overlayWidth: DerivedValue<number>;
   /** Total distance the overlay must travel along the track. */

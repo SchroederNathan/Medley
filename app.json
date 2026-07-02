@@ -80,7 +80,9 @@
         {
           "locationWhenInUsePermission": "Allow Medley to use your location to show movie showtimes at theaters near you."
         }
-      ]
+      ],
+      "expo-image",
+      "expo-status-bar"
     ],
     "extra": {
       "router": {},

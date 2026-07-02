@@ -81,11 +81,7 @@ export const OverlayProvider = ({
         <>
           {/* Blur overlay */}
           <Animated.View
-            style={[
-              StyleSheet.absoluteFill,
-              styles.overlay,
-              overlayStyle,
-            ]}
+            style={[StyleSheet.absoluteFill, styles.overlay, overlayStyle]}
             pointerEvents="none"
           >
             <AnimatedBlurView

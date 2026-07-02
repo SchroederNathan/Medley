@@ -1,0 +1,19 @@
+name: preview
+
+on:
+  pull_request: {}
+
+concurrency:
+  cancel_in_progress: true
+  group: ${{ workflow.filename }}-${{ github.ref }}
+
+jobs:
+  update:
+    name: EAS Update
+    type: update
+    environment: preview
+
+  comment:
+    name: Post preview to PR
+    type: github-comment
+    after: [update]

@@ -32,7 +32,10 @@ function normalizeTitle(raw: string): string {
  * Fetches showtimes near the user's location for `date` and picks the entry
  * matching `media` by normalized title + release year.
  */
-export function useShowtimesForMovie(media: Media | null | undefined, date?: string) {
+export function useShowtimesForMovie(
+  media: Media | null | undefined,
+  date?: string
+) {
   const { isLoggedIn } = useContext(AuthContext);
   const { coords, status, requestLocation } = useUserLocation();
   const resolvedDate = date ?? todayLocalDate();

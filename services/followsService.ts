@@ -37,10 +37,7 @@ export class FollowsService {
     return !!data;
   }
 
-  static async follow(
-    followerId: string,
-    followingId: string
-  ): Promise<void> {
+  static async follow(followerId: string, followingId: string): Promise<void> {
     const { error } = await supabase
       .from("follows")
       .insert({ follower_id: followerId, following_id: followingId });

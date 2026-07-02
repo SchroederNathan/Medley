@@ -212,7 +212,7 @@ const ShimmerMask = ({ children, overlay, background }: ShimmerMaskProps) => {
 
   return (
     <>
-      <MaskedView maskElement={children}>
+      <MaskedView maskElement={<>{children}</>}>
         {/* Hidden duplicate for layout sizing — MaskedView sizes from children, not maskElement */}
         <View
           style={styles.maskSizer}

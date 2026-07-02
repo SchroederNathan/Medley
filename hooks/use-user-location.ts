@@ -142,9 +142,10 @@ export function useUserLocation() {
     };
   }, [fetchLocation]);
 
-  const requestLocation = useCallback(() => fetchLocation(true), [
-    fetchLocation,
-  ]);
+  const requestLocation = useCallback(
+    () => fetchLocation(true),
+    [fetchLocation]
+  );
 
   return { coords, status, requestLocation };
 }
