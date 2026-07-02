@@ -30,6 +30,15 @@ jobs:
       build_id: ${{ needs.build_ios.outputs.build_id }}
       profile: production
 
+  notify_ios:
+    name: Notify Slack (iOS)
+    type: slack
+    needs: [build_ios, submit_ios]
+    environment: production
+    params:
+      webhook_url: ${{ env.SLACK_WEBHOOK_URL }}
+      message: 'iOS build ${{ needs.build_ios.outputs.app_version }} (${{ needs.build_ios.outputs.app_identifier }}) submitted to TestFlight ✅'
+
   build_android:
     name: Build Android
     if: ${{ inputs.platform == 'android' || inputs.platform == 'all' }}
@@ -46,3 +55,12 @@ jobs:
     params:
       build_id: ${{ needs.build_android.outputs.build_id }}
       profile: production
+
+  notify_android:
+    name: Notify Slack (Android)
+    type: slack
+    needs: [build_android, submit_android]
+    environment: production
+    params:
+      webhook_url: ${{ env.SLACK_WEBHOOK_URL }}
+      message: 'Android build ${{ needs.build_android.outputs.app_version }} (${{ needs.build_android.outputs.app_identifier }}) submitted to Play Console ✅'

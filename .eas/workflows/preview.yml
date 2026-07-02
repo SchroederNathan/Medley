@@ -9,11 +9,23 @@ concurrency:
 
 jobs:
   update:
-    name: EAS Update
+    name: EAS Update (development)
     type: update
-    environment: preview
+    environment: development
+    params:
+      channel: development
+
+  get_dev_build:
+    name: Get latest development build
+    type: get-build
+    params:
+      profile: development
 
   comment:
     name: Post preview to PR
     type: github-comment
-    after: [update]
+    needs: [update, get_dev_build]
+    params:
+      message: 'Development preview is ready! Install the development build below, then open the update link inside it.'
+      build_ids:
+        - ${{ needs.get_dev_build.outputs.build_id }}
