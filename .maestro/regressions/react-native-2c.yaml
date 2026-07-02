@@ -1,0 +1,27 @@
+# Sentry issue: https://schroeder-nathan.sentry.io/issues/7588054490/
+# (REACT-NATIVE-2C — "App Hang Non Fully Blocked: App hanging between 2.4
+# and 3.2 seconds.")
+#
+# Bug: HomeCarousel (the hero carousel at the top of the Home tab) mounted
+# a full GalleryCard — Image + rounded-corner/shadow clipping + gesture
+# handling + Reanimated worklets — for every item returned by
+# usePopularMovies(20), instead of only the ~6 cards ever reachable on
+# screen at once. Reconstructed user path (from the event's breadcrumbs,
+# no session replay was attached to this event): user backs out of a
+# pushed screen via the header back control, landing back on the Home tab
+# just as popular movies data resolves; Home mounts/re-renders its hero
+# carousel with all 20 items simultaneously, and decoding/compositing that
+# many image-heavy cards at once blocks the main thread for 2.4-3.2s.
+#
+# Fix: components/ui/home-carousel.tsx now windows the render to the
+# initial stack range plus a buffer around the current index, so at most
+# ~9 cards mount at once regardless of how many items are fetched.
+appId: com.schroedernathan.medley
+---
+- launchApp
+- assertVisible:
+    id: "home-carousel"
+    timeout: 3000
+- assertVisible:
+    text: "Popular Movies"
+    timeout: 3000

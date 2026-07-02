@@ -30,6 +30,9 @@ const ITEM_HEIGHT = Math.round(ITEM_WIDTH * 1.5);
 const ITEM_SPACING = 12;
 const LEFT_MARGIN = 20;
 const VISIBLE_STACK_COUNT = 6;
+// Cards beyond the stack range are only ever reachable once the gallery is
+// centered near them, so cap how many mount at once around currentIndex.
+const GALLERY_RENDER_BUFFER = 3;
 const STACK_OFFSET =
   (SCREEN_WIDTH - LEFT_MARGIN - ITEM_WIDTH) / (VISIBLE_STACK_COUNT - 1);
 const DOT_SIZE = 6;
@@ -302,18 +305,25 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({
   if (media.length === 0) return null;
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="home-carousel">
       <GestureDetector gesture={gesture}>
         <View style={styles.carouselArea}>
-          {media.map((item, index) => (
-            <GalleryCard
-              key={item.id}
-              item={item}
-              index={index}
-              activeIndex={activeIndex}
-              totalItems={media.length}
-            />
-          ))}
+          {media.map((item, index) => {
+            const withinInitialStack = index < VISIBLE_STACK_COUNT;
+            const withinGalleryWindow =
+              Math.abs(index - currentIndex) <= GALLERY_RENDER_BUFFER;
+            if (!withinInitialStack && !withinGalleryWindow) return null;
+
+            return (
+              <GalleryCard
+                key={item.id}
+                item={item}
+                index={index}
+                activeIndex={activeIndex}
+                totalItems={media.length}
+              />
+            );
+          })}
         </View>
       </GestureDetector>
     </View>
