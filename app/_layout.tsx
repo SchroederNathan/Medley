@@ -8,6 +8,7 @@ import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { NotificationsProvider } from "../components/providers/notifications-provider";
+import ChannelOverrideBanner from "../components/ui/channel-override-banner";
 import { QueryProvider } from "../components/providers/query-provider";
 import { AuthContext, AuthProvider } from "../contexts/auth-context";
 import { OverlayProvider } from "../contexts/overlay-context";
@@ -132,6 +133,7 @@ const AuthProviderWithProviders = ({ fontsReady }: { fontsReady: boolean }) => {
                     }}
                   />
                 </Stack>
+                <ChannelOverrideBanner />
               </NotificationsProvider>
             </ToastProvider>
           </OverlayProvider>

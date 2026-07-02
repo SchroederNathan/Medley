@@ -1,31 +1,104 @@
+# PR previews via channel surfing: each PR publishes an update to a per-PR
+# channel (named after the git branch). Testers on the internal "preview"
+# build scan the QR posted on the PR to reload into the PR's JS. When a PR
+# changes native code (fingerprint mismatch), a fresh preview build is
+# created automatically and linked in a second comment.
 name: preview
 
 on:
-  pull_request: {}
+  pull_request:
+    paths:
+      - '**'
+      - '!**/*.md'
 
 concurrency:
   cancel_in_progress: true
   group: ${{ workflow.filename }}-${{ github.ref }}
 
 jobs:
-  update:
-    name: EAS Update (development)
-    type: update
-    environment: development
-    params:
-      channel: development
+  fingerprint:
+    name: Fingerprint native runtime
+    type: fingerprint
+    environment: preview
 
-  get_dev_build:
-    name: Get latest development build
+  ensure_channel:
+    name: Ensure PR channel exists
+    steps:
+      - uses: eas/checkout
+      - name: Create channel pointing at same-named branch (idempotent)
+        run: npx eas-cli@latest channel:create ${{ github.ref_name }} --non-interactive || true
+
+  update:
+    name: Publish update to PR branch
+    needs: [ensure_channel]
+    type: update
+    environment: preview
+    params:
+      branch: ${{ github.ref_name }}
+      message: 'PR preview: ${{ github.ref_name }}'
+
+  get_compatible_build:
+    name: Check PR is surfable on existing preview build
+    needs: [fingerprint]
     type: get-build
     params:
-      profile: development
+      platform: ios
+      profile: preview
+      fingerprint_hash: ${{ needs.fingerprint.outputs.ios_fingerprint_hash }}
+      wait_for_in_progress: true
+
+  build_ios:
+    name: Build new preview build (native changed)
+    needs: [get_compatible_build]
+    if: ${{ !needs.get_compatible_build.outputs.build_id }}
+    type: build
+    environment: preview
+    params:
+      platform: ios
+      profile: preview
+
+  # Android (disabled for now; uncomment to enable)
+  # get_compatible_build_android:
+  #   name: Check PR is surfable on existing Android preview build
+  #   needs: [fingerprint]
+  #   type: get-build
+  #   params:
+  #     platform: android
+  #     profile: preview
+  #     fingerprint_hash: ${{ needs.fingerprint.outputs.android_fingerprint_hash }}
+  #     wait_for_in_progress: true
+  #
+  # build_android:
+  #   name: Build new Android preview build (native changed)
+  #   needs: [get_compatible_build_android]
+  #   if: ${{ !needs.get_compatible_build_android.outputs.build_id }}
+  #   type: build
+  #   environment: preview
+  #   params:
+  #     platform: android
+  #     profile: preview
 
   comment:
-    name: Post preview to PR
+    name: Post surf QR to PR
     type: github-comment
-    needs: [update, get_dev_build]
+    after: [update]
     params:
-      message: 'Development preview is ready! Install the development build below, then open the update link inside it.'
+      payload: |
+        ### 📱 Preview `${{ github.ref_name }}`
+
+        Scan with your phone camera (opens the channel switcher, prefilled):
+
+        ![Surf QR](https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=com.schroedernathan.medley%3A%2F%2Fchannel-surf%3Fchannel%3D${{ github.ref_name }})
+
+        Or paste into Safari: `com.schroedernathan.medley://channel-surf?channel=${{ github.ref_name }}`
+
+  comment_native_build:
+    name: Link fresh build (native changed)
+    type: github-comment
+    after: [build_ios]
+    if: ${{ after.build_ios.status == 'success' }}
+    params:
+      message: 'This PR changed native code. Install this build first, then scan the surf QR above.'
       build_ids:
-        - ${{ needs.get_dev_build.outputs.build_id }}
+        - ${{ after.build_ios.outputs.build_id }}
+      update_group_ids: []

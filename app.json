@@ -94,7 +94,7 @@
       "reactCompiler": true
     },
     "runtimeVersion": {
-      "policy": "appVersion"
+      "policy": "fingerprint"
     },
     "updates": {
       "url": "https://u.expo.dev/b35bc1be-98fb-44dc-83f4-8b1ad4ae44e8"
