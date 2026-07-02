@@ -16,15 +16,19 @@ export const themes = {
 
     buttonBackground: "rgba(255, 255, 255, 0.75)",
     buttonBorder: "rgba(0, 0, 0, 0.15)",
+    primaryButtonBackground: "rgba(0, 0, 0, 0.08)",
+    primaryButtonBorder: "rgba(0, 0, 0, 0.15)",
+    primaryButtonText: "#171717",
     secondaryButtonBackground: "#171717",
     secondaryButtonBorder: "#404040",
+    secondaryButtonText: "#FFFFFF",
 
     fabButtonBackground: "rgba(255, 255, 255, 0.75)",
 
-    inputBackground: "rgba(120, 120, 128, 0.12)",
+    inputBackground: "rgba(255, 255, 255, 0.72)",
     inputPlaceholderText: "#8E8E93",
     inputText: "#171717",
-    inputBorder: "rgba(0, 0, 0, 0.12)",
+    inputBorder: "rgba(0, 0, 0, 0.15)",
 
     // Ranking colors
     gold: "#FFCB6B",
@@ -49,8 +53,12 @@ export const themes = {
 
     buttonBackground: "rgba(28, 28, 28, 0.8)",
     buttonBorder: "rgba(64, 64, 64, 0.5)",
+    primaryButtonBackground: "rgba(28, 28, 28, 0.8)",
+    primaryButtonBorder: "rgba(64, 64, 64, 0.5)",
+    primaryButtonText: "#E5E5E5",
     secondaryButtonBackground: "#F5F5F5",
     secondaryButtonBorder: "#737373",
+    secondaryButtonText: "#0A0A0A",
 
     fabButtonBackground: "rgba(38, 38, 38, 0.7)",
 

@@ -101,7 +101,10 @@ const SegmentedPicker = ({
           styles.container,
           {
             borderColor: theme.border,
-            backgroundColor: theme.inputBackground,
+            backgroundColor:
+              theme.mode === "dark"
+                ? theme.inputBackground
+                : "rgba(0, 0, 0, 0.06)",
             boxShadow:
               theme.mode === "dark"
                 ? "rgba(10, 10, 10, 0.5) 0 0 12px 0px inset"
@@ -116,7 +119,7 @@ const SegmentedPicker = ({
             styles.thumb,
             {
               borderRadius: styles.container.borderRadius,
-              backgroundColor: theme.card,
+              backgroundColor: theme.mode === "dark" ? theme.card : "#FFFFFF",
               borderColor: theme.border,
             },
             thumbStyle,
