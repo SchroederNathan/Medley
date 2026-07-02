@@ -39,9 +39,12 @@ jobs:
           APP_RELEASE: ${{ inputs.release }}
         run: |
           npm install -g @anthropic-ai/claude-code
+          # --dangerously-skip-permissions: allowlist patterns like
+          # "Bash(curl *)" reject any command containing $VAR expansion
+          # ("Contains simple_expansion"), which blocks every curl/git call
+          # that uses SENTRY_AUTH_TOKEN or GITHUB_TOKEN in headless mode.
+          # Safe here: ephemeral single-purpose VM with repo-scoped secrets.
           claude -p "$(cat .agents/triage-prompt.md)" \
-            --allowedTools "Read" "Write" "Edit" "Glob" "Grep" "WebFetch" \
-              "Bash(git *)" "Bash(gh *)" "Bash(curl *)" "Bash(npm *)" \
-            --permission-mode acceptEdits \
+            --dangerously-skip-permissions \
             --max-turns 80 \
             --output-format json
