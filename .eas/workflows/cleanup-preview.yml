@@ -1,0 +1,21 @@
+# When a git branch is deleted (PR merged/closed), remove its EAS Update
+# branch and the per-PR channel created by preview.yml.
+name: cleanup-preview
+
+on:
+  ref_delete:
+    branches: ['*']
+
+jobs:
+  delete_update_branch:
+    name: Delete EAS Update branch
+    type: branch-delete
+    params:
+      branch_name: ${{ github.ref_name }}
+
+  delete_channel:
+    name: Delete PR channel
+    steps:
+      - uses: eas/checkout
+      - name: Delete channel (ignore if missing)
+        run: npx eas-cli@latest channel:delete ${{ github.ref_name }} --non-interactive || true

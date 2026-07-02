@@ -12,3 +12,52 @@ jobs:
     environment: production
     params:
       channel: production
+
+  # Keep a canonical "surfboard" preview build available: whenever native code
+  # changes on main, build a fresh internal preview build that testers install
+  # to channel-surf PR previews (see preview.yml).
+  fingerprint:
+    name: Fingerprint native runtime
+    type: fingerprint
+    environment: preview
+
+  get_preview_build:
+    name: Find surfboard build for current fingerprint
+    needs: [fingerprint]
+    type: get-build
+    params:
+      platform: ios
+      profile: preview
+      fingerprint_hash: ${{ needs.fingerprint.outputs.ios_fingerprint_hash }}
+      wait_for_in_progress: true
+
+  build_preview:
+    name: Build new surfboard (native changed)
+    needs: [get_preview_build]
+    if: ${{ !needs.get_preview_build.outputs.build_id }}
+    type: build
+    environment: preview
+    params:
+      platform: ios
+      profile: preview
+
+  # Android surfboard (disabled for now; uncomment to enable)
+  # get_preview_build_android:
+  #   name: Find Android surfboard build for current fingerprint
+  #   needs: [fingerprint]
+  #   type: get-build
+  #   params:
+  #     platform: android
+  #     profile: preview
+  #     fingerprint_hash: ${{ needs.fingerprint.outputs.android_fingerprint_hash }}
+  #     wait_for_in_progress: true
+  #
+  # build_preview_android:
+  #   name: Build new Android surfboard (native changed)
+  #   needs: [get_preview_build_android]
+  #   if: ${{ !needs.get_preview_build_android.outputs.build_id }}
+  #   type: build
+  #   environment: preview
+  #   params:
+  #     platform: android
+  #     profile: preview

@@ -75,6 +75,14 @@ const ProtectedLayout = () => {
           contentStyle: { backgroundColor: theme.background },
         }}
       />
+      <Stack.Screen
+        name="channel-surf"
+        options={{
+          headerShown: false,
+          presentation: "modal",
+          contentStyle: { backgroundColor: theme.background },
+        }}
+      />
     </Stack>
   );
 };
