@@ -213,7 +213,11 @@ const MatchScreen = () => {
             height: 100,
             zIndex: 10,
           }}
-          colors={["rgba(10, 10, 10, 0)", "rgba(10, 10, 10, 1)"]}
+          colors={
+            theme.mode === "dark"
+              ? ["rgba(10, 10, 10, 0)", "rgba(10, 10, 10, 1)"]
+              : ["rgba(255, 255, 255, 0)", "rgba(255, 255, 255, 1)"]
+          }
           locations={[0, 1]}
         />
         <Animated.View

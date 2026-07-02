@@ -12,34 +12,41 @@ import {
   BookOpenIcon,
 } from "../components/ui/svg-icons";
 import { AuthContext } from "../contexts/auth-context";
+import { ThemeContext } from "../contexts/theme-context";
 
 type Preference = "Movies" | "Games" | "Books";
 
 export default function MediaPreferences() {
   const [selected, setSelected] = useState<Preference[]>([]);
   const authContext = useContext(AuthContext);
+  const { theme } = useContext(ThemeContext);
   const router = useRouter();
   const layoutRef = useRef<AuthScreenLayoutHandle>(null);
+  const iconColor = theme.mode === "dark" ? "#fff" : theme.text;
   const items = useMemo(
     () => [
       {
         key: "Movies" as Preference,
         title: "Movies",
-        icon: <ClapperboardIcon color="#fff" size={32} strokeWidth={1.5} />,
+        icon: (
+          <ClapperboardIcon color={iconColor} size={32} strokeWidth={1.5} />
+        ),
       },
       {
         key: "Games" as Preference,
         title: "Games",
-        icon: <GameControllerIcon color="#fff" size={32} strokeWidth={1.5} />,
+        icon: (
+          <GameControllerIcon color={iconColor} size={32} strokeWidth={1.5} />
+        ),
       },
       {
         key: "Books" as Preference,
         title: "Books",
-        icon: <BookOpenIcon color="#fff" size={32} strokeWidth={1.5} />,
+        icon: <BookOpenIcon color={iconColor} size={32} strokeWidth={1.5} />,
       },
     ],
 
-    []
+    [iconColor]
   );
 
   const toggle = (key: Preference) => {
