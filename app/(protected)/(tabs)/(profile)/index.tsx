@@ -41,6 +41,7 @@ import { ThemeContext } from "../../../../contexts/theme-context";
 import { ZoomAnimationProvider } from "../../../../contexts/zoom-animation-context";
 import ProfileBlockList from "../../../../components/profile/profile-block-list";
 import { useFollowCounts } from "../../../../hooks/use-follow-counts";
+import { useMountAfterInteractions } from "../../../../hooks/use-mount-after-interactions";
 import { useProfileLayout } from "../../../../hooks/use-profile-layout";
 import { useUserCollections } from "../../../../hooks/use-user-collections";
 import { useUserMedia } from "../../../../hooks/use-user-media";
@@ -53,6 +54,10 @@ const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_SPACING = 12;
 const CARD_WIDTH = (SCREEN_WIDTH - 40 - CARD_SPACING * 3) / 4;
 const CARD_HEIGHT = CARD_WIDTH * 1.5;
+// The library grid sits below the fold on first render, so mounting a few
+// rows is enough for the initial commit; the rest fills in right after the
+// screen paints (see useMountAfterInteractions).
+const INITIAL_LIBRARY_COUNT = 12;
 
 type ReviewSort = "recent" | "oldest" | "rating-desc" | "rating-asc";
 
@@ -154,6 +159,20 @@ const ProfileScreen = () => {
 
   const [reviewSort, setReviewSort] = useState<ReviewSort>("recent");
   const [sortMenuVisible, setSortMenuVisible] = useState(false);
+
+  // With the persisted query cache, all tab data is available the moment this
+  // screen mounts, which used to mount every page of the pager (all library
+  // cards, reviews and collections) in one huge commit and hang navigation.
+  // Instead, mount only what's visible first; fill in the rest right after
+  // the first paint. A tab the user activates early always renders its
+  // content immediately.
+  const contentReady = useMountAfterInteractions();
+  const libraryItems = useMemo(() => {
+    if (!media) return [];
+    return contentReady ? media : media.slice(0, INITIAL_LIBRARY_COUNT);
+  }, [media, contentReady]);
+  const reviewsDeferred = !contentReady && activeTab !== "reviews";
+  const collectionsDeferred = !contentReady && activeTab !== "collections";
 
   const sortedReviews = useMemo(() => {
     if (!reviews) return [];
@@ -417,7 +436,7 @@ const ProfileScreen = () => {
                       </View>
                     ) : media && media.length > 0 ? (
                       <FlashList
-                        data={media}
+                        data={libraryItems}
                         renderItem={({ item }) => (
                           <MediaCard
                             media={item}
@@ -454,7 +473,7 @@ const ProfileScreen = () => {
                     )}
                   </View>,
                   <View key="reviews" style={{ flex: 1, paddingTop: 20 }}>
-                    {sortedReviews.length > 0 && (
+                    {!reviewsDeferred && sortedReviews.length > 0 && (
                       <Pressable
                         onPress={() => setSortMenuVisible(true)}
                         style={styles.sortButton}
@@ -471,7 +490,7 @@ const ProfileScreen = () => {
                         </Text>
                       </Pressable>
                     )}
-                    {reviewsLoading ? (
+                    {reviewsLoading || reviewsDeferred ? (
                       <View style={styles.loadingContainer}>
                         <ActivityIndicator size="small" />
                         <Text
@@ -528,7 +547,7 @@ const ProfileScreen = () => {
                     key="collections"
                     style={{ flex: 1, paddingTop: 20, gap: 16 }}
                   >
-                    {collectionsLoading ? (
+                    {collectionsLoading || collectionsDeferred ? (
                       <View style={styles.loadingContainer}>
                         <ActivityIndicator size="small" />
                         <Text

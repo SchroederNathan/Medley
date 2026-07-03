@@ -25,8 +25,13 @@ jobs:
     name: Ensure PR channel exists
     steps:
       - uses: eas/checkout
+      # eas-cli evaluates app.json (config plugins) for channel commands, so
+      # node_modules must be installed or channel:create fails.
+      - uses: eas/install_node_modules
       - name: Create channel pointing at same-named branch (idempotent)
-        run: npx eas-cli@latest channel:create ${{ github.ref_name }} --non-interactive || true
+        run: |
+          npx eas-cli@latest channel:view ${{ github.ref_name }} --non-interactive ||
+            npx eas-cli@latest channel:create ${{ github.ref_name }} --non-interactive
 
   update:
     name: Publish update to PR branch

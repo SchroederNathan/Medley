@@ -17,5 +17,11 @@ jobs:
     name: Delete PR channel
     steps:
       - uses: eas/checkout
+      # eas-cli evaluates app.json (config plugins) for channel commands, so
+      # node_modules must be installed or channel:delete fails.
+      - uses: eas/install_node_modules
       - name: Delete channel (ignore if missing)
-        run: npx eas-cli@latest channel:delete ${{ github.ref_name }} --non-interactive || true
+        run: |
+          if npx eas-cli@latest channel:view ${{ github.ref_name }} --non-interactive; then
+            npx eas-cli@latest channel:delete ${{ github.ref_name }} --non-interactive
+          fi
