@@ -1,14 +1,6 @@
 import React, { useContext } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import {
-  Defs,
-  FeBlend,
-  FeFlood,
-  FeGaussianBlur,
-  Filter,
-  Path,
-  Svg,
-} from "react-native-svg";
+import { Path, Svg } from "react-native-svg";
 import { fontFamily } from "../../../../lib/fonts";
 import { ThemeContext } from "../../../../contexts/theme-context";
 
@@ -22,33 +14,10 @@ const SocialScreen = () => {
         viewBox="0 0 500 550"
         style={styles.spotlightSvg}
       >
-        <Defs>
-          <Filter
-            id="filter0_f_2_34"
-            x="-167.2"
-            y="-262.2"
-            width="700.02"
-            height="850.854"
-            filterUnits="userSpaceOnUse"
-          >
-            <FeFlood floodOpacity="0" result="BackgroundImageFix" />
-            <FeBlend
-              mode="normal"
-              in="SourceGraphic"
-              in2="BackgroundImageFix"
-              result="shape"
-            />
-            <FeGaussianBlur
-              stdDeviation="61.85"
-              result="effect1_foregroundBlur_2_34"
-            />
-          </Filter>
-        </Defs>
         <Path
           d="M-43.5 -81.5L7.5 -138.5L420.12 380.955L280.62 480.954L-43.5 -81.5Z"
           fill="#D4D4D4"
           fillOpacity="0.1"
-          filter="url(#filter0_f_2_34)"
         />
       </Svg>
       <Text style={[styles.title, { color: theme.text }]}>Social</Text>

@@ -1,0 +1,25 @@
+# Sentry: https://schroeder-nathan.sentry.io/issues/7588545904/ (REACT-NATIVE-2D)
+#
+# Bug: "App Hang Fully Blocked" (2-5s+, one instance fatal) on cold launch.
+# Root cause: the decorative "spotlight" background (<Svg><Filter>
+# <FeGaussianBlur stdDeviation="61.85">...) rendered a huge Gaussian blur via
+# react-native-svg's CoreImage filter path synchronously on the main thread
+# during the very first frame's CATransaction commit, freezing the whole
+# screen (confirmed via the crash's native stack: drawLayer:inContext: ->
+# RNSVGSvgView drawRect: -> RNSVGFilter applyFilter -> CIContext
+# createCGImage). The same copy-pasted block appeared on every tab screen,
+# onboarding, and the shared auth layout.
+#
+# Reconstructed user path (from breadcrumbs across all 9 events of this
+# issue): app cold launch -> lands directly in the first screen's initial
+# render -> main thread blocks for several seconds before anything is
+# interactive. No test account is seeded in CI, so this flow reproduces the
+# identical defect via the unauthenticated onboarding screen, which mounts
+# the exact same filter on its first frame.
+appId: com.schroedernathan.medley
+---
+- launchApp:
+    clearState: true
+- assertVisible:
+    text: "Get Started"
+    timeout: 4000
