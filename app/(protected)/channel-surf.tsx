@@ -1,6 +1,12 @@
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useContext, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../../components/ui/button";
 import Input from "../../components/ui/input";
@@ -22,10 +28,28 @@ const ChannelSurfScreen = () => {
   const { activeChannel, isSurfing, canSurf, busy, error, surfTo, surfBack } =
     useUpdateChannel();
   const [channel, setChannel] = useState(linkedChannel ?? "");
+  const router = useRouter();
+
+  const close = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/(protected)/(tabs)/(home)");
+    }
+  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 20 }]}>
-      <Text style={[styles.title, { color: theme.text }]}>Channel surfing</Text>
+      <View style={styles.header}>
+        <Text style={[styles.title, { color: theme.text }]}>
+          Channel surfing
+        </Text>
+        <TouchableOpacity onPress={close} hitSlop={8}>
+          <Text style={[styles.cancel, { color: theme.secondaryText }]}>
+            Close
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       {!canSurf ? (
         <Text style={[styles.body, { color: theme.secondaryText }]}>
@@ -82,9 +106,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     gap: 16,
   },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   title: {
     fontSize: 20,
     fontFamily: fontFamily.plusJakarta.semiBold,
+  },
+  cancel: {
+    fontSize: 16,
+    fontFamily: fontFamily.plusJakarta.medium,
   },
   body: {
     fontSize: 14,

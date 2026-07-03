@@ -3,6 +3,12 @@ import React, { useContext } from "react";
 import { AuthContext } from "../../contexts/auth-context";
 import { ThemeContext } from "../../contexts/theme-context";
 
+// Deep links (e.g. the channel-surf QR) can cold-start the app straight into
+// a modal; anchoring keeps (tabs) beneath it so back/dismiss always works.
+export const unstable_settings = {
+  anchor: "(tabs)",
+};
+
 const ProtectedLayout = () => {
   const authState = useContext(AuthContext);
   const { theme } = useContext(ThemeContext);
