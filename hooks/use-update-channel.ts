@@ -16,24 +16,33 @@ export const useUpdateChannel = () => {
   const surfEnabled = process.env.EXPO_PUBLIC_CHANNEL_SURF === "1";
   const canSurf = !__DEV__ && surfEnabled && activeChannel !== null;
 
+  // Mirrors the native `expo-channel-name` header override so a request that
+  // never completes (bad channel, network error) can't leave that override
+  // dangling — it persists across app restarts, so a stale one 404s on every
+  // future cold launch's automatic update check.
+  const [overrideChannel, setOverrideChannel] = useState<string | null>(() =>
+    isSurfing ? activeChannel : null
+  );
+
+  const setOverride = useCallback((channel: string | null) => {
+    Updates.setUpdateRequestHeadersOverride(
+      channel ? { "expo-channel-name": channel } : null
+    );
+    setOverrideChannel(channel);
+  }, []);
+
   const surfTo = useCallback(
     async (channel: string | null) => {
       setBusy(true);
       setError(null);
+      setOverride(channel);
       try {
-        Updates.setUpdateRequestHeadersOverride(
-          channel ? { "expo-channel-name": channel } : null
-        );
         const update = await Updates.checkForUpdateAsync();
         if (!update.isAvailable && channel) {
           // Nothing compatible on that channel: it is empty, or the PR changed
           // native code (fingerprint mismatch). Restore the previous override
           // instead of reloading into nothing.
-          Updates.setUpdateRequestHeadersOverride(
-            isSurfing && activeChannel
-              ? { "expo-channel-name": activeChannel }
-              : null
-          );
+          setOverride(isSurfing && activeChannel ? activeChannel : null);
           setError(
             `No compatible update on "${channel}". If the PR changed native code, install its build from the PR comment first.`
           );
@@ -44,15 +53,28 @@ export const useUpdateChannel = () => {
         }
         await Updates.reloadAsync();
       } catch (e) {
+        // The channel may not exist (deleted, typo'd) or the request failed
+        // outright — either way, restore rather than leave the override
+        // pointed at a channel we never confirmed as loadable.
+        setOverride(isSurfing && activeChannel ? activeChannel : null);
         setError(e instanceof Error ? e.message : String(e));
       } finally {
         setBusy(false);
       }
     },
-    [activeChannel, isSurfing]
+    [activeChannel, isSurfing, setOverride]
   );
 
   const surfBack = useCallback(() => surfTo(null), [surfTo]);
 
-  return { activeChannel, isSurfing, canSurf, busy, error, surfTo, surfBack };
+  return {
+    activeChannel,
+    isSurfing,
+    canSurf,
+    busy,
+    error,
+    overrideChannel,
+    surfTo,
+    surfBack,
+  };
 };

@@ -1,0 +1,44 @@
+# Sentry: https://schroeder-nathan.sentry.io/issues/7590601137/ (REACT-NATIVE-2J)
+# "Expo Updates emergency launch: HTTP response error 404: There is no
+# channel named light-mode-buttons for the app with ID: ..."
+#
+# Bug: hooks/use-update-channel.ts's surfTo() sets the native
+# `expo-channel-name` header override *before* checking for an update on it.
+# The "no compatible update" branch restores the previous override on
+# failure, but the catch block (network error, or a 404 because the channel
+# was deleted/mistyped) did not — it only surfaced an error message. The
+# native override persists across app restarts, so the stale, broken
+# override then 404s again on every subsequent cold launch's automatic
+# update check, producing a repeated "emergency launch" (degraded boot from
+# the last cached bundle) with no way for the user to notice or recover
+# short of reopening this screen and surfing again.
+#
+# Reconstructed user path (event has no linked replay; issue has no
+# breadcrumbs beyond app start, since the failure happens at native update
+# check time): a tester opens the hidden channel-surf screen via the deep
+# link posted on PR previews (com.schroedernathan.medley://channel-surf?
+# channel=<branch-name>), where the branch's channel has since been deleted
+# by cleanup-preview.yml (PR merged/closed) or was mistyped, and taps
+# "Surf to channel".
+#
+# Not directly observable in this session (the running bundle doesn't
+# change until a *successful* surf+reload), only on the next cold launch
+# against the live EAS Update backend — which agent-fix-verify.yml's
+# red/green harness can't assert on deterministically. So this flow asserts
+# on the pending-override debug text added alongside this fix, which mirrors
+# the native override: once the failed channel's error is shown, that debug
+# line must no longer be pointed at the channel that just failed (it falls
+# back to whatever channel is actually running).
+appId: com.schroedernathan.medley
+---
+- launchApp:
+    clearState: true
+- openLink: "com.schroedernathan.medley://channel-surf?channel=agent-fix-2j-channel-does-not-exist"
+- assertVisible: "Channel surfing"
+- tapOn: "Surf to channel"
+- assertVisible:
+    id: "channel-surf-error"
+    timeout: 20000
+- assertNotVisible:
+    id: "channel-surf-override-debug"
+    text: ".*agent-fix-2j-channel-does-not-exist.*"

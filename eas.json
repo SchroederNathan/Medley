@@ -19,6 +19,9 @@
     "simulator": {
       "distribution": "internal",
       "channel": "simulator",
+      "env": {
+        "EXPO_PUBLIC_CHANNEL_SURF": "1"
+      },
       "ios": {
         "simulator": true
       },
