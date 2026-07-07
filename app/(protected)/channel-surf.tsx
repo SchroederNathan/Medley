@@ -25,8 +25,16 @@ const ChannelSurfScreen = () => {
   const { channel: linkedChannel } = useLocalSearchParams<{
     channel?: string;
   }>();
-  const { activeChannel, isSurfing, canSurf, busy, error, surfTo, surfBack } =
-    useUpdateChannel();
+  const {
+    activeChannel,
+    isSurfing,
+    canSurf,
+    busy,
+    error,
+    overrideChannel,
+    surfTo,
+    surfBack,
+  } = useUpdateChannel();
   const [channel, setChannel] = useState(linkedChannel ?? "");
   const router = useRouter();
 
@@ -62,6 +70,13 @@ const ChannelSurfScreen = () => {
             {isSurfing ? " (override active)" : ""}
           </Text>
 
+          <Text
+            testID="channel-surf-override-debug"
+            style={[styles.body, { color: theme.secondaryText }]}
+          >
+            Pending override: {overrideChannel ?? "none"}
+          </Text>
+
           <Input
             placeholder="PR branch name"
             value={channel}
@@ -88,7 +103,10 @@ const ChannelSurfScreen = () => {
           {busy && <ActivityIndicator color={theme.text} />}
 
           {error && (
-            <Text style={[styles.body, { color: theme.destructive }]}>
+            <Text
+              testID="channel-surf-error"
+              style={[styles.body, { color: theme.destructive }]}
+            >
               {error}
             </Text>
           )}
