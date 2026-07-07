@@ -1,8 +1,15 @@
-# Release Captain — build → QA gates (Maestro + agentic Argent) → human approval
-# → store submit → Sentry release. Replaces the old build.yml.
+# Release Captain — one trigger, two lanes, routed by native fingerprint.
 #
-# Trigger a release by pushing a tag (git tag v1.1.0 && git push origin v1.1.0)
-# or manually: npx eas-cli@latest workflow:run .eas/workflows/release-captain.yml
+#   git tag v1.2.0 && git push origin v1.2.0
+#
+#   fingerprint unchanged vs the production store build  →  OTA lane:
+#     changelog → human approval → eas update to production (+ Sentry sourcemaps)
+#   fingerprint changed (or no store build yet)          →  store lane:
+#     build → QA gates (Maestro + agentic Argent QA) → human approval
+#     → store submit → Sentry release
+#
+# The tag says "release this"; whether it ships over-the-air or through the
+# store is a technical fact (did native code change?), so the machine decides.
 #
 # Required env vars in the EAS "production" environment:
 #   SLACK_WEBHOOK_URL, SENTRY_AUTH_TOKEN, CLAUDE_CODE_OAUTH_TOKEN,
@@ -24,10 +31,91 @@ on:
         default: ios
 
 jobs:
-  # ── Stage 1: build ────────────────────────────────────────────────────────
+  # ── Router: does the current native fingerprint match the store build? ───
+  fingerprint:
+    name: Fingerprint native runtime
+    type: fingerprint
+    environment: production
+
+  get_prod_build:
+    name: Find store build for current fingerprint
+    type: get-build
+    needs: [fingerprint]
+    params:
+      platform: ios
+      profile: production
+      fingerprint_hash: ${{ needs.fingerprint.outputs.ios_fingerprint_hash }}
+
+  changelog:
+    name: Changelog since last release tag
+    outputs:
+      changelog: ${{ steps.log.outputs.changelog }}
+    steps:
+      - uses: eas/checkout
+      - id: log
+        name: Collect commits since previous v* tag
+        run: |
+          git fetch --tags --force 2>/dev/null || true
+          PREV=$(git tag --list 'v*' --sort=-creatordate | sed -n '2p')
+          if [ -n "$PREV" ]; then RANGE="$PREV..HEAD"; else RANGE="-n 30"; fi
+          LOG=$(git log $RANGE --no-merges --pretty=format:'• %s (%h)' | head -40 | paste -sd'@@' - | sed 's/@@/<br>/g')
+          set-output changelog "${LOG:-No commits found}"
+
+  # ── OTA lane (native unchanged: ship JS to the installed store build) ────
+  ota_report:
+    name: OTA release report
+    type: doc
+    needs: [get_prod_build]
+    if: ${{ needs.get_prod_build.outputs.build_id }}
+    after: [changelog]
+    params:
+      md: |
+        ## OTA release — ${{ github.ref_name }}
+
+        Native fingerprint is **unchanged** vs store build
+        `${{ needs.get_prod_build.outputs.build_id }}`
+        (v${{ needs.get_prod_build.outputs.app_version }}+${{ needs.get_prod_build.outputs.app_build_version }}),
+        so this tag ships as an EAS Update to the `production` channel.
+        Users get it on next app launch — no store review.
+
+        ### Changelog
+        ${{ after.changelog.outputs.changelog }}
+
+  ota_approval:
+    name: Approve OTA publish
+    type: require-approval
+    needs: [get_prod_build]
+    if: ${{ needs.get_prod_build.outputs.build_id }}
+    after: [ota_report]
+
+  ota_update:
+    name: Publish OTA update → production
+    type: update
+    needs: [ota_approval, get_prod_build]
+    if: ${{ needs.get_prod_build.outputs.build_id }}
+    environment: production
+    params:
+      channel: production
+      message: 'Release ${{ github.ref_name }} (OTA)'
+      upload_sentry_sourcemaps: true
+
+  ota_notify:
+    name: Notify Slack (OTA)
+    after: [ota_update]
+    if: ${{ after.ota_update.status != 'skipped' }}
+    environment: production
+    steps:
+      - name: Send OTA summary to Slack
+        env:
+          MSG: 'Release captain ${{ github.ref_name }} → OTA lane: publish ${{ after.ota_update.status }}. Sentinel is watching release health.'
+        run: |
+          node -e 'fetch(process.env.SLACK_WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: process.env.MSG }) }).then((r) => console.log("slack:", r.status))'
+
+  # ── Store lane (native changed or first release: full pipeline) ──────────
   build_prod_ios:
     name: Build iOS (store)
-    if: ${{ (inputs.platform || 'ios') != 'android' }}
+    needs: [get_prod_build]
+    if: ${{ !needs.get_prod_build.outputs.build_id && (inputs.platform || 'ios') != 'android' }}
     type: build
     environment: production
     params:
@@ -36,14 +124,14 @@ jobs:
 
   build_sim_ios:
     name: Build iOS (simulator, for QA)
-    if: ${{ (inputs.platform || 'ios') != 'android' }}
+    needs: [get_prod_build]
+    if: ${{ !needs.get_prod_build.outputs.build_id && (inputs.platform || 'ios') != 'android' }}
     type: build
     environment: production
     params:
       platform: ios
       profile: simulator
 
-  # ── Stage 2: QA gates (run in parallel against the simulator build) ──────
   regression_gate:
     name: 'Gate: Maestro known-bug regressions'
     type: maestro
@@ -104,29 +192,18 @@ jobs:
           path: qa-artifacts
           ignore_error: true
 
-  changelog:
-    name: Changelog since last release tag
-    if: ${{ (inputs.platform || 'ios') != 'android' }}
-    outputs:
-      changelog: ${{ steps.log.outputs.changelog }}
-    steps:
-      - uses: eas/checkout
-      - id: log
-        name: Collect commits since previous v* tag
-        run: |
-          git fetch --tags --force 2>/dev/null || true
-          PREV=$(git tag --list 'v*' --sort=-creatordate | sed -n '2p')
-          if [ -n "$PREV" ]; then RANGE="$PREV..HEAD"; else RANGE="-n 30"; fi
-          LOG=$(git log $RANGE --no-merges --pretty=format:'• %s (%h)' | head -40 | paste -sd'@@' - | sed 's/@@/<br>/g')
-          set-output changelog "${LOG:-No commits found}"
-
   qa_report:
     name: Release candidate report
     type: doc
+    needs: [get_prod_build]
+    if: ${{ !needs.get_prod_build.outputs.build_id }}
     after: [regression_gate, agentic_qa, changelog]
     params:
       md: |
-        ## Release candidate report
+        ## Release candidate report — ${{ github.ref_name }} (store lane)
+
+        Native fingerprint changed (or no store build exists yet), so this tag
+        ships through the store.
 
         | Gate | Result |
         | --- | --- |
@@ -140,7 +217,6 @@ jobs:
         ### Changelog
         ${{ after.changelog.outputs.changelog }}
 
-  # ── Stage 3: human gate ───────────────────────────────────────────────────
   # The human is the final arbiter: gate failures surface above but do not
   # dead-end the run — review the report, then approve or reject the submit.
   approval:
@@ -149,7 +225,6 @@ jobs:
     needs: [build_prod_ios]
     after: [qa_report]
 
-  # ── Stage 4: ship + register the release in Sentry ───────────────────────
   submit_ios:
     name: Submit to App Store
     type: submit
@@ -180,43 +255,30 @@ jobs:
           sentry-cli deploys new --release "$RELEASE" -e production
 
   notify:
-    name: Notify Slack
+    name: Notify Slack (store)
     after: [build_prod_ios, regression_gate, agentic_qa, submit_ios, sentry_release]
+    if: ${{ after.build_prod_ios.status != 'skipped' }}
     environment: production
     steps:
       - name: Send release summary to Slack
         env:
-          MSG: 'Release captain ${{ after.build_prod_ios.outputs.app_version }}+${{ after.build_prod_ios.outputs.app_build_version }} — build: ${{ after.build_prod_ios.status }}, maestro gate: ${{ after.regression_gate.status }}, agentic QA: ${{ after.agentic_qa.status }}, submit: ${{ after.submit_ios.status }}, sentry release: ${{ after.sentry_release.status }}'
+          MSG: 'Release captain ${{ github.ref_name }} → store lane (${{ after.build_prod_ios.outputs.app_version }}+${{ after.build_prod_ios.outputs.app_build_version }}) — build: ${{ after.build_prod_ios.status }}, maestro gate: ${{ after.regression_gate.status }}, agentic QA: ${{ after.agentic_qa.status }}, submit: ${{ after.submit_ios.status }}, sentry release: ${{ after.sentry_release.status }}'
         run: |
           node -e 'fetch(process.env.SLACK_WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: process.env.MSG }) }).then((r) => console.log("slack:", r.status))'
 
   # ── Android (enable when the Android release path goes live) ─────────────
+  # Mirror the router with android_fingerprint_hash + a get_prod_build_android
+  # job, then duplicate the store-lane blocks:
+  #
   # build_prod_android:
   #   name: Build Android (store)
-  #   if: ${{ inputs.platform == 'android' || inputs.platform == 'all' }}
+  #   needs: [get_prod_build_android]
+  #   if: ${{ !needs.get_prod_build_android.outputs.build_id && (inputs.platform == 'android' || inputs.platform == 'all') }}
   #   type: build
   #   environment: production
   #   params:
   #     platform: android
   #     profile: production
-  #
-  # build_sim_android:
-  #   name: Build Android (emulator, for QA)
-  #   if: ${{ inputs.platform == 'android' || inputs.platform == 'all' }}
-  #   type: build
-  #   environment: production
-  #   params:
-  #     platform: android
-  #     profile: simulator
-  #
-  # regression_gate_android:
-  #   name: 'Gate: Maestro regressions (Android)'
-  #   type: maestro
-  #   needs: [build_sim_android]
-  #   params:
-  #     build_id: ${{ needs.build_sim_android.outputs.build_id }}
-  #     flow_path: .maestro/regressions
-  #     record_screen: true
   #
   # submit_android:
   #   name: Submit to Play Console

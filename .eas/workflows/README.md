@@ -8,24 +8,35 @@ repo-specific value is an env var, a workflow input, or a single obvious line.
 ## The loop
 
 ```
-git tag v1.2.0 ──► release-captain ──► store + Sentry release
-                        ▲                      │
-                        │            release-sentinel (hourly)
-                  human approves               │ unhealthy?
-                        ▲                      ▼
-   agent-fix-verify ◄── PR ◄── agent-triage ◄──┤──► agentic repro (evidence)
+git tag v1.2.0 ──► release-captain ──► fingerprint router
+                        ▲               │ native unchanged? → OTA lane:
+                        │               │   approve → eas update → prod channel
+                  human approves        │ native changed?   → store lane:
+                        ▲               │   build → QA gates → approve → submit
+                        │               ▼
+                        │      Sentry release / sourcemaps
+                        │               │
+                        │     release-sentinel (hourly)
+                        │               │ unhealthy?
+                        │               ▼
+   agent-fix-verify ◄── PR ◄── agent-triage ◄──┬──► agentic repro (evidence)
    (red → green)                               └──► Slack alert
 ```
+
+One tag scheme for every production release: whether it ships over-the-air or
+through the store is a technical fact (did the native fingerprint change?), so
+the workflow decides — the OTA lane is approval-gated but skips build/QA; the
+store lane runs the full pipeline.
 
 ## Workflows
 
 | File | Trigger | What it does |
 | --- | --- | --- |
-| `release-captain.yml` | tag `v*`, manual | Build (store + simulator) → **Maestro regression gate** + **agentic QA gate** (headless Claude Code driving Argent on a macOS worker) → changelog + report doc → `require-approval` (human) → store submit → Sentry release (commits, finalize, deploy). |
+| `release-captain.yml` | tag `v*`, manual | **Fingerprint router.** Native unchanged vs the store build → *OTA lane*: changelog → `require-approval` → EAS Update to production (+ Sentry sourcemaps). Native changed → *store lane*: build (store + simulator) → **Maestro regression gate** + **agentic QA gate** (headless Claude Code driving Argent on a macOS worker) → report doc → `require-approval` → store submit → Sentry release (commits, finalize, deploy). |
 | `release-sentinel.yml` | cron hourly, manual | Polls Sentry release health (`scripts/release-health-gate.mjs`): crash-free session/user rates, new issues (`firstRelease`), regressions (`is:regressed`), last-hour spike. Unhealthy → Slack alert + dispatches `agent-triage.yml` + agentic on-device repro. **Dedup:** skips everything if an open `agent-fix` PR/issue/branch for the top Sentry issue already exists — each issue fires the response once, not hourly. |
 | `agent-triage.yml` | cron weekdays, dispatched by sentinel | Headless Claude Code: Sentry issue → root cause (incl. best-effort Seer consult) → minimal fix → Maestro regression flow → PR labeled `agent-fix`. |
 | `agent-fix-verify.yml` | PR labeled `agent-fix` | Red→green: regression flow must FAIL on the pre-fix build and PASS on the PR build. |
-| `deploy.yml` | push to main | OTA update to production channel + keep a fingerprint-compatible preview build ("surfboard") available. |
+| `deploy.yml` | push to main | Staging: OTA update to the **preview** channel + keep a fingerprint-compatible preview build ("surfboard") available. Production OTA only ships via the captain's OTA lane. |
 | `preview.yml` / `cleanup-preview.yml` | PR / branch delete | Per-PR channel + QR preview, teardown. |
 | `post-release-regression.yml` | push to main, nightly | Deterministic Maestro sweep of all known-bug flows. |
 

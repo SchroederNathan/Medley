@@ -1,3 +1,6 @@
+# Staging deploy — every merge to main updates the PREVIEW channel and keeps
+# the surfboard build fresh. Production (store submit AND production-channel
+# OTA) ships only via release-captain.yml on a v* tag, behind its gates.
 name: deploy
 
 on:
@@ -7,11 +10,12 @@ on:
 
 jobs:
   update:
-    name: EAS Update → production
+    name: EAS Update → preview (staging)
     type: update
-    environment: production
+    environment: preview
     params:
-      channel: production
+      channel: preview
+      message: 'main: ${{ github.commit_message }}'
 
   # Keep a canonical "surfboard" preview build available: whenever native code
   # changes on main, build a fresh internal preview build that testers install
