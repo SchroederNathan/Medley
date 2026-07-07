@@ -1,0 +1,227 @@
+# Release Captain — build → QA gates (Maestro + agentic Argent) → human approval
+# → store submit → Sentry release. Replaces the old build.yml.
+#
+# Trigger a release by pushing a tag (git tag v1.1.0 && git push origin v1.1.0)
+# or manually: npx eas-cli@latest workflow:run .eas/workflows/release-captain.yml
+#
+# Required env vars in the EAS "production" environment:
+#   SLACK_WEBHOOK_URL, SENTRY_AUTH_TOKEN, CLAUDE_CODE_OAUTH_TOKEN,
+#   SENTRY_ORG + SENTRY_PROJECT (optional; default to this app's values)
+name: release-captain
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Platform to release
+        type: choice
+        options:
+          - ios
+          - android
+          - all
+        default: ios
+
+jobs:
+  # ── Stage 1: build ────────────────────────────────────────────────────────
+  build_prod_ios:
+    name: Build iOS (store)
+    if: ${{ (inputs.platform || 'ios') != 'android' }}
+    type: build
+    environment: production
+    params:
+      platform: ios
+      profile: production
+
+  build_sim_ios:
+    name: Build iOS (simulator, for QA)
+    if: ${{ (inputs.platform || 'ios') != 'android' }}
+    type: build
+    environment: production
+    params:
+      platform: ios
+      profile: simulator
+
+  # ── Stage 2: QA gates (run in parallel against the simulator build) ──────
+  regression_gate:
+    name: 'Gate: Maestro known-bug regressions'
+    type: maestro
+    needs: [build_sim_ios]
+    params:
+      build_id: ${{ needs.build_sim_ios.outputs.build_id }}
+      flow_path: .maestro/regressions
+      record_screen: true
+      retries: 1
+
+  agentic_qa:
+    name: 'Gate: agentic QA (Claude + Argent)'
+    runs_on: macos-medium
+    needs: [build_sim_ios]
+    environment: production
+    outputs:
+      status: ${{ steps.verdict.outputs.status }}
+      notes: ${{ steps.verdict.outputs.notes }}
+    steps:
+      - uses: eas/checkout
+      - id: download
+        uses: eas/download_build
+        with:
+          build_id: ${{ needs.build_sim_ios.outputs.build_id }}
+      - name: Install Claude Code + Argent
+        run: npm install -g @anthropic-ai/claude-code@latest @swmansion/argent@latest
+      - name: Run QA agent against the release candidate
+        env:
+          APP_PATH: ${{ steps.download.outputs.artifact_path }}
+        run: |
+          mkdir -p qa-artifacts
+          claude -p "$(cat .agents/release-qa-prompt.md)" \
+            --mcp-config '{"mcpServers":{"argent":{"command":"argent","args":["mcp"]}}}' \
+            --dangerously-skip-permissions \
+            --max-turns 60 \
+            --output-format json || echo "QA agent exited non-zero; verdict step decides"
+      - id: verdict
+        name: Enforce QA verdict
+        run: |
+          if [ ! -f qa-artifacts/verdict.json ]; then
+            echo "QA agent produced no verdict.json — treating as failure"
+            set-output status "fail"
+            set-output notes "Agent produced no verdict (crashed or ran out of turns)"
+            exit 1
+          fi
+          cat qa-artifacts/verdict.json
+          STATUS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('qa-artifacts/verdict.json','utf8')).status || 'fail')")
+          NOTES=$(node -e "console.log(((JSON.parse(require('fs').readFileSync('qa-artifacts/verdict.json','utf8')).notes) || '').replace(/\s+/g,' ').slice(0,400))")
+          set-output status "$STATUS"
+          set-output notes "$NOTES"
+          [ "$STATUS" = "pass" ] || exit 1
+      - name: Upload QA artifacts (screenshots + verdict)
+        if: ${{ always() }}
+        uses: eas/upload_artifact
+        with:
+          type: other
+          name: qa-artifacts
+          path: qa-artifacts
+          ignore_error: true
+
+  changelog:
+    name: Changelog since last release tag
+    if: ${{ (inputs.platform || 'ios') != 'android' }}
+    outputs:
+      changelog: ${{ steps.log.outputs.changelog }}
+    steps:
+      - uses: eas/checkout
+      - id: log
+        name: Collect commits since previous v* tag
+        run: |
+          git fetch --tags --force 2>/dev/null || true
+          PREV=$(git tag --list 'v*' --sort=-creatordate | sed -n '2p')
+          if [ -n "$PREV" ]; then RANGE="$PREV..HEAD"; else RANGE="-n 30"; fi
+          LOG=$(git log $RANGE --no-merges --pretty=format:'• %s (%h)' | head -40 | paste -sd'@@' - | sed 's/@@/<br>/g')
+          set-output changelog "${LOG:-No commits found}"
+
+  qa_report:
+    name: Release candidate report
+    type: doc
+    after: [regression_gate, agentic_qa, changelog]
+    params:
+      md: |
+        ## Release candidate report
+
+        | Gate | Result |
+        | --- | --- |
+        | Maestro known-bug regressions | ${{ after.regression_gate.status }} |
+        | Agentic QA (Claude + Argent) | ${{ after.agentic_qa.status }} |
+
+        **QA agent notes:** ${{ after.agentic_qa.outputs.notes }}
+
+        Evidence: QA screenshots + `verdict.json` are artifacts on the *agentic QA* job; screen recordings are on the *Maestro* job.
+
+        ### Changelog
+        ${{ after.changelog.outputs.changelog }}
+
+  # ── Stage 3: human gate ───────────────────────────────────────────────────
+  # The human is the final arbiter: gate failures surface above but do not
+  # dead-end the run — review the report, then approve or reject the submit.
+  approval:
+    name: Approve store submission
+    type: require-approval
+    needs: [build_prod_ios]
+    after: [qa_report]
+
+  # ── Stage 4: ship + register the release in Sentry ───────────────────────
+  submit_ios:
+    name: Submit to App Store
+    type: submit
+    needs: [approval, build_prod_ios]
+    params:
+      build_id: ${{ needs.build_prod_ios.outputs.build_id }}
+      profile: production
+
+  sentry_release:
+    name: Create Sentry release
+    needs: [submit_ios, build_prod_ios]
+    environment: production
+    steps:
+      - uses: eas/checkout
+      - name: Register release, commits, and deploy in Sentry
+        env:
+          RELEASE: ${{ needs.build_prod_ios.outputs.app_identifier }}@${{ needs.build_prod_ios.outputs.app_version }}+${{ needs.build_prod_ios.outputs.app_build_version }}
+        run: |
+          npm install -g @sentry/cli
+          export SENTRY_ORG="${SENTRY_ORG:-schroeder-nathan}"
+          export SENTRY_PROJECT="${SENTRY_PROJECT:-react-native}"
+          echo "Registering Sentry release: $RELEASE"
+          sentry-cli releases new "$RELEASE"
+          sentry-cli releases set-commits "$RELEASE" --auto ||
+            sentry-cli releases set-commits "$RELEASE" --local ||
+            echo "Commit association failed (non-fatal)"
+          sentry-cli releases finalize "$RELEASE"
+          sentry-cli deploys new --release "$RELEASE" -e production
+
+  notify:
+    name: Notify Slack
+    after: [build_prod_ios, regression_gate, agentic_qa, submit_ios, sentry_release]
+    environment: production
+    steps:
+      - name: Send release summary to Slack
+        env:
+          MSG: 'Release captain ${{ after.build_prod_ios.outputs.app_version }}+${{ after.build_prod_ios.outputs.app_build_version }} — build: ${{ after.build_prod_ios.status }}, maestro gate: ${{ after.regression_gate.status }}, agentic QA: ${{ after.agentic_qa.status }}, submit: ${{ after.submit_ios.status }}, sentry release: ${{ after.sentry_release.status }}'
+        run: |
+          node -e 'fetch(process.env.SLACK_WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: process.env.MSG }) }).then((r) => console.log("slack:", r.status))'
+
+  # ── Android (enable when the Android release path goes live) ─────────────
+  # build_prod_android:
+  #   name: Build Android (store)
+  #   if: ${{ inputs.platform == 'android' || inputs.platform == 'all' }}
+  #   type: build
+  #   environment: production
+  #   params:
+  #     platform: android
+  #     profile: production
+  #
+  # build_sim_android:
+  #   name: Build Android (emulator, for QA)
+  #   if: ${{ inputs.platform == 'android' || inputs.platform == 'all' }}
+  #   type: build
+  #   environment: production
+  #   params:
+  #     platform: android
+  #     profile: simulator
+  #
+  # regression_gate_android:
+  #   name: 'Gate: Maestro regressions (Android)'
+  #   type: maestro
+  #   needs: [build_sim_android]
+  #   params:
+  #     build_id: ${{ needs.build_sim_android.outputs.build_id }}
+  #     flow_path: .maestro/regressions
+  #     record_screen: true
+  #
+  # submit_android:
+  #   name: Submit to Play Console
+  #   type: submit
+  #   needs: [approval, build_prod_android]
+  #   params:
+  #     build_id: ${{ needs.build_prod_android.outputs.build_id }}
+  #     profile: production

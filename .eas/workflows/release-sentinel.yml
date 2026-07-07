@@ -1,0 +1,166 @@
+# Release Sentinel — hourly Sentry release-health watchdog.
+#
+# Polls crash-free session/user rates, new issues, and regressions for the
+# latest (or given) release. Healthy → silent. Unhealthy → Slack alert +
+# dispatches the triage agent (fix PR) + an agentic on-device repro session.
+#
+# Stateless dedup: before responding it checks GitHub for an open agent-fix
+# PR / issue / agent/<short-id> branch for the top Sentry issue — if a fix is
+# already in flight, the run no-ops instead of re-firing every hour.
+#
+# Required env vars in the EAS "production" environment:
+#   SENTRY_AUTH_TOKEN, GITHUB_TOKEN, SLACK_WEBHOOK_URL, EXPO_TOKEN,
+#   CLAUDE_CODE_OAUTH_TOKEN, SENTRY_ORG + SENTRY_PROJECT (optional; defaulted)
+# Thresholds are tunable via env vars read by scripts/release-health-gate.mjs.
+name: release-sentinel
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+    inputs:
+      release:
+        description: 'Release to check (default: latest in Sentry)'
+      min_crash_free_sessions:
+        description: 'Override crash-free session threshold, e.g. 100 to force the unhealthy path for testing'
+
+jobs:
+  health:
+    name: Sentry release health gate
+    environment: production
+    outputs:
+      healthy: ${{ steps.gate.outputs.healthy }}
+      release: ${{ steps.gate.outputs.release }}
+      summary: ${{ steps.gate.outputs.summary }}
+      crash_free_sessions: ${{ steps.gate.outputs.crash_free_sessions }}
+      crash_free_users: ${{ steps.gate.outputs.crash_free_users }}
+      new_issues: ${{ steps.gate.outputs.new_issues }}
+      regressed_issues: ${{ steps.gate.outputs.regressed_issues }}
+      top_issue_short_id: ${{ steps.gate.outputs.top_issue_short_id }}
+      top_issue_url: ${{ steps.gate.outputs.top_issue_url }}
+      already_handled: ${{ steps.dedup.outputs.already_handled }}
+      existing_fix_url: ${{ steps.dedup.outputs.existing_fix_url }}
+    steps:
+      - uses: eas/checkout
+      - id: gate
+        name: Poll Sentry release health
+        env:
+          RELEASE: ${{ inputs.release }}
+          MIN_CRASH_FREE_SESSIONS: ${{ inputs.min_crash_free_sessions }}
+        run: |
+          node scripts/release-health-gate.mjs
+          while IFS='=' read -r key value; do
+            set-output "$key" "$value"
+          done < health-outputs.env
+      - id: dedup
+        name: Check GitHub for a fix already in flight
+        env:
+          TOP_ISSUE: ${{ steps.gate.outputs.top_issue_short_id }}
+        run: |
+          REPO="${GITHUB_REPOSITORY:-SchroederNathan/Medley}"
+          HANDLED="false"
+          FIX_URL=""
+          if [ -n "$TOP_ISSUE" ]; then
+            # One search covers open PRs and issues mentioning the Sentry short ID.
+            SEARCH=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+              "https://api.github.com/search/issues?q=repo:${REPO}+state:open+%22${TOP_ISSUE}%22")
+            COUNT=$(echo "$SEARCH" | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const j=JSON.parse(d);console.log(j.total_count??0)})")
+            FIX_URL=$(echo "$SEARCH" | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const j=JSON.parse(d);console.log(j.items?.[0]?.html_url??'')}) " 2>/dev/null || true)
+            BRANCH_ID=$(echo "$TOP_ISSUE" | tr '[:upper:]' '[:lower:]')
+            BRANCH=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $GITHUB_TOKEN" \
+              "https://api.github.com/repos/${REPO}/branches/agent/${BRANCH_ID}")
+            if [ "${COUNT:-0}" -gt 0 ] || [ "$BRANCH" = "200" ]; then
+              HANDLED="true"
+            fi
+          fi
+          echo "already_handled=$HANDLED (fix: ${FIX_URL:-none})"
+          set-output already_handled "$HANDLED"
+          set-output existing_fix_url "$FIX_URL"
+
+  alert:
+    name: Slack alert (first detection)
+    needs: [health]
+    if: ${{ needs.health.outputs.healthy == 'false' && needs.health.outputs.already_handled == 'false' }}
+    environment: production
+    steps:
+      - name: Send alert to Slack
+        env:
+          MSG: '🚨 ${{ needs.health.outputs.summary }} — crash-free sessions ${{ needs.health.outputs.crash_free_sessions }}%, users ${{ needs.health.outputs.crash_free_users }}%, new issues ${{ needs.health.outputs.new_issues }}, regressed ${{ needs.health.outputs.regressed_issues }}. Top issue: ${{ needs.health.outputs.top_issue_short_id }} ${{ needs.health.outputs.top_issue_url }} — dispatching triage + on-device repro.'
+        run: |
+          node -e 'fetch(process.env.SLACK_WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: process.env.MSG }) }).then((r) => console.log("slack:", r.status))'
+
+  dispatch_triage:
+    name: Dispatch triage agent (fix PR)
+    needs: [health]
+    if: ${{ needs.health.outputs.healthy == 'false' && needs.health.outputs.already_handled == 'false' && needs.health.outputs.top_issue_short_id != '' }}
+    environment: production
+    steps:
+      - uses: eas/checkout
+      - uses: eas/install_node_modules
+      - name: Kick off agent-triage workflow for the top issue
+        run: |
+          npx eas-cli@latest workflow:run .eas/workflows/agent-triage.yml \
+            -F sentry_issue_id="${{ needs.health.outputs.top_issue_short_id }}" \
+            -F release="${{ needs.health.outputs.release }}" \
+            --non-interactive
+
+  get_sim_build:
+    name: Find simulator build for repro
+    type: get-build
+    needs: [health]
+    if: ${{ needs.health.outputs.healthy == 'false' && needs.health.outputs.already_handled == 'false' && needs.health.outputs.top_issue_short_id != '' }}
+    params:
+      platform: ios
+      profile: simulator
+
+  agentic_repro:
+    name: Agentic on-device repro (Claude + Argent)
+    runs_on: macos-medium
+    needs: [health, get_sim_build]
+    if: ${{ needs.health.outputs.healthy == 'false' && needs.health.outputs.already_handled == 'false' && needs.get_sim_build.outputs.build_id != '' }}
+    environment: production
+    steps:
+      - uses: eas/checkout
+      - id: download
+        uses: eas/download_build
+        with:
+          build_id: ${{ needs.get_sim_build.outputs.build_id }}
+      - name: Install Claude Code + Argent
+        run: npm install -g @anthropic-ai/claude-code@latest @swmansion/argent@latest
+      - name: Run repro agent
+        env:
+          APP_PATH: ${{ steps.download.outputs.artifact_path }}
+          SENTRY_ISSUE_ID: ${{ needs.health.outputs.top_issue_short_id }}
+          APP_RELEASE: ${{ needs.health.outputs.release }}
+        run: |
+          mkdir -p repro-artifacts
+          claude -p "$(cat .agents/repro-prompt.md)" \
+            --mcp-config '{"mcpServers":{"argent":{"command":"argent","args":["mcp"]}}}' \
+            --dangerously-skip-permissions \
+            --max-turns 60 \
+            --output-format json || echo "Repro agent exited non-zero; report step decides"
+      - name: Upload repro artifacts
+        if: ${{ always() }}
+        uses: eas/upload_artifact
+        with:
+          type: other
+          name: repro-artifacts
+          path: repro-artifacts
+          ignore_error: true
+      - name: Post repro summary to Slack
+        if: ${{ always() }}
+        env:
+          ISSUE: ${{ needs.health.outputs.top_issue_short_id }}
+        run: |
+          node -e '
+            const fs = require("fs");
+            const report = fs.existsSync("repro-artifacts/report.md")
+              ? fs.readFileSync("repro-artifacts/report.md", "utf8").slice(0, 800)
+              : "Repro agent produced no report.";
+            const text = `🔬 On-device repro for ${process.env.ISSUE}:\n${report}\n(Full report + screenshots: repro-artifacts on this workflow run.)`;
+            fetch(process.env.SLACK_WEBHOOK_URL, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ text }),
+            }).then((r) => console.log("slack:", r.status));
+          '

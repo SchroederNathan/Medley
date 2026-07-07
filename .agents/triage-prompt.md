@@ -11,9 +11,14 @@ path, and open a pull request. A human reviews and merges; you never merge.
 - Sentry: org `schroeder-nathan`, project `react-native`. Use the REST API
   (`https://sentry.io/api/0/`) with the `SENTRY_AUTH_TOKEN` env var as a
   Bearer token via curl.
-- `SENTRY_ISSUE_ID` env var: the issue short ID to investigate. If empty,
-  pick the highest-frequency unresolved issue from the last 24h that does not
-  already have an open PR (check with `gh pr list --label agent-fix`).
+- `SENTRY_ISSUE_ID` env var: the issue short ID to investigate. This is
+  usually set by the release sentinel (`release-sentinel.yml`), which detected
+  an unhealthy release. If empty, pick an unresolved issue from the last 24h
+  that does not already have an open PR or agent-filed issue (check with
+  `gh pr list --label agent-fix` and `gh issue list --search "<short-id>"`),
+  preferring issues first seen in the most recent release
+  (`query=firstRelease:"<release>" is:unresolved`, sorted by frequency) over
+  raw org-wide frequency.
 - `APP_RELEASE` env var: the release the error was first seen in (may be empty).
 - `GITHUB_TOKEN` env var: for pushing the branch and opening the PR.
 
@@ -31,6 +36,13 @@ path, and open a pull request. A human reviews and merges; you never merge.
    concrete steps the user took to hit the error: which screen, which taps,
    in what order. If the issue has no linked replay (replays are sampled),
    fall back to the error event's breadcrumbs.
+
+2.5. **Consult Sentry Seer root-cause analysis (best effort).** Try
+   `GET /api/0/issues/<issue-numeric-id>/autofix/` — if a completed analysis
+   exists, use its root cause and suggested solution as a hypothesis to verify
+   against the code, never as ground truth. These endpoints are internal and
+   may 404 or change shape; if anything about this step fails, skip it
+   silently and continue.
 
 3. **Find the root cause in this repo.** Read the relevant code until you can
    explain the failure mechanism precisely. Follow the repo conventions in
@@ -69,6 +81,9 @@ path, and open a pull request. A human reviews and merges; you never merge.
    - `gh pr create --label agent-fix` with a body containing: the Sentry
      issue link, the session replay link (if one was found), the root-cause
      explanation, the fix summary, and the path to the new regression flow.
+     If `APP_RELEASE` is set, state which release regressed and note that the
+     sentinel may have attached an on-device repro report to its own workflow
+     run (job `agentic_repro` in `release-sentinel.yml`).
      Note that the `agent-fix` label triggers automatic red→green
      verification.
 

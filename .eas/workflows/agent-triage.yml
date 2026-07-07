@@ -17,7 +17,8 @@ on:
   # Daily sweep of the top new Sentry issue
   schedule:
     - cron: '0 6 * * 1-5'
-  # Per-error trigger, e.g. from a Sentry alert webhook relay:
+  # Per-error trigger — dispatched automatically by release-sentinel.yml when a
+  # release goes unhealthy, or manually:
   #   eas workflow:run .eas/workflows/agent-triage.yml -F sentry_issue_id=MEDLEY-123
   workflow_dispatch:
     inputs:
@@ -38,7 +39,8 @@ jobs:
           SENTRY_ISSUE_ID: ${{ inputs.sentry_issue_id }}
           APP_RELEASE: ${{ inputs.release }}
         run: |
-          npm install -g @anthropic-ai/claude-code
+          # Pin a specific version here for enterprise reproducibility.
+          npm install -g @anthropic-ai/claude-code@latest
           # --dangerously-skip-permissions: allowlist patterns like
           # "Bash(curl *)" reject any command containing $VAR expansion
           # ("Contains simple_expansion"), which blocks every curl/git call
