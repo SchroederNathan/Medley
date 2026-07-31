@@ -18,8 +18,12 @@
 # the exact same filter on its first frame.
 appId: com.schroedernathan.medley
 ---
+# extendedWaitUntil (not assertVisible+timeout, which Maestro >=2.x rejects as
+# "Unknown Property") bounds how long the first frame may block: if the main
+# thread hangs rendering the blur, "Get Started" won't appear within 4s.
 - launchApp:
     clearState: true
-- assertVisible:
-    text: "Get Started"
+- extendedWaitUntil:
+    visible:
+      text: "Get Started"
     timeout: 4000

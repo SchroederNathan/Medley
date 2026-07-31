@@ -1,7 +1,19 @@
-# Staging deploy — every merge to main updates the PREVIEW channel and keeps
-# the surfboard build fresh. Production (store submit AND production-channel
-# OTA) ships only via release-captain.yml on a v* tag, behind its gates.
-name: deploy
+# Everything that happens when a commit lands on main:
+#   1. OTA update to the PREVIEW channel (staging — testers ride main).
+#   2. Keep the "surfboard" preview build fresh (rebuilt only when the native
+#      fingerprint changes; testers use it to channel-surf PR previews).
+#   3. Full Maestro regression sweep (every previously-fixed bug stays fixed)
+#      against a simulator build of this commit; triage agent dispatched on
+#      failure.
+#
+# Production is deliberately NOT reachable from here — store submits and
+# production-channel OTA ship only via release-captain.yml on a v* tag. The
+# sweep is the compensating control for the captain's OTA lane (approval-only):
+# by the time a commit is tagged, it already passed the full suite here. The
+# simulator build produced per commit is also what get-build picks up as the
+# "pre-fix" build in agent-fix-verify.yml and the repro build in
+# release-sentinel.yml.
+name: main
 
 on:
   push:
@@ -9,6 +21,7 @@ on:
   workflow_dispatch: {}
 
 jobs:
+  # ── Staging ───────────────────────────────────────────────────────────────
   update:
     name: EAS Update → preview (staging)
     type: update
@@ -17,9 +30,6 @@ jobs:
       channel: preview
       message: 'main: ${{ github.commit_message }}'
 
-  # Keep a canonical "surfboard" preview build available: whenever native code
-  # changes on main, build a fresh internal preview build that testers install
-  # to channel-surf PR previews (see preview.yml).
   fingerprint:
     name: Fingerprint native runtime
     type: fingerprint
@@ -45,23 +55,48 @@ jobs:
       platform: ios
       profile: preview
 
-  # Android surfboard (disabled for now; uncomment to enable)
-  # get_preview_build_android:
-  #   name: Find Android surfboard build for current fingerprint
-  #   needs: [fingerprint]
-  #   type: get-build
-  #   params:
-  #     platform: android
-  #     profile: preview
-  #     fingerprint_hash: ${{ needs.fingerprint.outputs.android_fingerprint_hash }}
-  #     wait_for_in_progress: true
-  #
-  # build_preview_android:
-  #   name: Build new Android surfboard (native changed)
-  #   needs: [get_preview_build_android]
-  #   if: ${{ !needs.get_preview_build_android.outputs.build_id }}
-  #   type: build
-  #   environment: preview
-  #   params:
-  #     platform: android
-  #     profile: preview
+  # ── Regression sweep ─────────────────────────────────────────────────────
+  build_sim:
+    name: Build main (simulator)
+    type: build
+    environment: production
+    params:
+      platform: ios
+      profile: simulator
+
+  regression_suite:
+    name: Run Maestro regression suite
+    type: maestro
+    needs: [build_sim]
+    params:
+      build_id: ${{ needs.build_sim.outputs.build_id }}
+      flow_path: .maestro/regressions
+      record_screen: true
+      retries: 1
+
+  dispatch_triage:
+    name: Kick off triage agent on failure
+    after: [regression_suite]
+    if: ${{ after.regression_suite.status == 'failure' }}
+    environment: production
+    steps:
+      - uses: eas/checkout
+      - name: Dispatch agent triage workflow
+        run: |
+          npx eas-cli@latest workflow:run .eas/workflows/agent-triage.yml
+
+  notify:
+    name: Notify Slack on failure
+    after: [regression_suite]
+    if: ${{ after.regression_suite.status == 'failure' }}
+    environment: production
+    env:
+      MSG: '❌ Medley regression sweep failed on main — triage agent dispatched. Check the Maestro job recordings.'
+    steps:
+      - name: Send alert to Slack
+        run: |
+          node -e 'fetch(process.env.SLACK_WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: process.env.MSG }) }).then((r) => console.log("slack:", r.status))'
+
+  # Android equivalents (surfboard + sweep) are intentionally omitted until
+  # the Android release path goes live — mirror the iOS jobs with
+  # android_fingerprint_hash / platform: android when enabling.

@@ -13,13 +13,11 @@
 #   GITHUB_TOKEN        - repo-scoped token; used to push the branch and open the PR
 name: Agent triage (Sentry → fix PR + Maestro repro)
 
+# Dispatch-only utility — no cron of its own. It is invoked by:
+#   - release-sentinel.yml when a release goes unhealthy (hourly watch)
+#   - deploy.yml when the main regression sweep fails
+#   - manually: eas workflow:run .eas/workflows/agent-triage.yml -F sentry_issue_id=MEDLEY-123
 on:
-  # Daily sweep of the top new Sentry issue
-  schedule:
-    - cron: '0 6 * * 1-5'
-  # Per-error trigger — dispatched automatically by release-sentinel.yml when a
-  # release goes unhealthy, or manually:
-  #   eas workflow:run .eas/workflows/agent-triage.yml -F sentry_issue_id=MEDLEY-123
   workflow_dispatch:
     inputs:
       sentry_issue_id:

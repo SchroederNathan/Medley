@@ -104,10 +104,11 @@ jobs:
     after: [ota_update]
     if: ${{ after.ota_update.status != 'skipped' }}
     environment: production
+    # ${{ }} only resolves in job-level env, not step-level env.
+    env:
+      MSG: 'Release captain ${{ github.ref_name }} → OTA lane: publish ${{ after.ota_update.status }}. Sentinel is watching release health.'
     steps:
       - name: Send OTA summary to Slack
-        env:
-          MSG: 'Release captain ${{ github.ref_name }} → OTA lane: publish ${{ after.ota_update.status }}. Sentinel is watching release health.'
         run: |
           node -e 'fetch(process.env.SLACK_WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: process.env.MSG }) }).then((r) => console.log("slack:", r.status))'
 
@@ -159,9 +160,18 @@ jobs:
       - name: Install Claude Code + Argent
         run: npm install -g @anthropic-ai/claude-code@latest @swmansion/argent@latest
       - name: Run QA agent against the release candidate
-        env:
-          APP_PATH: ${{ steps.download.outputs.artifact_path }}
         run: |
+          # ${{ }} does NOT resolve in step-level env on EAS workers (verified
+          # in run 019f3def…, 2026-07-07), so locate the .app that
+          # eas/download_build extracted under $TMPDIR instead.
+          APP_PATH=$(find "${TMPDIR:-/tmp}" -maxdepth 4 -type d -name "*.app" -path "*download_build*" 2>/dev/null | head -1)
+          [ -n "$APP_PATH" ] || APP_PATH=$(find "${TMPDIR:-/tmp}" -maxdepth 5 -type d -name "*.app" 2>/dev/null | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "Could not locate the downloaded simulator .app under ${TMPDIR:-/tmp}" >&2
+            exit 1
+          fi
+          echo "Using APP_PATH=$APP_PATH"
+          export APP_PATH
           mkdir -p qa-artifacts
           claude -p "$(cat .agents/release-qa-prompt.md)" \
             --mcp-config '{"mcpServers":{"argent":{"command":"argent","args":["mcp"]}}}' \
@@ -180,8 +190,9 @@ jobs:
           cat qa-artifacts/verdict.json
           STATUS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('qa-artifacts/verdict.json','utf8')).status || 'fail')")
           NOTES=$(node -e "console.log(((JSON.parse(require('fs').readFileSync('qa-artifacts/verdict.json','utf8')).notes) || '').replace(/\s+/g,' ').slice(0,400))")
-          set-output status "$STATUS"
-          set-output notes "$NOTES"
+          # set-output errors on empty values — always pass something.
+          set-output status "${STATUS:-fail}"
+          set-output notes "${NOTES:-none}"
           [ "$STATUS" = "pass" ] || exit 1
       - name: Upload QA artifacts (screenshots + verdict)
         if: ${{ always() }}
@@ -225,8 +236,10 @@ jobs:
     needs: [build_prod_ios]
     after: [qa_report]
 
+  # Uploads the binary to App Store Connect → TestFlight only. Releasing to
+  # the App Store is done manually in ASC; nothing here automates that step.
   submit_ios:
-    name: Submit to App Store
+    name: Deliver to TestFlight
     type: submit
     needs: [approval, build_prod_ios]
     params:
@@ -259,10 +272,11 @@ jobs:
     after: [build_prod_ios, regression_gate, agentic_qa, submit_ios, sentry_release]
     if: ${{ after.build_prod_ios.status != 'skipped' }}
     environment: production
+    # ${{ }} only resolves in job-level env, not step-level env.
+    env:
+      MSG: 'Release captain ${{ github.ref_name }} → store lane (${{ after.build_prod_ios.outputs.app_version }}+${{ after.build_prod_ios.outputs.app_build_version }}) — build: ${{ after.build_prod_ios.status }}, maestro gate: ${{ after.regression_gate.status }}, agentic QA: ${{ after.agentic_qa.status }}, TestFlight: ${{ after.submit_ios.status }}, sentry release: ${{ after.sentry_release.status }}'
     steps:
       - name: Send release summary to Slack
-        env:
-          MSG: 'Release captain ${{ github.ref_name }} → store lane (${{ after.build_prod_ios.outputs.app_version }}+${{ after.build_prod_ios.outputs.app_build_version }}) — build: ${{ after.build_prod_ios.status }}, maestro gate: ${{ after.regression_gate.status }}, agentic QA: ${{ after.agentic_qa.status }}, submit: ${{ after.submit_ios.status }}, sentry release: ${{ after.sentry_release.status }}'
         run: |
           node -e 'fetch(process.env.SLACK_WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: process.env.MSG }) }).then((r) => console.log("slack:", r.status))'
 

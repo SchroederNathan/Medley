@@ -28,6 +28,12 @@ jobs:
   health:
     name: Sentry release health gate
     environment: production
+    # ${{ }} only resolves in job-level env, not step-level env (verified on
+    # EAS workers 2026-07-07). The gate script also ignores any env value that
+    # still contains a literal '${{' as a second line of defense.
+    env:
+      RELEASE: ${{ inputs.release }}
+      MIN_CRASH_FREE_SESSIONS: ${{ inputs.min_crash_free_sessions }}
     outputs:
       healthy: ${{ steps.gate.outputs.healthy }}
       release: ${{ steps.gate.outputs.release }}
@@ -44,19 +50,19 @@ jobs:
       - uses: eas/checkout
       - id: gate
         name: Poll Sentry release health
-        env:
-          RELEASE: ${{ inputs.release }}
-          MIN_CRASH_FREE_SESSIONS: ${{ inputs.min_crash_free_sessions }}
         run: |
           node scripts/release-health-gate.mjs
+          # set-output errors on empty values — skip empties (an unset output
+          # interpolates as '' downstream, which the if: conditions expect).
           while IFS='=' read -r key value; do
-            set-output "$key" "$value"
+            if [ -n "$key" ] && [ -n "$value" ]; then set-output "$key" "$value"; fi
           done < health-outputs.env
       - id: dedup
         name: Check GitHub for a fix already in flight
-        env:
-          TOP_ISSUE: ${{ steps.gate.outputs.top_issue_short_id }}
         run: |
+          # Read straight from the gate's output file — step outputs are not
+          # interpolatable into step env on EAS workers.
+          TOP_ISSUE=$(grep '^top_issue_short_id=' health-outputs.env | cut -d= -f2- || true)
           REPO="${GITHUB_REPOSITORY:-SchroederNathan/Medley}"
           HANDLED="false"
           FIX_URL=""
@@ -75,17 +81,17 @@ jobs:
           fi
           echo "already_handled=$HANDLED (fix: ${FIX_URL:-none})"
           set-output already_handled "$HANDLED"
-          set-output existing_fix_url "$FIX_URL"
+          if [ -n "$FIX_URL" ]; then set-output existing_fix_url "$FIX_URL"; fi
 
   alert:
     name: Slack alert (first detection)
     needs: [health]
     if: ${{ needs.health.outputs.healthy == 'false' && needs.health.outputs.already_handled == 'false' }}
     environment: production
+    env:
+      MSG: '🚨 ${{ needs.health.outputs.summary }} — crash-free sessions ${{ needs.health.outputs.crash_free_sessions }}%, users ${{ needs.health.outputs.crash_free_users }}%, new issues ${{ needs.health.outputs.new_issues }}, regressed ${{ needs.health.outputs.regressed_issues }}. Top issue: ${{ needs.health.outputs.top_issue_short_id }} ${{ needs.health.outputs.top_issue_url }} — dispatching triage + on-device repro.'
     steps:
       - name: Send alert to Slack
-        env:
-          MSG: '🚨 ${{ needs.health.outputs.summary }} — crash-free sessions ${{ needs.health.outputs.crash_free_sessions }}%, users ${{ needs.health.outputs.crash_free_users }}%, new issues ${{ needs.health.outputs.new_issues }}, regressed ${{ needs.health.outputs.regressed_issues }}. Top issue: ${{ needs.health.outputs.top_issue_short_id }} ${{ needs.health.outputs.top_issue_url }} — dispatching triage + on-device repro.'
         run: |
           node -e 'fetch(process.env.SLACK_WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: process.env.MSG }) }).then((r) => console.log("slack:", r.status))'
 
@@ -94,14 +100,18 @@ jobs:
     needs: [health]
     if: ${{ needs.health.outputs.healthy == 'false' && needs.health.outputs.already_handled == 'false' && needs.health.outputs.top_issue_short_id != '' }}
     environment: production
+    env:
+      TOP_ISSUE: ${{ needs.health.outputs.top_issue_short_id }}
+      APP_RELEASE: ${{ needs.health.outputs.release }}
     steps:
       - uses: eas/checkout
       - uses: eas/install_node_modules
       - name: Kick off agent-triage workflow for the top issue
         run: |
+          case "$TOP_ISSUE" in *'${{'*) echo "env interpolation failed" >&2; exit 1;; esac
           npx eas-cli@latest workflow:run .eas/workflows/agent-triage.yml \
-            -F sentry_issue_id="${{ needs.health.outputs.top_issue_short_id }}" \
-            -F release="${{ needs.health.outputs.release }}" \
+            -F sentry_issue_id="$TOP_ISSUE" \
+            -F release="$APP_RELEASE" \
             --non-interactive
 
   get_sim_build:
@@ -119,6 +129,9 @@ jobs:
     needs: [health, get_sim_build]
     if: ${{ needs.health.outputs.healthy == 'false' && needs.health.outputs.already_handled == 'false' && needs.get_sim_build.outputs.build_id != '' }}
     environment: production
+    env:
+      SENTRY_ISSUE_ID: ${{ needs.health.outputs.top_issue_short_id }}
+      APP_RELEASE: ${{ needs.health.outputs.release }}
     steps:
       - uses: eas/checkout
       - id: download
@@ -128,11 +141,17 @@ jobs:
       - name: Install Claude Code + Argent
         run: npm install -g @anthropic-ai/claude-code@latest @swmansion/argent@latest
       - name: Run repro agent
-        env:
-          APP_PATH: ${{ steps.download.outputs.artifact_path }}
-          SENTRY_ISSUE_ID: ${{ needs.health.outputs.top_issue_short_id }}
-          APP_RELEASE: ${{ needs.health.outputs.release }}
         run: |
+          # Locate the .app extracted by eas/download_build (step outputs are
+          # not interpolatable into step env on EAS workers).
+          APP_PATH=$(find "${TMPDIR:-/tmp}" -maxdepth 4 -type d -name "*.app" -path "*download_build*" 2>/dev/null | head -1)
+          [ -n "$APP_PATH" ] || APP_PATH=$(find "${TMPDIR:-/tmp}" -maxdepth 5 -type d -name "*.app" 2>/dev/null | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "Could not locate the downloaded simulator .app under ${TMPDIR:-/tmp}" >&2
+            exit 1
+          fi
+          echo "Using APP_PATH=$APP_PATH"
+          export APP_PATH
           mkdir -p repro-artifacts
           claude -p "$(cat .agents/repro-prompt.md)" \
             --mcp-config '{"mcpServers":{"argent":{"command":"argent","args":["mcp"]}}}' \
@@ -149,15 +168,13 @@ jobs:
           ignore_error: true
       - name: Post repro summary to Slack
         if: ${{ always() }}
-        env:
-          ISSUE: ${{ needs.health.outputs.top_issue_short_id }}
         run: |
           node -e '
             const fs = require("fs");
             const report = fs.existsSync("repro-artifacts/report.md")
               ? fs.readFileSync("repro-artifacts/report.md", "utf8").slice(0, 800)
               : "Repro agent produced no report.";
-            const text = `🔬 On-device repro for ${process.env.ISSUE}:\n${report}\n(Full report + screenshots: repro-artifacts on this workflow run.)`;
+            const text = `🔬 On-device repro for ${process.env.SENTRY_ISSUE_ID}:\n${report}\n(Full report + screenshots: repro-artifacts on this workflow run.)`;
             fetch(process.env.SLACK_WEBHOOK_URL, {
               method: "POST",
               headers: { "Content-Type": "application/json" },

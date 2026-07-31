@@ -28,7 +28,9 @@ import { writeFileSync } from "node:fs";
 
 const env = (name, fallback) => {
   const v = process.env[name];
-  return v === undefined || v === "" ? fallback : v;
+  // EAS passes uninterpolated '${{ … }}' templates through literally in some
+  // contexts (e.g. cron runs with no inputs) — treat those as unset.
+  return v === undefined || v === "" || v.includes("${{") ? fallback : v;
 };
 
 const ORG = env("SENTRY_ORG", "schroeder-nathan");
