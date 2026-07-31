@@ -1,0 +1,26 @@
+# Sentry: https://schroeder-nathan.sentry.io/issues/7590536767/ (REACT-NATIVE-2G)
+#
+# Bug: "App Hang Non Fully Blocked" (2.8-3.6s) on landing on the onboarding
+# screen. Root cause: a second, smaller decorative SVG blur
+# (<Svg><Filter id="bottomGradientBlur"><FeGaussianBlur stdDeviation="40">...)
+# behind the bottom radial-gradient ellipse in app/onboarding.tsx, rendered
+# via react-native-svg's CoreImage filter path synchronously on the main
+# thread during the screen's first CATransaction commit. This is the sibling
+# of REACT-NATIVE-2D's "spotlight" filter (fixed in #13), which that PR
+# explicitly left in place as out of scope ("the second, smaller
+# bottomGradientBlur filter on the bottom ellipse is untouched").
+#
+# Reconstructed user path (from breadcrumbs): Home tab -> open a media item
+# -> back -> Profile tab -> Settings -> tap "Logout" -> app navigates to
+# /onboarding -> main thread hangs for 2.8-3.6s on first paint. No seeded
+# test account exists in CI to drive that exact tap sequence, so (matching
+# react-native-2d.yaml's approach) this reproduces the identical defect by
+# landing on the same onboarding screen directly via cold launch, which
+# mounts the exact same filter on its first frame.
+appId: com.schroedernathan.medley
+---
+- launchApp:
+    clearState: true
+- assertVisible:
+    text: "Get Started"
+    timeout: 3000

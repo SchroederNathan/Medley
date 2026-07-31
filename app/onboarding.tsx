@@ -12,10 +12,6 @@ import Animated, {
 import Svg, {
   Defs,
   Ellipse,
-  FeBlend,
-  FeFlood,
-  FeGaussianBlur,
-  Filter,
   Path,
   RadialGradient,
   Stop,
@@ -200,26 +196,6 @@ const GetStarted = () => {
           style={styles.bottomGradientSvg}
         >
           <Defs>
-            <Filter
-              id="bottomGradientBlur"
-              x="-50%"
-              y="-50%"
-              width="200%"
-              height="200%"
-              filterUnits="userSpaceOnUse"
-            >
-              <FeFlood floodOpacity="0" result="BackgroundImageFix" />
-              <FeBlend
-                mode="normal"
-                in="SourceGraphic"
-                in2="BackgroundImageFix"
-                result="shape"
-              />
-              <FeGaussianBlur
-                stdDeviation="40"
-                result="effect1_foregroundBlur"
-              />
-            </Filter>
             <RadialGradient
               id="bottomRadialGradient"
               cx="50%"
@@ -239,7 +215,6 @@ const GetStarted = () => {
             rx="400"
             ry="200"
             fill="url(#bottomRadialGradient)"
-            filter="url(#bottomGradientBlur)"
           />
         </Svg>
       </Animated.View>
