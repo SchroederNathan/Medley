@@ -9,6 +9,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuroraScroll } from "../../contexts/aurora-scroll-context";
 import {
   FULL_DRAG_DISTANCE,
   TRIGGER_DRAG_DISTANCE,
@@ -39,6 +40,9 @@ export const PullToSearchContent: FC<PullToSearchContentProps> = ({
 
   const { screenView, offsetY, isListDragging, blurIntensity, onGoToCommands } =
     useHomeAnimation();
+
+  // Lets the aurora background follow an overscroll drag.
+  const auroraScroll = useAuroraScroll();
 
   // Top gradient animation for main content (shows behind header)
   const rMainTopGradientStyle = useAnimatedStyle(() => {
@@ -73,6 +77,7 @@ export const PullToSearchContent: FC<PullToSearchContentProps> = ({
     onScroll: (event) => {
       const offsetYValue = event.contentOffset.y;
       offsetY.value = offsetYValue;
+      auroraScroll?.set(offsetYValue);
 
       if (screenView.value === "favorites") {
         // Map pull distance to blur intensity; clamp to 0..100 to avoid spikes

@@ -1,39 +1,18 @@
 import React, { useContext } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { Path, Svg } from "react-native-svg";
 import { fontFamily } from "../../../../lib/fonts";
 import { ThemeContext } from "../../../../contexts/theme-context";
 
 const SocialScreen = () => {
   const { theme } = useContext(ThemeContext);
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Svg
-        width="150%"
-        height="100%"
-        viewBox="0 0 500 550"
-        style={styles.spotlightSvg}
-      >
-        <Path
-          d="M-43.5 -81.5L7.5 -138.5L420.12 380.955L280.62 480.954L-43.5 -81.5Z"
-          fill="#D4D4D4"
-          fillOpacity="0.1"
-        />
-      </Svg>
+    <View style={styles.container}>
       <Text style={[styles.title, { color: theme.text }]}>Social</Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  spotlightSvg: {
-    position: "absolute",
-    top: -200,
-    left: -150,
-    width: "150%",
-    height: "100%",
-    zIndex: 0,
-  },
   container: {
     flex: 1,
     paddingHorizontal: 20,

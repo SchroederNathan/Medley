@@ -9,7 +9,6 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Svg, { Path } from "react-native-svg";
 import Button from "../../../../components/ui/button";
 import SegmentedPicker from "../../../../components/ui/segmented-picker";
 import { ThemeContext } from "../../../../contexts/theme-context";
@@ -106,20 +105,7 @@ const MatchScreen = () => {
   });
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Svg
-        width="150%"
-        height="100%"
-        viewBox="0 0 500 550"
-        style={styles.spotlightSvg}
-      >
-        <Path
-          d="M-43.5 -81.5L7.5 -138.5L420.12 380.955L280.62 480.954L-43.5 -81.5Z"
-          fill="#D4D4D4"
-          fillOpacity="0.1"
-        />
-      </Svg>
-
+    <View style={styles.container}>
       {/*  */}
       <View
         style={[styles.contentContainer, { paddingBottom: insets.bottom + 72 }]}
@@ -216,14 +202,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     justifyContent: "center",
     alignItems: "center",
-  },
-  spotlightSvg: {
-    position: "absolute",
-    top: -200,
-    left: -150,
-    width: "150%",
-    height: "100%",
-    zIndex: 0,
   },
   segmentedPickerContainer: {
     position: "absolute",

@@ -23,9 +23,9 @@ import Animated, {
   withDelay,
   withTiming,
 } from "react-native-reanimated";
-import Svg, { Path } from "react-native-svg";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
+import { AuroraBackground } from "./aurora-background";
 
 interface AuthScreenLayoutProps {
   title: string;
@@ -92,18 +92,7 @@ const AuthScreenLayout = forwardRef<
 
   return (
     <View style={styles.mainContainer}>
-      <Svg
-        width="150%"
-        height="100%"
-        viewBox="0 0 500 550"
-        style={styles.spotlightSvg}
-      >
-        <Path
-          d="M-43.5 -81.5L7.5 -138.5L420.12 380.955L280.62 480.954L-43.5 -81.5Z"
-          fill="#D4D4D4"
-          fillOpacity="0.1"
-        />
-      </Svg>
+      <AuroraBackground />
       <KeyboardAwareScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -155,14 +144,6 @@ const styles = StyleSheet.create({
     maxWidth: 400,
     alignSelf: "center",
     width: "100%",
-  },
-  spotlightSvg: {
-    position: "absolute",
-    top: -200,
-    left: -150,
-    width: "150%",
-    height: "100%",
-    zIndex: 0,
   },
   title: {
     fontSize: 32,

@@ -1,12 +1,10 @@
 import { Stack } from "expo-router";
-import React, { useContext } from "react";
-import { ThemeContext } from "../../../../contexts/theme-context";
+import React from "react";
 const MatchLayout = () => {
-  const { theme } = useContext(ThemeContext);
   return (
     <Stack
       screenOptions={{
-        contentStyle: { backgroundColor: theme.background },
+        contentStyle: { backgroundColor: "transparent" },
         headerShown: false,
       }}
     >
