@@ -1,3 +1,5 @@
+import StarSolidIcon from "@hugeicons-pro/core-solid-standard/StarIcon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import * as Haptics from "expo-haptics";
 import React, { useContext, useRef, useState } from "react";
 import {
@@ -21,7 +23,6 @@ import Animated, {
 } from "react-native-reanimated";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
-import { StarSolidIcon } from "./svg-icons";
 
 // Star rating geometry
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -44,20 +45,24 @@ const StarContent: React.FC<StarContentProps> = ({
   emptyColor,
 }) => {
   if (fillPercentage <= 0) {
-    return <StarSolidIcon size={size} color={emptyColor} />;
+    return (
+      <HugeiconsIcon icon={StarSolidIcon} size={size} color={emptyColor} />
+    );
   }
 
   if (fillPercentage >= 1) {
-    return <StarSolidIcon size={size} color={filledColor} />;
+    return (
+      <HugeiconsIcon icon={StarSolidIcon} size={size} color={filledColor} />
+    );
   }
 
   // Half star: overlay solid star with clip
   return (
     <View style={{ width: size, height: size }}>
-      <StarSolidIcon
+      <HugeiconsIcon
+        icon={StarSolidIcon}
         size={size}
         color={emptyColor}
-        strokeWidth={1}
         style={{ position: "absolute", bottom: 1 }}
       />
       <View
@@ -68,7 +73,7 @@ const StarContent: React.FC<StarContentProps> = ({
           overflow: "hidden",
         }}
       >
-        <StarSolidIcon size={size} color={filledColor} />
+        <HugeiconsIcon icon={StarSolidIcon} size={size} color={filledColor} />
       </View>
     </View>
   );

@@ -1,6 +1,8 @@
+import Cancel01Icon from "@hugeicons-pro/core-stroke-standard/Cancel01Icon";
+import Search01Icon from "@hugeicons-pro/core-stroke-standard/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
-import { X as ClearIcon, Search as SearchIcon } from "lucide-react-native";
 import React, { useContext, useRef } from "react";
 import {
   StyleProp,
@@ -85,7 +87,12 @@ const Search = ({
           tint="default"
           style={[styles.blurView, { backgroundColor: theme.inputBackground }]}
         >
-          <SearchIcon size={18} color={theme.inputPlaceholderText} />
+          <HugeiconsIcon
+            icon={Search01Icon}
+            size={18}
+            color={theme.inputPlaceholderText}
+            strokeWidth={2}
+          />
           <TextInput
             ref={textInputRef}
             style={[styles.inputText, { color: theme.inputText }]}
@@ -114,7 +121,12 @@ const Search = ({
               onPress={handleClear}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <ClearIcon size={16} color={theme.inputPlaceholderText} />
+              <HugeiconsIcon
+                icon={Cancel01Icon}
+                size={16}
+                color={theme.inputPlaceholderText}
+                strokeWidth={2}
+              />
             </TouchableOpacity>
           )}
         </BlurView>

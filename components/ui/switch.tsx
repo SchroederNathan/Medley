@@ -1,4 +1,6 @@
-import { CheckIcon, XIcon } from "./svg-icons";
+import Cancel01Icon from "@hugeicons-pro/core-stroke-standard/Cancel01Icon";
+import Tick02Icon from "@hugeicons-pro/core-stroke-standard/Tick02Icon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import React, { FC } from "react";
 import { Pressable, StyleSheet } from "react-native";
 import Animated, {
@@ -98,11 +100,21 @@ export const Switch: FC<Props> = ({ value = false, onValueChange }) => {
             // Key prop ensures ZoomIn animation triggers on state change
             // Icons provide clear visual feedback
             <Animated.View key="check" entering={ZoomIn}>
-              <CheckIcon size={12} color={theme.text} strokeWidth={4} />
+              <HugeiconsIcon
+                icon={Tick02Icon}
+                size={12}
+                color={theme.text}
+                strokeWidth={4}
+              />
             </Animated.View>
           ) : (
             <Animated.View key="x" entering={ZoomIn}>
-              <XIcon size={14} color={theme.border} strokeWidth={4} />
+              <HugeiconsIcon
+                icon={Cancel01Icon}
+                size={14}
+                color={theme.border}
+                strokeWidth={4}
+              />
             </Animated.View>
           )}
         </Animated.View>

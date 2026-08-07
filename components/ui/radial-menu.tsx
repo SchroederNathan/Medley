@@ -1,3 +1,4 @@
+import { HugeiconsIcon, IconSvgElement } from "@hugeicons/react-native";
 import * as Haptics from "expo-haptics";
 import React, {
   FC,
@@ -29,7 +30,7 @@ const DEFAULT_ANGLE_STEP_DEG = 40; // per-step spread offset around the base ang
 const BASE_ICON_SIZE = 22;
 
 type ButtonItemProps = {
-  button: { id: string; icon: any; pos: { x: number; y: number } };
+  button: { id: string; icon: IconSvgElement; pos: { x: number; y: number } };
   hoveredId: SharedValue<string | null>;
   isTracking: boolean;
   pressX: number;
@@ -155,24 +156,36 @@ const ButtonItem: FC<ButtonItemProps> = ({
     };
   });
 
-  const Icon = button.icon;
-
   return (
     <Animated.View
       style={[styles.button, rStyle, animatedButtonStyle]}
       pointerEvents={isTracking ? "auto" : "none"}
     >
       <Animated.View style={activeIconStyle}>
-        <Icon size={currentIconSize} color={activeIconColor} />
+        <HugeiconsIcon
+          icon={button.icon}
+          size={currentIconSize}
+          color={activeIconColor}
+          strokeWidth={2}
+        />
       </Animated.View>
       <Animated.View style={inactiveIconStyle}>
-        <Icon size={currentIconSize} color={inactiveIconColor} />
+        <HugeiconsIcon
+          icon={button.icon}
+          size={currentIconSize}
+          color={inactiveIconColor}
+          strokeWidth={2}
+        />
       </Animated.View>
     </Animated.View>
   );
 };
 
-export type RadialActionDef = { id: string; icon: any; title: string };
+export type RadialActionDef = {
+  id: string;
+  icon: IconSvgElement;
+  title: string;
+};
 
 type RadialMenuProps = {
   pressX: number;

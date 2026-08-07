@@ -1,3 +1,12 @@
+import FolderLibrarySolidIcon from "@hugeicons-pro/core-solid-standard/FolderLibraryIcon";
+import Home11SolidIcon from "@hugeicons-pro/core-solid-standard/Home11Icon";
+import UserCircleSolidIcon from "@hugeicons-pro/core-solid-standard/UserCircleIcon";
+import UserMultiple02SolidIcon from "@hugeicons-pro/core-solid-standard/UserMultiple02Icon";
+import FolderLibraryIcon from "@hugeicons-pro/core-stroke-standard/FolderLibraryIcon";
+import Home11Icon from "@hugeicons-pro/core-stroke-standard/Home11Icon";
+import UserCircleIcon from "@hugeicons-pro/core-stroke-standard/UserCircleIcon";
+import UserMultiple02Icon from "@hugeicons-pro/core-stroke-standard/UserMultiple02Icon";
+import { HugeiconsIcon, IconSvgElement } from "@hugeicons/react-native";
 import {
   TabList,
   Tabs,
@@ -15,37 +24,32 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Rive from "rive-react-native";
 import { BottomGradient } from "../../../components/ui/bottom-gradient";
-import {
-  HomeFilledIcon,
-  HomeOutlineIcon,
-  LibraryFilledIcon,
-  LibraryOutlineIcon,
-  ProfileFilledIcon,
-  ProfileOutlineIcon,
-  SocialFilledIcon,
-  SocialOutlineIcon,
-} from "../../../components/ui/svg-icons";
 import { HomeAnimationProvider } from "../../../contexts/home-animation-context";
 import { ThemeContext } from "../../../contexts/theme-context";
 
 type TabButtonProps = TabTriggerSlotProps & {
-  outlineIcon: React.ComponentType<{ size?: number; color?: string }>;
-  filledIcon: React.ComponentType<{ size?: number; color?: string }>;
+  outlineIcon: IconSvgElement;
+  filledIcon: IconSvgElement;
 };
 
 const TabButton: React.FC<TabButtonProps> = ({
-  outlineIcon: OutlineIcon,
-  filledIcon: FilledIcon,
+  outlineIcon,
+  filledIcon,
   isFocused,
   onPress,
 }) => {
   const { theme } = useContext(ThemeContext);
-  const IconComponent = isFocused ? FilledIcon : OutlineIcon;
   const iconColor = isFocused ? theme.text : theme.secondaryText;
 
   return (
     <Pressable onPress={onPress || undefined} style={styles.tabTrigger}>
-      <IconComponent size={24} color={iconColor} />
+      <HugeiconsIcon
+        icon={isFocused ? filledIcon : outlineIcon}
+        size={24}
+        color={iconColor}
+        // Solid icons are fill-only; a stroke width would outline them.
+        strokeWidth={isFocused ? undefined : 2}
+      />
     </Pressable>
   );
 };
@@ -94,8 +98,8 @@ const TabsLayout = () => {
           <View style={styles.tabBar}>
             <TabTrigger name="home" href="/(home)" onPress={() => {}} asChild>
               <TabButton
-                outlineIcon={HomeOutlineIcon}
-                filledIcon={HomeFilledIcon}
+                outlineIcon={Home11Icon}
+                filledIcon={Home11SolidIcon}
               />
             </TabTrigger>
             <TabTrigger
@@ -105,8 +109,8 @@ const TabsLayout = () => {
               asChild
             >
               <TabButton
-                outlineIcon={SocialOutlineIcon}
-                filledIcon={SocialFilledIcon}
+                outlineIcon={UserMultiple02Icon}
+                filledIcon={UserMultiple02SolidIcon}
               />
             </TabTrigger>
             <TabTrigger name="match" href="/(match)" onPress={() => {}} asChild>
@@ -119,8 +123,8 @@ const TabsLayout = () => {
               asChild
             >
               <TabButton
-                outlineIcon={LibraryOutlineIcon}
-                filledIcon={LibraryFilledIcon}
+                outlineIcon={FolderLibraryIcon}
+                filledIcon={FolderLibrarySolidIcon}
               />
             </TabTrigger>
             <TabTrigger
@@ -130,8 +134,8 @@ const TabsLayout = () => {
               asChild
             >
               <TabButton
-                outlineIcon={ProfileOutlineIcon}
-                filledIcon={ProfileFilledIcon}
+                outlineIcon={UserCircleIcon}
+                filledIcon={UserCircleSolidIcon}
               />
             </TabTrigger>
           </View>

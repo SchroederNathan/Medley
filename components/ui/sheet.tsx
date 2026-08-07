@@ -1,6 +1,7 @@
+import Cancel01Icon from "@hugeicons-pro/core-stroke-standard/Cancel01Icon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
-import { X } from "lucide-react-native";
 import React, { useContext } from "react";
 import {
   Dimensions,
@@ -262,7 +263,12 @@ const Sheet = ({
                         onClose();
                       }}
                     >
-                      <X size={24} color={theme.secondaryText} />
+                      <HugeiconsIcon
+                        icon={Cancel01Icon}
+                        size={24}
+                        color={theme.secondaryText}
+                        strokeWidth={2}
+                      />
                     </TouchableOpacity>
                   )}
                 </View>

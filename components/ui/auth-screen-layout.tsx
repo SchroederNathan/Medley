@@ -1,5 +1,6 @@
+import ArrowLeft02Icon from "@hugeicons-pro/core-stroke-standard/ArrowLeft02Icon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useFocusEffect, useRouter } from "expo-router";
-import { ArrowLeft } from "lucide-react-native";
 import React, {
   forwardRef,
   useCallback,
@@ -120,7 +121,12 @@ const AuthScreenLayout = forwardRef<
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <ArrowLeft size={24} strokeWidth={3} color={theme.text} />
+          <HugeiconsIcon
+            icon={ArrowLeft02Icon}
+            size={24}
+            strokeWidth={3}
+            color={theme.text}
+          />
         </TouchableOpacity>
       )}
     </View>

@@ -1,3 +1,6 @@
+import AllBookmarkIcon from "@hugeicons-pro/core-stroke-standard/AllBookmarkIcon";
+import Share08Icon from "@hugeicons-pro/core-stroke-standard/Share08Icon";
+import StarIcon from "@hugeicons-pro/core-stroke-standard/StarIcon";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
@@ -22,7 +25,6 @@ import { scheduleOnRN, scheduleOnUI } from "react-native-worklets";
 import { useRadialOverlay } from "../../hooks/use-radial-overlay";
 import { Media } from "../../types/media";
 import GradientSweepOverlay from "./gradient-sweep-overlay";
-import { BookmarkIcon, ShareIcon, StarIcon } from "./svg-icons";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const ITEM_WIDTH = SCREEN_WIDTH * 0.55;
@@ -61,8 +63,8 @@ const GalleryCard = function GalleryCard({
   const actions = useMemo(
     () => [
       { id: "star", icon: StarIcon, title: "Favorite" },
-      { id: "bookmark", icon: BookmarkIcon, title: "Save" },
-      { id: "share", icon: ShareIcon, title: "Share" },
+      { id: "bookmark", icon: AllBookmarkIcon, title: "Save" },
+      { id: "share", icon: Share08Icon, title: "Share" },
     ],
     []
   );

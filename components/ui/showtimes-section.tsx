@@ -1,3 +1,5 @@
+import ArrowDown01Icon from "@hugeicons-pro/core-stroke-standard/ArrowDown01Icon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import * as Haptics from "expo-haptics";
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
@@ -20,7 +22,6 @@ import { useShowtimesForMovie } from "../../hooks/use-showtimes";
 import { fontFamily } from "../../lib/fonts";
 import { ShowtimeEntry } from "../../services/showtimesService";
 import { Media } from "../../types/media";
-import { ChevronDown } from "./svg-icons";
 
 type ShowtimesSectionProps = {
   media: Media;
@@ -170,7 +171,12 @@ const TheaterAccordionItem: React.FC<TheaterAccordionItemProps> = ({
         <View
           style={expanded ? styles.chevronExpanded : styles.chevronCollapsed}
         >
-          <ChevronDown size={18} color={themeStyles.secondaryText.color} />
+          <HugeiconsIcon
+            icon={ArrowDown01Icon}
+            size={18}
+            color={themeStyles.secondaryText.color}
+            strokeWidth={2}
+          />
         </View>
       </Pressable>
       {expanded ? (

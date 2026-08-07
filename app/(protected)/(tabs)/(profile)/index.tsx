@@ -1,7 +1,9 @@
+import ArrowUpDownIcon from "@hugeicons-pro/core-stroke-standard/ArrowUpDownIcon";
+import Settings01SolidIcon from "@hugeicons-pro/core-solid-standard/Settings01Icon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { FlashList } from "@shopify/flash-list";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { ArrowUpDown } from "lucide-react-native";
 import React, {
   useCallback,
   useContext,
@@ -32,7 +34,6 @@ import CollectionCard from "../../../../components/ui/collection-card";
 import { DefaultProfileImage } from "../../../../components/ui/default-profile-image";
 import MediaCard from "../../../../components/ui/media-card";
 import ActionMenu from "../../../../components/ui/sheets/action-menu";
-import { SettingsIcon } from "../../../../components/ui/svg-icons";
 import TabPager from "../../../../components/ui/tab-pager";
 import UserReviewCard from "../../../../components/ui/user-review-card";
 import { AuthContext } from "../../../../contexts/auth-context";
@@ -342,7 +343,11 @@ const ProfileScreen = () => {
                 onPress={() => router.push("/settings")}
                 style={{ padding: 10, marginRight: -10 }}
               >
-                <SettingsIcon size={24} color={theme.text} />
+                <HugeiconsIcon
+                  icon={Settings01SolidIcon}
+                  size={24}
+                  color={theme.text}
+                />
               </Pressable>
             </View>
 
@@ -479,7 +484,12 @@ const ProfileScreen = () => {
                         style={styles.sortButton}
                         hitSlop={8}
                       >
-                        <ArrowUpDown size={16} color={theme.secondaryText} />
+                        <HugeiconsIcon
+                          icon={ArrowUpDownIcon}
+                          size={16}
+                          color={theme.secondaryText}
+                          strokeWidth={2}
+                        />
                         <Text
                           style={[
                             styles.sortLabel,

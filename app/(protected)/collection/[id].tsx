@@ -1,3 +1,9 @@
+import MoreVerticalSolidIcon from "@hugeicons-pro/core-solid-standard/MoreVerticalIcon";
+import Copy01Icon from "@hugeicons-pro/core-stroke-standard/Copy01Icon";
+import Delete02Icon from "@hugeicons-pro/core-stroke-standard/Delete02Icon";
+import PencilEdit01Icon from "@hugeicons-pro/core-stroke-standard/PencilEdit01Icon";
+import Share03Icon from "@hugeicons-pro/core-stroke-standard/Share03Icon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
@@ -23,13 +29,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AnimatedDetailHeader } from "../../../components/ui/animated-detail-header";
 import MediaCard from "../../../components/ui/media-card";
 import ActionMenu from "../../../components/ui/sheets/action-menu";
-import {
-  CopyIcon,
-  MoreVerticalIcon,
-  PencilIcon,
-  Share2Icon,
-  Trash,
-} from "../../../components/ui/svg-icons";
 import { TruncatedText } from "../../../components/ui/truncated-text";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { useToast } from "../../../contexts/toast-context";
@@ -404,13 +403,26 @@ const CollectionDetail = () => {
           titleYPosition={352}
           rightButtons={[
             {
-              icon: <Share2Icon size={20} color={theme.text} />,
+              icon: (
+                <HugeiconsIcon
+                  icon={Share03Icon}
+                  size={20}
+                  color={theme.text}
+                  strokeWidth={2}
+                />
+              ),
               onPress: () => {
                 // TODO: Implement share functionality
               },
             },
             {
-              icon: <MoreVerticalIcon size={20} color={theme.text} />,
+              icon: (
+                <HugeiconsIcon
+                  icon={MoreVerticalSolidIcon}
+                  size={20}
+                  color={theme.text}
+                />
+              ),
               onPress: () => {
                 setShowActionMenu(true);
               },
@@ -545,7 +557,14 @@ const CollectionDetail = () => {
         actions={[
           {
             title: "Share",
-            icon: <Share2Icon size={20} color={theme.text} />,
+            icon: (
+              <HugeiconsIcon
+                icon={Share03Icon}
+                size={20}
+                color={theme.text}
+                strokeWidth={2}
+              />
+            ),
             onPress: () => {
               // TODO: Implement share functionality
               setShowActionMenu(false);
@@ -553,7 +572,14 @@ const CollectionDetail = () => {
           },
           {
             title: "Edit",
-            icon: <PencilIcon size={20} color={theme.text} />,
+            icon: (
+              <HugeiconsIcon
+                icon={PencilEdit01Icon}
+                size={20}
+                color={theme.text}
+                strokeWidth={2}
+              />
+            ),
             onPress: () => {
               setShowActionMenu(false);
               router.back();
@@ -562,7 +588,14 @@ const CollectionDetail = () => {
           },
           {
             title: "Clone",
-            icon: <CopyIcon size={20} color={theme.text} />,
+            icon: (
+              <HugeiconsIcon
+                icon={Copy01Icon}
+                size={20}
+                color={theme.text}
+                strokeWidth={2}
+              />
+            ),
             onPress: () => {
               // TODO: Implement add to collection functionality
               setShowActionMenu(false);
@@ -571,7 +604,14 @@ const CollectionDetail = () => {
           {
             title: "Delete",
             destructive: true,
-            icon: <Trash size={20} color={theme.destructive} />,
+            icon: (
+              <HugeiconsIcon
+                icon={Delete02Icon}
+                size={20}
+                color={theme.destructive}
+                strokeWidth={2}
+              />
+            ),
             onPress: async () => {
               try {
                 await CollectionService.deleteCollection(collectionId);

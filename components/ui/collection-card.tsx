@@ -1,3 +1,6 @@
+import Delete02Icon from "@hugeicons-pro/core-stroke-standard/Delete02Icon";
+import Edit03Icon from "@hugeicons-pro/core-stroke-standard/Edit03Icon";
+import Share08Icon from "@hugeicons-pro/core-stroke-standard/Share08Icon";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import React, { useContext, useMemo, useRef } from "react";
@@ -17,7 +20,6 @@ import { fontFamily } from "../../lib/fonts";
 import { CollectionService } from "../../services/collectionService";
 import { Media } from "../../types/media";
 import MediaCard from "./media-card";
-import { DeleteIcon, EditIcon, ShareIcon } from "./svg-icons";
 
 const CollectionMediaGrid = ({ mediaItems }: { mediaItems: Media[] }) => {
   const { theme } = useContext(ThemeContext);
@@ -119,9 +121,9 @@ const CollectionCard = ({
 
   const actions = useMemo(
     () => [
-      { id: "edit", icon: EditIcon, title: "Edit" },
-      { id: "delete", icon: DeleteIcon, title: "Delete" },
-      { id: "share", icon: ShareIcon, title: "Share" },
+      { id: "edit", icon: Edit03Icon, title: "Edit" },
+      { id: "delete", icon: Delete02Icon, title: "Delete" },
+      { id: "share", icon: Share08Icon, title: "Share" },
     ],
     []
   );

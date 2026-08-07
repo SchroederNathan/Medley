@@ -1,3 +1,5 @@
+import PlaySolidIcon from "@hugeicons-pro/core-solid-standard/PlayIcon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import React, { useCallback, useContext } from "react";
@@ -5,7 +7,6 @@ import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
 import { MediaTrailer } from "../../types/media";
-import { PlaySolidIcon } from "./svg-icons";
 
 const TrailerThumbnail = ({ trailer }: { trailer: MediaTrailer }) => {
   const { theme } = useContext(ThemeContext);
@@ -41,7 +42,7 @@ const TrailerThumbnail = ({ trailer }: { trailer: MediaTrailer }) => {
               },
             ]}
           >
-            <PlaySolidIcon size={24} color={theme.text} />
+            <HugeiconsIcon icon={PlaySolidIcon} size={24} color={theme.text} />
           </View>
         </View>
       </Pressable>

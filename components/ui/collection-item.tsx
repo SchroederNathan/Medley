@@ -1,5 +1,7 @@
+import Cancel01Icon from "@hugeicons-pro/core-stroke-standard/Cancel01Icon";
+import GripVerticalIcon from "@hugeicons-pro/core-stroke-standard/GripVerticalIcon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Image } from "expo-image";
-import { GripVertical, X } from "lucide-react-native";
 import React, { useContext } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { ScaleDecorator } from "react-native-draggable-flatlist";
@@ -258,10 +260,19 @@ const CollectionItem = ({
                 justifyContent: "center",
               }}
             >
-              <X size={18} color={theme.destructive || theme.text} />
+              <HugeiconsIcon
+                icon={Cancel01Icon}
+                size={18}
+                color={theme.destructive || theme.text}
+                strokeWidth={2}
+              />
             </TouchableOpacity>
           )}
-          <GripVertical color={theme.text} />
+          <HugeiconsIcon
+            icon={GripVerticalIcon}
+            color={theme.text}
+            strokeWidth={2}
+          />
         </View>
       )}
     </View>

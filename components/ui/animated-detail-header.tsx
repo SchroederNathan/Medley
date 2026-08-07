@@ -1,3 +1,6 @@
+import ArrowDown01Icon from "@hugeicons-pro/core-stroke-standard/ArrowDown01Icon";
+import ArrowLeft01Icon from "@hugeicons-pro/core-stroke-standard/ArrowLeft01Icon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { router } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -10,7 +13,6 @@ import Animated, {
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
 import { AnimatedIconButton } from "./animated-icon-button";
-import { ChevronDown, ChevronLeft } from "./svg-icons";
 
 interface RightButton {
   icon: React.ReactNode;
@@ -113,9 +115,19 @@ export const AnimatedDetailHeader: React.FC<AnimatedDetailHeaderProps> = ({
         accessibilityLabel="Go back"
         icon={
           isModal ? (
-            <ChevronDown size={20} color={theme.text} />
+            <HugeiconsIcon
+              icon={ArrowDown01Icon}
+              size={20}
+              color={theme.text}
+              strokeWidth={2}
+            />
           ) : (
-            <ChevronLeft size={20} color={theme.text} />
+            <HugeiconsIcon
+              icon={ArrowLeft01Icon}
+              size={20}
+              color={theme.text}
+              strokeWidth={2}
+            />
           )
         }
       />

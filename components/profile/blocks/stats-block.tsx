@@ -1,4 +1,5 @@
-import { Star } from "lucide-react-native";
+import StarSolidIcon from "@hugeicons-pro/core-solid-standard/StarIcon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import React, { useContext, useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { ThemeContext } from "../../../contexts/theme-context";
@@ -65,7 +66,9 @@ const StatsBlock = ({ isOwnProfile }: ProfileBlockProps) => {
             stats.averageRating != null ? stats.averageRating.toFixed(1) : "—"
           }
           label="Avg rating"
-          icon={<Star size={14} color={theme.text} fill={theme.text} />}
+          icon={
+            <HugeiconsIcon icon={StarSolidIcon} size={14} color={theme.text} />
+          }
         />
         <StatCell value={String(stats.reviewCount)} label="Reviews" />
       </View>

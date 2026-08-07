@@ -1,6 +1,7 @@
+import ArrowDown01Icon from "@hugeicons-pro/core-stroke-standard/ArrowDown01Icon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Image } from "expo-image";
 import { FlashList } from "@shopify/flash-list";
-import { ChevronDown } from "lucide-react-native";
 import React, { useCallback, useContext, useState } from "react";
 import {
   ActivityIndicator,
@@ -90,7 +91,12 @@ const SeasonEpisodesCarousel = ({
         style={styles.titleRow}
       >
         <Text style={[styles.title, { color: theme.text }]}>{seasonTitle}</Text>
-        <ChevronDown size={20} color={theme.text} />
+        <HugeiconsIcon
+          icon={ArrowDown01Icon}
+          size={20}
+          color={theme.text}
+          strokeWidth={2}
+        />
       </TouchableOpacity>
 
       {isLoading ? (
