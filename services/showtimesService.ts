@@ -1,5 +1,5 @@
 import { createHttpError, toAppError } from "../lib/app-error";
-import { supabase } from "../lib/utils";
+import { getSupabaseAccessToken } from "../lib/utils";
 
 export type ShowtimeEntry = {
   theaterId: string;
@@ -37,9 +37,7 @@ export class ShowtimesService {
   static async getShowtimes(
     params: GetShowtimesParams
   ): Promise<ShowtimesResponse> {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const accessToken = await getSupabaseAccessToken();
 
     const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
     const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_KEY!;
@@ -56,7 +54,7 @@ export class ShowtimesService {
     try {
       response = await fetch(url.toString(), {
         headers: {
-          Authorization: `Bearer ${session?.access_token ?? ""}`,
+          Authorization: `Bearer ${accessToken ?? ""}`,
           apikey: supabaseKey,
         },
       });

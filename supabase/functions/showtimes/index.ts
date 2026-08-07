@@ -1,7 +1,7 @@
 // @ts-nocheck
 /* eslint-disable */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { verifyClerkRequest } from "../_shared/clerk-auth.ts";
 
 const TMS_SHOWINGS_URL = "https://data.tmsapi.com/v1.1/movies/showings";
 const TMS_THEATRES_URL = "https://data.tmsapi.com/v1.1/theatres";
@@ -83,20 +83,8 @@ serve(async (req) => {
     if (!authHeader)
       return jsonResponse({ error: "Missing authorization header" }, 401);
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
-    if (!supabaseUrl || !anonKey)
-      throw new Error("Missing SUPABASE_URL or SUPABASE_ANON_KEY");
-
-    const anonClient = createClient(supabaseUrl, anonKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-      global: { headers: { Authorization: authHeader } },
-    });
-    const {
-      data: { user },
-      error: authErr,
-    } = await anonClient.auth.getUser();
-    if (authErr || !user) return jsonResponse({ error: "Unauthorized" }, 401);
+    const userId = await verifyClerkRequest(req);
+    if (!userId) return jsonResponse({ error: "Unauthorized" }, 401);
 
     const tmsApiKey = Deno.env.get("TMS_API_KEY");
     if (!tmsApiKey) throw new Error("TMS_API_KEY not set");

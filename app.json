@@ -82,7 +82,19 @@
         }
       ],
       "expo-image",
-      "expo-status-bar"
+      "expo-status-bar",
+      "expo-secure-store",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "17.0"
+          }
+        }
+      ],
+      "expo-apple-authentication",
+      "@clerk/expo",
+      "@clerk/expo-google-signin"
     ],
     "extra": {
       "router": {},

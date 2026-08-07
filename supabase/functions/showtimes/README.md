@@ -52,9 +52,10 @@ The full upstream URL (with `api_key` redacted), status, and body are logged via
 
 ```bash
 supabase secrets set TMS_API_KEY=...
+supabase secrets set CLERK_ISSUER=...   # Clerk Frontend API URL, used to verify session JWTs
 ```
 
-`SUPABASE_URL` and `SUPABASE_ANON_KEY` are provided by the platform.
+`SUPABASE_URL` is provided by the platform.
 
 ## Deploy
 

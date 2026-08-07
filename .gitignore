@@ -47,6 +47,9 @@ supabase/*
 !supabase/migrations/*.sql
 !supabase/functions/
 supabase/functions/*
+!supabase/functions/_shared/
+supabase/functions/_shared/*
+!supabase/functions/_shared/clerk-auth.ts
 !supabase/functions/favorite-recommendations/
 supabase/functions/favorite-recommendations/*
 !supabase/functions/favorite-recommendations/index.ts

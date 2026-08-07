@@ -25,7 +25,10 @@ import { fontFamily } from "../lib/fonts";
 export default function NameScreen() {
   const authContext = useContext(AuthContext);
   const layoutRef = useRef<AuthScreenLayoutHandle>(null);
-  const [firstName, setFirstName] = useState<string>("");
+  // Prefilled with the name Clerk got from Apple/Google, when available.
+  const [firstName, setFirstName] = useState<string>(
+    authContext.user?.name ?? ""
+  );
   const [error, setError] = useState<string>("");
   const router = useRouter();
   useEffect(() => {
