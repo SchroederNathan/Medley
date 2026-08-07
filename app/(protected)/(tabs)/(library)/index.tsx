@@ -2,7 +2,6 @@ import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import React, { useContext, useMemo } from "react";
 import { Dimensions, StyleSheet, Text, View } from "react-native";
-import Svg, { Path } from "react-native-svg";
 import AddCollection from "../../../../components/ui/add-collection";
 import { AnimatedBlur } from "../../../../components/ui/animated-blur";
 import { AnimatedChevron } from "../../../../components/ui/animated-chevron";
@@ -75,20 +74,7 @@ const LibraryScreen = () => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Svg
-        width="150%"
-        height="100%"
-        viewBox="0 0 500 550"
-        style={styles.spotlightSvg}
-      >
-        <Path
-          d="M-43.5 -81.5L7.5 -138.5L420.12 380.955L280.62 480.954L-43.5 -81.5Z"
-          fill="#D4D4D4"
-          fillOpacity="0.1"
-        />
-      </Svg>
-
+    <View style={styles.container}>
       <PullToSearchContent
         searchResults={searchResults}
         searchQuery={query}
@@ -262,14 +248,6 @@ export default LibraryScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  spotlightSvg: {
-    position: "absolute",
-    top: -200,
-    left: -150,
-    width: "150%",
-    height: "100%",
-    zIndex: 0,
   },
   headerTitle: {
     fontSize: 40,

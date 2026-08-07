@@ -2,10 +2,15 @@ import { ClerkProvider, useAuth } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
 import { useIsRestoring } from "@tanstack/react-query";
 import * as Sentry from "@sentry/react-native";
-import { Stack } from "expo-router";
+import {
+  DarkTheme,
+  DefaultTheme,
+  Stack,
+  ThemeProvider as NavigationThemeProvider,
+} from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useMemo } from "react";
 import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
@@ -101,6 +106,16 @@ const SplashHideGate = ({ fontsReady }: { fontsReady: boolean }) => {
 const AuthProviderWithProviders = ({ fontsReady }: { fontsReady: boolean }) => {
   const { theme } = useContext(ThemeContext);
 
+  // Navigator containers paint react-navigation's own theme background, which
+  // `contentStyle` does not reach. Left opaque, it covers anything mounted
+  // behind a navigator — including the AuroraBackground inside the tabs
+  // layout. The root Stack below still paints the real background colour, so
+  // making this transparent only removes a redundant opaque layer.
+  const navigationTheme = useMemo(() => {
+    const base = theme.mode === "dark" ? DarkTheme : DefaultTheme;
+    return { ...base, colors: { ...base.colors, background: "transparent" } };
+  }, [theme.mode]);
+
   return (
     <AuthProvider>
       <SplashHideGate fontsReady={fontsReady} />
@@ -110,37 +125,39 @@ const AuthProviderWithProviders = ({ fontsReady }: { fontsReady: boolean }) => {
             <ToastProvider>
               <NotificationsProvider>
                 <StatusBar style="auto" />
-                <Stack
-                  screenOptions={{
-                    headerShown: false,
-                    contentStyle: { backgroundColor: theme.background },
-                  }}
-                >
-                  <Stack.Screen
-                    name="(protected)"
-                    options={{
+                <NavigationThemeProvider value={navigationTheme}>
+                  <Stack
+                    screenOptions={{
                       headerShown: false,
+                      contentStyle: { backgroundColor: theme.background },
                     }}
-                  />
-                  <Stack.Screen
-                    name="onboarding"
-                    options={{
-                      animation: "none",
-                    }}
-                  />
-                  <Stack.Screen
-                    name="name"
-                    options={{
-                      animation: "none",
-                    }}
-                  />
-                  <Stack.Screen
-                    name="media-preferences"
-                    options={{
-                      animation: "none",
-                    }}
-                  />
-                </Stack>
+                  >
+                    <Stack.Screen
+                      name="(protected)"
+                      options={{
+                        headerShown: false,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="onboarding"
+                      options={{
+                        animation: "none",
+                      }}
+                    />
+                    <Stack.Screen
+                      name="name"
+                      options={{
+                        animation: "none",
+                      }}
+                    />
+                    <Stack.Screen
+                      name="media-preferences"
+                      options={{
+                        animation: "none",
+                      }}
+                    />
+                  </Stack>
+                </NavigationThemeProvider>
                 <ChannelOverrideBanner />
               </NotificationsProvider>
             </ToastProvider>

@@ -10,14 +10,12 @@ import ProfileButton from "../../../../components/ui/profile-button";
 import { PullToSearchContent } from "../../../../components/ui/pull-to-search-content";
 import { SharedHeader } from "../../../../components/ui/shared-header";
 import { ContentReadyContext } from "../../../../contexts/content-ready-context";
-import { ThemeContext } from "../../../../contexts/theme-context";
 import { usePopularMovies } from "../../../../hooks/use-popular-movies";
 import { useRecommendations } from "../../../../hooks/use-recommendations";
 import { useSharedSearch } from "../../../../hooks/use-shared-search";
 import { fontFamily } from "../../../../lib/fonts";
 
 const IndexScreen = () => {
-  const { theme } = useContext(ThemeContext);
   const { setContentReady } = useContext(ContentReadyContext);
   const {
     query,
@@ -89,7 +87,7 @@ const IndexScreen = () => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
+    <View style={styles.container}>
       <HomeBackdrop
         media={popularMovies.data ?? []}
         currentIndex={carouselIndex}
@@ -167,14 +165,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontFamily: fontFamily.plusJakarta.bold,
-  },
-  spotlightSvg: {
-    position: "absolute",
-    top: -200,
-    left: -150,
-    width: "150%",
-    height: "100%",
-    zIndex: 0,
   },
   sectionTitle: {
     fontSize: 20,

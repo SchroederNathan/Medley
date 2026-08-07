@@ -14,6 +14,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Rive from "rive-react-native";
+import { AuroraBackground } from "../../../components/ui/aurora-background";
 import { BottomGradient } from "../../../components/ui/bottom-gradient";
 import {
   HomeFilledIcon,
@@ -25,6 +26,10 @@ import {
   SocialFilledIcon,
   SocialOutlineIcon,
 } from "../../../components/ui/svg-icons";
+import {
+  AuroraScrollProvider,
+  useAuroraScroll,
+} from "../../../contexts/aurora-scroll-context";
 import { HomeAnimationProvider } from "../../../contexts/home-animation-context";
 import { ThemeContext } from "../../../contexts/theme-context";
 
@@ -84,66 +89,85 @@ const RiveButton: React.FC<TabTriggerSlotProps> = ({ onPress, isFocused }) => {
   );
 };
 
+// Has to be its own component: TabsLayout renders the providers, so it sits
+// outside them and cannot read the shared scroll offset itself.
+const TabsAurora = () => {
+  const scrollOffset = useAuroraScroll();
+  return <AuroraBackground scrollOffset={scrollOffset} />;
+};
+
 const TabsLayout = () => {
   return (
     <HomeAnimationProvider>
-      <Tabs>
-        <TabSlot />
-        <View style={styles.tabList}>
-          <BottomGradient />
-          <View style={styles.tabBar}>
-            <TabTrigger name="home" href="/(home)" onPress={() => {}} asChild>
-              <TabButton
-                outlineIcon={HomeOutlineIcon}
-                filledIcon={HomeFilledIcon}
-              />
-            </TabTrigger>
-            <TabTrigger
-              name="social"
-              href="/(social)"
-              onPress={() => {}}
-              asChild
-            >
-              <TabButton
-                outlineIcon={SocialOutlineIcon}
-                filledIcon={SocialFilledIcon}
-              />
-            </TabTrigger>
-            <TabTrigger name="match" href="/(match)" onPress={() => {}} asChild>
-              <RiveButton />
-            </TabTrigger>
-            <TabTrigger
-              name="library"
-              href="/(library)"
-              onPress={() => {}}
-              asChild
-            >
-              <TabButton
-                outlineIcon={LibraryOutlineIcon}
-                filledIcon={LibraryFilledIcon}
-              />
-            </TabTrigger>
-            <TabTrigger
-              name="profile"
-              href="/(profile)"
-              onPress={() => {}}
-              asChild
-            >
-              <TabButton
-                outlineIcon={ProfileOutlineIcon}
-                filledIcon={ProfileFilledIcon}
-              />
-            </TabTrigger>
+      <AuroraScrollProvider>
+        <Tabs>
+          {/* One canvas for all five tabs. Mounting it per screen would run up
+            to five full-screen shaders at once — the same shape as the
+            AGENTS.md REACT-NATIVE-2D hang. Tabs renders children in order, so
+            this paints behind TabSlot. */}
+          <TabsAurora />
+          <TabSlot />
+          <View style={styles.tabList}>
+            <BottomGradient />
+            <View style={styles.tabBar}>
+              <TabTrigger name="home" href="/(home)" onPress={() => {}} asChild>
+                <TabButton
+                  outlineIcon={HomeOutlineIcon}
+                  filledIcon={HomeFilledIcon}
+                />
+              </TabTrigger>
+              <TabTrigger
+                name="social"
+                href="/(social)"
+                onPress={() => {}}
+                asChild
+              >
+                <TabButton
+                  outlineIcon={SocialOutlineIcon}
+                  filledIcon={SocialFilledIcon}
+                />
+              </TabTrigger>
+              <TabTrigger
+                name="match"
+                href="/(match)"
+                onPress={() => {}}
+                asChild
+              >
+                <RiveButton />
+              </TabTrigger>
+              <TabTrigger
+                name="library"
+                href="/(library)"
+                onPress={() => {}}
+                asChild
+              >
+                <TabButton
+                  outlineIcon={LibraryOutlineIcon}
+                  filledIcon={LibraryFilledIcon}
+                />
+              </TabTrigger>
+              <TabTrigger
+                name="profile"
+                href="/(profile)"
+                onPress={() => {}}
+                asChild
+              >
+                <TabButton
+                  outlineIcon={ProfileOutlineIcon}
+                  filledIcon={ProfileFilledIcon}
+                />
+              </TabTrigger>
+            </View>
           </View>
-        </View>
-        <TabList style={{ display: "none" }}>
-          <TabTrigger name="home" href="/(home)" />
-          <TabTrigger name="social" href="/(social)" />
-          <TabTrigger name="match" href="/(match)" />
-          <TabTrigger name="library" href="/(library)" />
-          <TabTrigger name="profile" href="/(profile)" />
-        </TabList>
-      </Tabs>
+          <TabList style={{ display: "none" }}>
+            <TabTrigger name="home" href="/(home)" />
+            <TabTrigger name="social" href="/(social)" />
+            <TabTrigger name="match" href="/(match)" />
+            <TabTrigger name="library" href="/(library)" />
+            <TabTrigger name="profile" href="/(profile)" />
+          </TabList>
+        </Tabs>
+      </AuroraScrollProvider>
     </HomeAnimationProvider>
   );
 };

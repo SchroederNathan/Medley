@@ -23,10 +23,10 @@ import Svg, {
   FeFlood,
   FeGaussianBlur,
   Filter,
-  Path,
   RadialGradient,
   Stop,
 } from "react-native-svg";
+import { AuroraBackground } from "../components/ui/aurora-background";
 import Button from "../components/ui/button";
 import { ThemeContext } from "../contexts/theme-context";
 import { useToast } from "../contexts/toast-context";
@@ -185,9 +185,9 @@ const GetStarted = () => {
   const titleOpacity = useSharedValue(0);
   const titleTranslateY = useSharedValue(30);
   const subtitleOpacity = useSharedValue(0);
-  const spotlightOpacity = useSharedValue(0);
-  const spotlightTranslateX = useSharedValue(-20);
-  const spotlightTranslateY = useSharedValue(-20);
+  const auroraOpacity = useSharedValue(0);
+  const auroraTranslateX = useSharedValue(-20);
+  const auroraTranslateY = useSharedValue(-20);
   const posterOpacity = useSharedValue(0);
   const posterTranslateY = useSharedValue(50);
   const buttonOpacity = useSharedValue(0);
@@ -205,20 +205,20 @@ const GetStarted = () => {
       withTiming(0, { duration: 800, easing: Easing.out(Easing.cubic) })
     );
 
-    // Subtitle and spotlight animation - fade in together
+    // Subtitle and aurora animation - fade in together
     subtitleOpacity.value = withDelay(
       600,
       withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) })
     );
-    spotlightOpacity.value = withDelay(
+    auroraOpacity.value = withDelay(
       600,
       withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) })
     );
-    spotlightTranslateX.value = withDelay(
+    auroraTranslateX.value = withDelay(
       600,
       withTiming(0, { duration: 600, easing: Easing.out(Easing.cubic) })
     );
-    spotlightTranslateY.value = withDelay(
+    auroraTranslateY.value = withDelay(
       600,
       withTiming(0, { duration: 600, easing: Easing.out(Easing.cubic) })
     );
@@ -271,11 +271,11 @@ const GetStarted = () => {
     opacity: subtitleOpacity.value,
   }));
 
-  const spotlightAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: spotlightOpacity.value,
+  const auroraAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: auroraOpacity.value,
     transform: [
-      { translateX: spotlightTranslateX.value },
-      { translateY: spotlightTranslateY.value },
+      { translateX: auroraTranslateX.value },
+      { translateY: auroraTranslateY.value },
     ],
   }));
 
@@ -307,21 +307,10 @@ const GetStarted = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Animated.View
-        style={[styles.spotlightContainer, spotlightAnimatedStyle]}
-      >
-        <Svg
-          width="150%"
-          height="100%"
-          viewBox="0 0 500 550"
-          style={styles.spotlightSvg}
-        >
-          <Path
-            d="M-43.5 -81.5L7.5 -138.5L420.12 380.955L280.62 480.954L-43.5 -81.5Z"
-            fill="#D4D4D4"
-            fillOpacity="0.1"
-          />
-        </Svg>
+      <Animated.View style={[styles.auroraContainer, auroraAnimatedStyle]}>
+        {/* The wrapper's existing opacity/translate keeps the aurora on the
+            staged 600ms entrance with the rest of the screen. */}
+        <AuroraBackground />
       </Animated.View>
 
       {/* Bottom Circular Gradient */}
@@ -504,7 +493,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 120,
   },
-  spotlightContainer: {
+  auroraContainer: {
     position: "absolute",
     top: 0,
     left: 0,
@@ -512,14 +501,6 @@ const styles = StyleSheet.create({
     height: "100%",
     zIndex: 0, // Behind content
     overflow: "hidden",
-  },
-  spotlightSvg: {
-    position: "absolute",
-    top: -200,
-    left: -150,
-    width: "100%",
-    height: "100%",
-    zIndex: 0, // Behind content
   },
   title: {
     fontSize: 96,

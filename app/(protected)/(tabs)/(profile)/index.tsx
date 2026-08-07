@@ -25,7 +25,6 @@ import Animated, {
   useSharedValue,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Svg, { Path } from "react-native-svg";
 import { AnimatedProfileImage } from "../../../../components/ui/animated-profile-image";
 import Button from "../../../../components/ui/button";
 import CollectionCard from "../../../../components/ui/collection-card";
@@ -35,6 +34,7 @@ import ActionMenu from "../../../../components/ui/sheets/action-menu";
 import { SettingsIcon } from "../../../../components/ui/svg-icons";
 import TabPager from "../../../../components/ui/tab-pager";
 import UserReviewCard from "../../../../components/ui/user-review-card";
+import { useAuroraScroll } from "../../../../contexts/aurora-scroll-context";
 import { AuthContext } from "../../../../contexts/auth-context";
 import { ProfileEditModeContext } from "../../../../contexts/profile-edit-mode-context";
 import { ThemeContext } from "../../../../contexts/theme-context";
@@ -131,6 +131,7 @@ const ProfileScreen = () => {
   const scrollViewRef = useRef<Animated.ScrollView>(null);
   const tabPagerContainerRef = useRef<View>(null);
   const scrollY = useSharedValue(0);
+  const auroraScroll = useAuroraScroll();
   const [tabPagerHeaderY, setTabPagerHeaderY] = useState(0);
 
   const { isLoading, error, data: profile } = useUserProfile();
@@ -198,6 +199,8 @@ const ProfileScreen = () => {
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       scrollY.value = event.contentOffset.y;
+      // Lets the aurora background follow a pull past the top.
+      auroraScroll?.set(event.contentOffset.y);
     },
   });
 
@@ -309,6 +312,12 @@ const ProfileScreen = () => {
                   }
                 }}
                 tintColor={theme.text}
+                // The scroll view runs edge to edge with no header, so the
+                // spinner's default resting place is the very top of the
+                // screen, hidden behind the status bar and Dynamic Island —
+                // measured without this, it never becomes visible at all. The
+                // content's paddingTop does not move it; this does.
+                progressViewOffset={insets.top}
               />
             }
             contentContainerStyle={{
@@ -325,18 +334,6 @@ const ProfileScreen = () => {
                   : SCREEN_HEIGHT * 2,
             }}
           >
-            <Svg
-              width="150%"
-              height="100%"
-              viewBox="0 0 500 550"
-              style={styles.spotlightSvg}
-            >
-              <Path
-                d="M-43.5 -81.5L7.5 -138.5L420.12 380.955L280.62 480.954L-43.5 -81.5Z"
-                fill="#D4D4D4"
-                fillOpacity="0.1"
-              />
-            </Svg>
             <View style={[styles.header, { top: insets.top + 20 }]}>
               <Pressable
                 onPress={() => router.push("/settings")}
@@ -633,14 +630,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "100%",
     // marginBottom: 32,
-  },
-  spotlightSvg: {
-    position: "absolute",
-    top: -1600,
-    left: -150,
-    width: "150%",
-    height: "100%",
-    zIndex: 0,
   },
   container: {
     flex: 1,
