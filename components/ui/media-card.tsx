@@ -1,3 +1,8 @@
+import StarSolidIcon from "@hugeicons-pro/core-solid-standard/StarIcon";
+import AllBookmarkIcon from "@hugeicons-pro/core-stroke-standard/AllBookmarkIcon";
+import Share08Icon from "@hugeicons-pro/core-stroke-standard/Share08Icon";
+import StarIcon from "@hugeicons-pro/core-stroke-standard/StarIcon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
@@ -27,7 +32,6 @@ import { ThemeContext } from "../../contexts/theme-context";
 import { useRadialOverlay } from "../../hooks/use-radial-overlay";
 import { Media } from "../../types/media";
 import GradientSweepOverlay from "./gradient-sweep-overlay";
-import { BookmarkIcon, ShareIcon, StarIcon, StarSolidIcon } from "./svg-icons";
 
 const STAR_SIZE = 10;
 const STAR_GAP = 1;
@@ -67,8 +71,8 @@ const MediaCard = ({
   const actions = useMemo(
     () => [
       { id: "star", icon: StarIcon, title: "Favorite" },
-      { id: "bookmark", icon: BookmarkIcon, title: "Save" },
-      { id: "share", icon: ShareIcon, title: "Share" },
+      { id: "bookmark", icon: AllBookmarkIcon, title: "Save" },
+      { id: "share", icon: Share08Icon, title: "Share" },
     ],
     []
   );
@@ -211,7 +215,11 @@ const MediaCard = ({
             key={`full-${i}`}
             style={i > 0 ? { marginLeft: STAR_GAP } : undefined}
           >
-            <StarSolidIcon size={STAR_SIZE} color={theme.secondaryText} />
+            <HugeiconsIcon
+              icon={StarSolidIcon}
+              size={STAR_SIZE}
+              color={theme.secondaryText}
+            />
           </View>
         ))}
         {hasHalf && (
@@ -221,7 +229,11 @@ const MediaCard = ({
               fullStars > 0 ? { marginLeft: STAR_GAP } : undefined,
             ]}
           >
-            <StarSolidIcon size={STAR_SIZE} color={theme.secondaryText} />
+            <HugeiconsIcon
+              icon={StarSolidIcon}
+              size={STAR_SIZE}
+              color={theme.secondaryText}
+            />
           </View>
         )}
       </View>

@@ -1,5 +1,7 @@
+import GripVerticalIcon from "@hugeicons-pro/core-stroke-standard/GripVerticalIcon";
+import PlusSignIcon from "@hugeicons-pro/core-stroke-standard/PlusSignIcon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useRouter } from "expo-router";
-import { GripVertical, Plus } from "lucide-react-native";
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Sortable, { type SortableGridRenderItem } from "react-native-sortables";
@@ -70,7 +72,11 @@ const ProfileCustomize = () => {
         <View style={[styles.row, { backgroundColor: theme.card }]}>
           {/* Only the grip activates the drag, so the Switch stays tappable. */}
           <Sortable.Handle>
-            <GripVertical color={theme.secondaryText} />
+            <HugeiconsIcon
+              icon={GripVerticalIcon}
+              color={theme.secondaryText}
+              strokeWidth={2}
+            />
           </Sortable.Handle>
           <Text style={[styles.rowTitle, { color: theme.text }]}>
             {definition?.title ?? item.kind}
@@ -121,7 +127,12 @@ const ProfileCustomize = () => {
               style={[styles.addRow, { borderColor: theme.border }]}
               activeOpacity={0.7}
             >
-              <Plus size={20} color={theme.text} />
+              <HugeiconsIcon
+                icon={PlusSignIcon}
+                size={20}
+                color={theme.text}
+                strokeWidth={2}
+              />
               <Text style={[styles.rowTitle, { color: theme.text }]}>
                 {getBlockDefinition(kind)?.title ?? kind}
               </Text>

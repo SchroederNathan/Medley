@@ -1,3 +1,7 @@
+import MoreVerticalSolidIcon from "@hugeicons-pro/core-solid-standard/MoreVerticalIcon";
+import AllBookmarkIcon from "@hugeicons-pro/core-stroke-standard/AllBookmarkIcon";
+import Share03Icon from "@hugeicons-pro/core-stroke-standard/Share03Icon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
@@ -33,11 +37,6 @@ import { ShowtimesSection } from "../../../components/ui/showtimes-section";
 import TrailerThumbnail from "../../../components/ui/trailer-thumbnail";
 import SeasonEpisodesCarousel from "../../../components/ui/season-episodes-carousel";
 import ActionMenu from "../../../components/ui/sheets/action-menu";
-import {
-  BookmarkIcon,
-  MoreVerticalIcon,
-  Share2Icon,
-} from "../../../components/ui/svg-icons";
 import { TruncatedText } from "../../../components/ui/truncated-text";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { ZoomAnimationProvider } from "../../../contexts/zoom-animation-context";
@@ -253,11 +252,24 @@ const MediaDetailScreen = () => {
   const rightButtons = useMemo(
     () => [
       {
-        icon: <Share2Icon size={20} color={theme.text} />,
+        icon: (
+          <HugeiconsIcon
+            icon={Share03Icon}
+            size={20}
+            color={theme.text}
+            strokeWidth={2}
+          />
+        ),
         onPress: handleShare,
       },
       {
-        icon: <MoreVerticalIcon size={20} color={theme.text} />,
+        icon: (
+          <HugeiconsIcon
+            icon={MoreVerticalSolidIcon}
+            size={20}
+            color={theme.text}
+          />
+        ),
         onPress: handleShowActionMenu,
       },
     ],
@@ -467,7 +479,14 @@ const MediaDetailScreen = () => {
         actions={[
           {
             title: "Share",
-            icon: <Share2Icon size={20} color={theme.text} />,
+            icon: (
+              <HugeiconsIcon
+                icon={Share03Icon}
+                size={20}
+                color={theme.text}
+                strokeWidth={2}
+              />
+            ),
             onPress: () => {
               // TODO: Implement share functionality
               setShowActionMenu(false);
@@ -475,7 +494,14 @@ const MediaDetailScreen = () => {
           },
           {
             title: "Save",
-            icon: <BookmarkIcon size={20} color={theme.text} />,
+            icon: (
+              <HugeiconsIcon
+                icon={AllBookmarkIcon}
+                size={20}
+                color={theme.text}
+                strokeWidth={2}
+              />
+            ),
             onPress: () => {
               setShowActionMenu(false);
               router.push(`/save-media?id=${media.id}`);

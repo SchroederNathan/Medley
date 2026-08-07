@@ -1,5 +1,7 @@
+import Cancel01Icon from "@hugeicons-pro/core-stroke-standard/Cancel01Icon";
+import Tick02Icon from "@hugeicons-pro/core-stroke-standard/Tick02Icon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useSegments } from "expo-router";
-import { Check, X } from "lucide-react-native";
 import React, { useContext, useEffect } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, {
@@ -123,7 +125,12 @@ const Toast: React.FC<ToastProps> = ({
     >
       <View style={styles.content}>
         <View style={styles.iconContainer}>
-          <Check size={20} color={theme.background} strokeWidth={3} />
+          <HugeiconsIcon
+            icon={Tick02Icon}
+            size={20}
+            color={theme.background}
+            strokeWidth={3}
+          />
         </View>
         <View style={styles.textContainer}>
           <Text style={[styles.message, { color: theme.background }]}>
@@ -138,7 +145,12 @@ const Toast: React.FC<ToastProps> = ({
           </TouchableOpacity>
         )}
         <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-          <X size={20} color={theme.background} strokeWidth={2} />
+          <HugeiconsIcon
+            icon={Cancel01Icon}
+            size={20}
+            color={theme.background}
+            strokeWidth={2}
+          />
         </TouchableOpacity>
       </View>
     </Animated.View>

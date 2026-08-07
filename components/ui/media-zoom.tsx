@@ -1,6 +1,7 @@
+import Cancel01Icon from "@hugeicons-pro/core-stroke-standard/Cancel01Icon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { BlurView } from "expo-blur";
 import { Image, type ImageStyle } from "expo-image";
-import { X } from "lucide-react-native";
 import { FC, Ref } from "react";
 import {
   Pressable,
@@ -155,7 +156,12 @@ export const MediaZoomOverlay: FC<{ imageUri?: string }> = ({
         <Animated.View
           style={[styles.closeButton, rCloseBtnStyle, { top: insets.top + 16 }]}
         >
-          <X size={22} color="white" />
+          <HugeiconsIcon
+            icon={Cancel01Icon}
+            size={22}
+            color="white"
+            strokeWidth={2}
+          />
         </Animated.View>
 
         <AnimatedImage

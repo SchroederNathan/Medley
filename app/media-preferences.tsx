@@ -1,3 +1,7 @@
+import BookOpen02Icon from "@hugeicons-pro/core-stroke-standard/BookOpen02Icon";
+import FlimSlateIcon from "@hugeicons-pro/core-stroke-standard/FlimSlateIcon";
+import GameController03Icon from "@hugeicons-pro/core-stroke-standard/GameController03Icon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useRouter } from "expo-router";
 import React, { useContext, useMemo, useRef, useState } from "react";
 import { Alert } from "react-native";
@@ -6,11 +10,6 @@ import AuthScreenLayout, {
 } from "../components/ui/auth-screen-layout";
 import Button from "../components/ui/button";
 import RadioCard from "../components/ui/radio-card";
-import {
-  ClapperboardIcon,
-  GameControllerIcon,
-  BookOpenIcon,
-} from "../components/ui/svg-icons";
 import { AuthContext } from "../contexts/auth-context";
 import { ThemeContext } from "../contexts/theme-context";
 
@@ -29,20 +28,37 @@ export default function MediaPreferences() {
         key: "Movies" as Preference,
         title: "Movies",
         icon: (
-          <ClapperboardIcon color={iconColor} size={32} strokeWidth={1.5} />
+          <HugeiconsIcon
+            icon={FlimSlateIcon}
+            color={iconColor}
+            size={32}
+            strokeWidth={1.5}
+          />
         ),
       },
       {
         key: "Games" as Preference,
         title: "Games",
         icon: (
-          <GameControllerIcon color={iconColor} size={32} strokeWidth={1.5} />
+          <HugeiconsIcon
+            icon={GameController03Icon}
+            color={iconColor}
+            size={32}
+            strokeWidth={1.5}
+          />
         ),
       },
       {
         key: "Books" as Preference,
         title: "Books",
-        icon: <BookOpenIcon color={iconColor} size={32} strokeWidth={1.5} />,
+        icon: (
+          <HugeiconsIcon
+            icon={BookOpen02Icon}
+            color={iconColor}
+            size={32}
+            strokeWidth={1.5}
+          />
+        ),
       },
     ],
 

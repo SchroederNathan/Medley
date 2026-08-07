@@ -1,4 +1,5 @@
-import { SlidersHorizontal } from "lucide-react-native";
+import SlidersHorizontalIcon from "@hugeicons-pro/core-stroke-standard/SlidersHorizontalIcon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import React, { FC, useContext } from "react";
 import { Keyboard, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
@@ -86,7 +87,12 @@ export const SharedHeader: FC<SharedHeaderProps> = ({
           <View style={styles.leftButton}>
             {leftButton ||
               (showFilterButton && (
-                <SlidersHorizontal onPress={onFilterPress} color={theme.text} />
+                <HugeiconsIcon
+                  icon={SlidersHorizontalIcon}
+                  onPress={onFilterPress}
+                  color={theme.text}
+                  strokeWidth={2}
+                />
               ))}
           </View>
           <View style={styles.flex} />

@@ -1,4 +1,5 @@
-import { X } from "lucide-react-native";
+import Cancel01Icon from "@hugeicons-pro/core-stroke-standard/Cancel01Icon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import React, { useContext, useEffect, useMemo } from "react";
 import { DimensionValue, StyleSheet } from "react-native";
 import Animated, {
@@ -121,7 +122,12 @@ const FavouriteCard = ({
           accessibilityRole="button"
           accessibilityLabel={`Remove ${media.title ?? "favourite"} from favourites`}
         >
-          <X size={13} color={theme.background} strokeWidth={3} />
+          <HugeiconsIcon
+            icon={Cancel01Icon}
+            size={13}
+            color={theme.background}
+            strokeWidth={3}
+          />
         </Sortable.Touchable>
       ) : null}
     </Animated.View>

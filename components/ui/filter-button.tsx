@@ -1,6 +1,7 @@
+import FilterIcon from "@hugeicons-pro/core-stroke-standard/FilterIcon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import React, { FC, useContext } from "react";
 import { Pressable, StyleSheet } from "react-native";
-import { Filter } from "lucide-react-native";
 import Animated, {
   useAnimatedStyle,
   withDelay,
@@ -47,7 +48,12 @@ export const FilterButton: FC<FilterButtonProps> = ({ onPress }) => {
         style={styles.pressable}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
-        <Filter size={24} color={theme.text} />
+        <HugeiconsIcon
+          icon={FilterIcon}
+          size={24}
+          color={theme.text}
+          strokeWidth={2}
+        />
       </Pressable>
     </Animated.View>
   );

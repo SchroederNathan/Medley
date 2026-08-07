@@ -1,10 +1,11 @@
+import UserIcon from "@hugeicons-pro/core-stroke-standard/UserIcon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import React, { useContext } from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
 import { AuthContext } from "../../contexts/auth-context";
 import { ThemeContext } from "../../contexts/theme-context";
-import { ProfileButtonIcon } from "./svg-icons";
 
 const ProfileButton = () => {
   const { user } = useContext(AuthContext);
@@ -29,7 +30,12 @@ const ProfileButton = () => {
           style={[StyleSheet.absoluteFill, { borderRadius: 26 }]}
         />
       ) : (
-        <ProfileButtonIcon size={24} color={theme.text} />
+        <HugeiconsIcon
+          icon={UserIcon}
+          size={24}
+          color={theme.text}
+          strokeWidth={2}
+        />
       )}
     </TouchableOpacity>
   );

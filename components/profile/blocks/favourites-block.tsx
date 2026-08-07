@@ -1,5 +1,6 @@
+import PlusSignIcon from "@hugeicons-pro/core-stroke-standard/PlusSignIcon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useRouter } from "expo-router";
-import { Plus } from "lucide-react-native";
 import React, {
   useCallback,
   useContext,
@@ -168,7 +169,12 @@ const FavouritesBlock = ({
         },
       ]}
     >
-      <Plus size={20} color={theme.text} />
+      <HugeiconsIcon
+        icon={PlusSignIcon}
+        size={20}
+        color={theme.text}
+        strokeWidth={2}
+      />
     </TouchableOpacity>
   ));
 

@@ -1,4 +1,5 @@
-import { Plus } from "lucide-react-native";
+import PlusSignIcon from "@hugeicons-pro/core-stroke-standard/PlusSignIcon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import React, { useContext } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { ThemeContext } from "../../contexts/theme-context";
@@ -23,7 +24,12 @@ const AddCollection = ({
           },
         ]}
       >
-        <Plus size={32} color={theme.text} />
+        <HugeiconsIcon
+          icon={PlusSignIcon}
+          size={32}
+          color={theme.text}
+          strokeWidth={2}
+        />
       </View>
       <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
     </TouchableOpacity>

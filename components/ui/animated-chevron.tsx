@@ -1,6 +1,7 @@
+import ArrowDown01Icon from "@hugeicons-pro/core-stroke-standard/ArrowDown01Icon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import React from "react";
 import { View } from "react-native";
-import { ChevronDown } from "lucide-react-native";
 import { useHeaderHeight } from "../../hooks/use-header-height";
 import Animated, {
   Extrapolation,
@@ -53,7 +54,12 @@ export const AnimatedChevron = () => {
       ]}
     >
       <View style={{ transform: [{ scaleX: 2 }] }}>
-        <ChevronDown size={16} color="#a3a3a3" />
+        <HugeiconsIcon
+          icon={ArrowDown01Icon}
+          size={16}
+          color="#a3a3a3"
+          strokeWidth={2}
+        />
       </View>
     </Animated.View>
   );

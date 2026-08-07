@@ -1,3 +1,7 @@
+import ArrowUp02SolidIcon from "@hugeicons-pro/core-solid-standard/ArrowUp02Icon";
+import AllBookmarkIcon from "@hugeicons-pro/core-stroke-standard/AllBookmarkIcon";
+import Cancel01Icon from "@hugeicons-pro/core-stroke-standard/Cancel01Icon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
@@ -37,7 +41,6 @@ import { AnimatedIconButton } from "./animated-icon-button";
 import { BottomGradient } from "./bottom-gradient";
 import MediaCard from "./media-card";
 import { StarRating } from "./star-rating";
-import { ArrowUpIcon, BookmarkIcon, XIcon } from "./svg-icons";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
@@ -71,7 +74,11 @@ const SubmitButton = ({
       onPress={() => handleSubmit()}
       disabled={disabled}
     >
-      <ArrowUpIcon size={24} color={theme.background} />
+      <HugeiconsIcon
+        icon={ArrowUp02SolidIcon}
+        size={24}
+        color={theme.background}
+      />
     </Pressable>
   );
 };
@@ -397,7 +404,12 @@ const ReviewInput: React.FC<ReviewInputProps> = ({ item, style }) => {
               <Animated.View style={[styles.expanded, rExpandedStyle]}>
                 <AnimatedIconButton
                   icon={
-                    <XIcon size={24} strokeWidth={2.5} color={theme.text} />
+                    <HugeiconsIcon
+                      icon={Cancel01Icon}
+                      size={24}
+                      strokeWidth={2.5}
+                      color={theme.text}
+                    />
                   }
                   onPress={closeModal}
                   accessibilityLabel="Close"
@@ -498,7 +510,12 @@ const ReviewInput: React.FC<ReviewInputProps> = ({ item, style }) => {
                 ]}
               />
               <BlurView intensity={30} tint="dark" style={[styles.blur]} />
-              <BookmarkIcon size={20} color={theme.text} />
+              <HugeiconsIcon
+                icon={AllBookmarkIcon}
+                size={20}
+                color={theme.text}
+                strokeWidth={2}
+              />
             </AnimatedPressable>
           </View>
         </Animated.View>

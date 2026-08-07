@@ -1,3 +1,7 @@
+import ArrowLeft02Icon from "@hugeicons-pro/core-stroke-standard/ArrowLeft02Icon";
+import ChampionIcon from "@hugeicons-pro/core-stroke-standard/ChampionIcon";
+import PlusSignIcon from "@hugeicons-pro/core-stroke-standard/PlusSignIcon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import {
@@ -28,11 +32,6 @@ import CollectionItem from "../../../components/ui/collection-item";
 import Input from "../../../components/ui/input";
 import MediaCard from "../../../components/ui/media-card";
 import Search from "../../../components/ui/search";
-import {
-  ArrowLeft,
-  PlusIcon,
-  TrophyIcon,
-} from "../../../components/ui/svg-icons";
 import { Switch } from "../../../components/ui/switch";
 import { AuthContext } from "../../../contexts/auth-context";
 import { ThemeContext } from "../../../contexts/theme-context";
@@ -324,7 +323,12 @@ const CollectionForm = () => {
             onPress={handleEditEntries}
             style={styles.backArrowButtonTouchable}
           >
-            <ArrowLeft size={24} strokeWidth={2.5} color={theme.text} />
+            <HugeiconsIcon
+              icon={ArrowLeft02Icon}
+              size={24}
+              strokeWidth={2.5}
+              color={theme.text}
+            />
           </TouchableOpacity>
         </Animated.View>
         <View style={styles.headerTitleContainer}>
@@ -377,7 +381,12 @@ const CollectionForm = () => {
             {/* Ranked Switch */}
             <View style={styles.rankedSwitchContainer}>
               <View style={styles.rankedSwitchLabelContainer}>
-                <TrophyIcon size={24} strokeWidth={2.5} color={theme.text} />
+                <HugeiconsIcon
+                  icon={ChampionIcon}
+                  size={24}
+                  strokeWidth={2.5}
+                  color={theme.text}
+                />
                 <Text
                   style={[
                     styles.rankedSwitchLabel,
@@ -406,7 +415,12 @@ const CollectionForm = () => {
                   >
                     Edit Entries
                   </Text>
-                  <PlusIcon size={24} strokeWidth={2.5} color={theme.text} />
+                  <HugeiconsIcon
+                    icon={PlusSignIcon}
+                    size={24}
+                    strokeWidth={2.5}
+                    color={theme.text}
+                  />
                 </TouchableOpacity>
               </View>
               <View style={styles.entriesList}>

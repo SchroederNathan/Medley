@@ -1,7 +1,9 @@
+import Cancel01Icon from "@hugeicons-pro/core-stroke-standard/Cancel01Icon";
+import ImageAdd01SolidIcon from "@hugeicons-pro/core-solid-standard/ImageAdd01Icon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import { X } from "lucide-react-native";
 import { FC, useContext, useState } from "react";
 import {
   ActivityIndicator,
@@ -27,7 +29,6 @@ import { ThemeContext } from "../../contexts/theme-context";
 import { useUploadAvatar } from "../../hooks/mutations";
 import { useUserProfile } from "../../hooks/use-user-profile";
 import { fontFamily } from "../../lib/fonts";
-import { AddImageIcon } from "./svg-icons";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
@@ -193,7 +194,12 @@ export const AnimatedProfileImage: FC = () => {
         <Animated.View
           style={[styles.closeButton, rCloseBtnStyle, { top: insets.top + 16 }]}
         >
-          <X size={22} color="white" />
+          <HugeiconsIcon
+            icon={Cancel01Icon}
+            size={22}
+            color="white"
+            strokeWidth={2}
+          />
         </Animated.View>
         <AnimatedPressable
           style={[
@@ -234,7 +240,11 @@ export const AnimatedProfileImage: FC = () => {
               <Text style={[styles.changeImageText, { color: theme.text }]}>
                 Change Image
               </Text>
-              <AddImageIcon size={20} color={theme.text} />
+              <HugeiconsIcon
+                icon={ImageAdd01SolidIcon}
+                size={20}
+                color={theme.text}
+              />
             </>
           )}
         </AnimatedPressable>

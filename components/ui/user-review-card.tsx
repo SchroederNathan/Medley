@@ -1,10 +1,12 @@
+import MoreVerticalSolidIcon from "@hugeicons-pro/core-solid-standard/MoreVerticalIcon";
+import StarSolidIcon from "@hugeicons-pro/core-solid-standard/StarIcon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React, { useContext } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
-import { MoreVerticalIcon, StarSolidIcon } from "./svg-icons";
 import { TruncatedText } from "./truncated-text";
 
 interface UserReviewCardProps {
@@ -40,18 +42,32 @@ const UserReviewCard = ({
             const starSize = 16;
             if (fillPercentage <= 0) {
               return (
-                <StarSolidIcon key={i} size={starSize} color={theme.border} />
+                <HugeiconsIcon
+                  icon={StarSolidIcon}
+                  key={i}
+                  size={starSize}
+                  color={theme.border}
+                />
               );
             }
             if (fillPercentage >= 1) {
               return (
-                <StarSolidIcon key={i} size={starSize} color={theme.text} />
+                <HugeiconsIcon
+                  icon={StarSolidIcon}
+                  key={i}
+                  size={starSize}
+                  color={theme.text}
+                />
               );
             }
             // Half star
             return (
               <View key={i} style={{ width: starSize, height: starSize }}>
-                <StarSolidIcon size={starSize + 2} color={theme.border} />
+                <HugeiconsIcon
+                  icon={StarSolidIcon}
+                  size={starSize + 2}
+                  color={theme.border}
+                />
                 <View
                   style={{
                     position: "absolute",
@@ -60,7 +76,11 @@ const UserReviewCard = ({
                     overflow: "hidden",
                   }}
                 >
-                  <StarSolidIcon size={starSize} color={theme.text} />
+                  <HugeiconsIcon
+                    icon={StarSolidIcon}
+                    size={starSize}
+                    color={theme.text}
+                  />
                 </View>
               </View>
             );
@@ -84,7 +104,11 @@ const UserReviewCard = ({
         />
       </View>
       <Pressable style={styles.optionsButton}>
-        <MoreVerticalIcon size={24} color={theme.text} />
+        <HugeiconsIcon
+          icon={MoreVerticalSolidIcon}
+          size={24}
+          color={theme.text}
+        />
       </Pressable>
     </Pressable>
   );
