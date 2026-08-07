@@ -11,7 +11,13 @@
     "lint": "expo lint --fix"
   },
   "dependencies": {
+    "@clerk/expo": "^4.2.0",
+    "@clerk/expo-google-signin": "^1.0.0",
+    "@hugeicons-pro/core-solid-standard": "^4.2.3",
+    "@hugeicons-pro/core-stroke-standard": "^4.2.3",
+    "@hugeicons/react-native": "^1.0.15",
     "@react-native-community/netinfo": "12.0.1",
+    "@react-native-google-signin/google-signin": "^16.1.4",
     "@react-native-masked-view/masked-view": "0.3.2",
     "@sentry/react-native": "^8.11.0",
     "@shopify/flash-list": "2.0.2",
@@ -21,9 +27,12 @@
     "@tanstack/react-query-persist-client": "^5.86.0",
     "eslint-plugin-react-compiler": "^19.1.0-rc.2",
     "expo": "^57.0.0",
+    "expo-apple-authentication": "~57.0.1",
     "expo-asset": "~57.0.2",
     "expo-blur": "~57.0.0",
+    "expo-build-properties": "~57.0.8",
     "expo-constants": "~57.0.2",
+    "expo-crypto": "~57.0.1",
     "expo-dev-client": "~57.0.4",
     "expo-device": "~57.0.0",
     "expo-file-system": "~57.0.0",
@@ -37,6 +46,7 @@
     "expo-location": "~57.0.1",
     "expo-notifications": "~57.0.2",
     "expo-router": "~57.0.2",
+    "expo-secure-store": "~57.0.1",
     "expo-splash-screen": "~57.0.1",
     "expo-status-bar": "~57.0.0",
     "expo-system-ui": "~57.0.0",
@@ -75,7 +85,8 @@
     "@shopify/react-native-skia"
   ],
   "overrides": {
-    "expo": "$expo"
+    "expo": "$expo",
+    "zod-validation-error": "^4.0.2"
   },
   "expo": {
     "install": {
@@ -85,5 +96,5 @@
     }
   },
   "private": true,
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+  "packageManager": "bun@1.2.22"
 }

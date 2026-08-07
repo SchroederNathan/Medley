@@ -2,6 +2,7 @@
 /* eslint-disable */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { verifyClerkRequest } from "../_shared/clerk-auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -210,23 +211,12 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
-    if (!supabaseUrl || !serviceRoleKey || !anonKey) {
-      throw new Error(
-        "Missing SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, or SUPABASE_ANON_KEY"
-      );
+    if (!supabaseUrl || !serviceRoleKey) {
+      throw new Error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
     }
 
-    const anonClient = createClient(supabaseUrl, anonKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    const {
-      data: { user },
-      error: authErr,
-    } = await anonClient.auth.getUser();
-    if (authErr || !user) {
+    const userId = await verifyClerkRequest(req);
+    if (!userId) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 401,
@@ -240,7 +230,7 @@ serve(async (req) => {
     const { searchParams } = new URL(req.url);
     const limit = clampLimit(searchParams.get("limit"));
 
-    const seedSelection = await getSeedRows(supabase, user.id);
+    const seedSelection = await getSeedRows(supabase, userId);
     const favoriteRows = seedSelection.rows;
 
     const favoriteIds = favoriteRows.map((row: any) => row.media_id);
@@ -277,7 +267,7 @@ serve(async (req) => {
       console.log("favorite-recommendations: no qualifying favorites", {
         favoriteCount: favoriteRows?.length ?? 0,
         mode: seedSelection.mode,
-        userId: user.id,
+        userId: userId,
       });
     }
 
@@ -286,14 +276,14 @@ serve(async (req) => {
         favoriteCount: favoriteRows.length,
         mode: seedSelection.mode,
         seedCount: seeds.length,
-        userId: user.id,
+        userId: userId,
       });
     }
 
     const { data: ownedRows, error: ownedError } = await supabase
       .from("user_media")
       .select("media_id")
-      .eq("user_id", user.id);
+      .eq("user_id", userId);
 
     if (ownedError) {
       throw ownedError;
@@ -325,7 +315,7 @@ serve(async (req) => {
       const { data, error: favoriteGenreError } = await supabase
         .from("user_media_with_genres")
         .select("media_id, unified_genres")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .in("media_id", favoriteIds);
 
       if (favoriteGenreError) {
@@ -377,7 +367,7 @@ serve(async (req) => {
       const { data: broaderGenreRows, error: broaderGenreError } = await supabase
         .from("user_media_with_genres")
         .select("unified_genres")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .in("status", ["completed", "watching", "reading", "playing", "want"]);
 
       if (broaderGenreError) {
@@ -446,7 +436,7 @@ serve(async (req) => {
       favoriteCount: favoriteRows.length,
       mode: seedSelection.mode,
       seedCount: seeds.length,
-      userId: user.id,
+      userId: userId,
     });
 
     const ranked = Array.from(candidateMap.values())

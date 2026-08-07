@@ -1,4 +1,4 @@
-import { supabase } from "../lib/utils";
+import { getSupabaseAccessToken, supabase } from "../lib/utils";
 import { createHttpError, toAppError } from "../lib/app-error";
 import { Media } from "../types/media";
 
@@ -127,9 +127,7 @@ export class RecommendationService {
     functionName: string,
     params: Record<string, string>
   ): Promise<T> {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const accessToken = await getSupabaseAccessToken();
 
     const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
     const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_KEY!;
@@ -144,7 +142,7 @@ export class RecommendationService {
     try {
       response = await fetch(url.toString(), {
         headers: {
-          Authorization: `Bearer ${session?.access_token ?? ""}`,
+          Authorization: `Bearer ${accessToken ?? ""}`,
           apikey: supabaseKey,
         },
       });

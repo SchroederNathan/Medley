@@ -1,12 +1,8 @@
+import { useAuth, useUser } from "@clerk/expo";
 import { useRouter } from "expo-router";
 import { createContext, PropsWithChildren, useEffect, useState } from "react";
 import { queryClient } from "../lib/query-client";
-import {
-  clearPersistedQueryCache,
-  clearStoredAuthState,
-  setStoredAuthState,
-} from "../lib/storage";
-import { supabase } from "../lib/utils";
+import { clearPersistedQueryCache } from "../lib/storage";
 import { ProfileService } from "../services/profileService";
 
 type User = {
@@ -20,9 +16,7 @@ type AuthState = {
   isLoggedIn: boolean;
   isReady: boolean;
   user?: User;
-  logIn: (id: string) => void;
   logOut: () => void;
-  setUserId: (id: string) => void;
   setUserName: (name: string) => void;
   setUserPreferredMedia: (media: ("Games" | "Movies" | "Books")[]) => void;
   completeOnboarding: (
@@ -40,9 +34,7 @@ export const AuthContext = createContext<AuthState>({
   isLoggedIn: false,
   isReady: false,
   user: undefined,
-  logIn: () => {},
   logOut: () => {},
-  setUserId: () => {},
   setUserName: () => {},
   setUserPreferredMedia: () => {},
   completeOnboarding: async () => {},
@@ -50,10 +42,15 @@ export const AuthContext = createContext<AuthState>({
 });
 
 export const AuthProvider = ({ children }: PropsWithChildren) => {
-  const [isReady, setIsReady] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { isLoaded, isSignedIn, signOut } = useAuth();
+  const { user: clerkUser } = useUser();
+  const [profileResolved, setProfileResolved] = useState(false);
+  const [isOnboarded, setIsOnboarded] = useState(false);
   const [user, setUser] = useState<User>({});
   const router = useRouter();
+
+  const clerkUserId = clerkUser?.id;
+  const clerkFirstName = clerkUser?.firstName;
 
   /**
    * Updates the user state from profile data
@@ -78,10 +75,6 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     }
   };
 
-  const setUserId = (id: string) => {
-    setUser({ ...user, id });
-  };
-
   const setUserName = (name: string) => {
     setUser({ ...user, name });
   };
@@ -93,39 +86,31 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   const completeOnboarding = async (
     preferredMedia?: ("Games" | "Movies" | "Books")[]
   ) => {
-    if (!user.id || !user.name || !preferredMedia) {
+    if (!clerkUserId || !user.name || !preferredMedia) {
       throw new Error("Missing required user information");
     }
 
     // Use ProfileService for onboarding completion
-    await ProfileService.completeOnboarding(user.id, user.name, preferredMedia);
+    await ProfileService.completeOnboarding(
+      clerkUserId,
+      user.name,
+      preferredMedia
+    );
 
-    await logIn(user.id);
+    setUser((prev) => ({ ...prev, id: clerkUserId }));
+    setIsOnboarded(true);
     router.replace("/(tabs)");
   };
 
-  const logIn = async (id: string) => {
-    setIsLoggedIn(true);
-    setStoredAuthState({ isLoggedIn: true });
-    setUserId(id);
-
-    // Fetch profile data using ProfileService
-    try {
-      const profile = await ProfileService.getProfile(id);
-      if (profile) {
-        updateUserFromProfile(profile);
-      }
-    } catch (error) {
-      console.warn("Failed to fetch user profile on login:", error);
-    }
-  };
-
   const logOut = async () => {
-    setIsLoggedIn(false);
     setUser({});
-    clearStoredAuthState();
+    setIsOnboarded(false);
 
-    await supabase.auth.signOut();
+    try {
+      await signOut();
+    } catch (e) {
+      console.warn("Failed to sign out of Clerk", e);
+    }
     try {
       await queryClient.cancelQueries();
       queryClient.clear();
@@ -136,53 +121,57 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     router.replace("/onboarding");
   };
 
+  // Clerk restores the session from its token cache; once it settles, load
+  // the profile to decide whether onboarding is complete.
   useEffect(() => {
-    const initializeAuth = async () => {
-      let sessionResult;
+    if (!isLoaded) return;
+
+    if (!isSignedIn || !clerkUserId) {
+      setUser({});
+      setIsOnboarded(false);
+      setProfileResolved(true);
+      return;
+    }
+
+    let cancelled = false;
+    setProfileResolved(false);
+
+    const loadProfile = async () => {
+      let profile = null;
       try {
-        sessionResult = await supabase.auth.getSession();
+        profile = await ProfileService.getProfile(clerkUserId);
       } catch (error) {
-        console.error("Error initializing auth:", error);
-        setIsReady(true);
-        return;
+        console.warn("Failed to fetch user profile on init:", error);
       }
 
-      const session = sessionResult?.data?.session;
-      const userId = session?.user?.id;
+      if (cancelled) return;
 
-      if (userId) {
-        setUser({ id: userId });
-        setIsLoggedIn(true);
-        setStoredAuthState({ isLoggedIn: true });
-
-        // Fetch profile data using ProfileService
-        try {
-          const profile = await ProfileService.getProfile(userId);
-          if (profile) {
-            updateUserFromProfile(profile);
-          }
-        } catch (error) {
-          console.warn("Failed to fetch user profile on init:", error);
-        }
-      } else {
-        clearStoredAuthState();
-        setIsLoggedIn(false);
-      }
-
-      setIsReady(true);
+      setUser({
+        id: clerkUserId,
+        name: profile?.name ?? clerkFirstName ?? undefined,
+        avatar_url: profile?.avatar_url,
+        preferred_media: profile?.media_preferences?.preferred_media,
+      });
+      setIsOnboarded(profile?.media_preferences?.onboarding_completed === true);
+      setProfileResolved(true);
     };
-    initializeAuth();
-  }, []);
+
+    loadProfile();
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoaded, isSignedIn, clerkUserId, clerkFirstName]);
+
+  const isReady = isLoaded && profileResolved;
+  const isLoggedIn = Boolean(isSignedIn) && isOnboarded;
 
   return (
     <AuthContext.Provider
       value={{
         isLoggedIn,
         isReady,
-        logIn,
         logOut,
         user,
-        setUserId,
         setUserName,
         setUserPreferredMedia,
         completeOnboarding,

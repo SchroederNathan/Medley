@@ -1,4 +1,4 @@
-import { supabase } from "../lib/utils";
+import { getSupabaseAccessToken, supabase } from "../lib/utils";
 import { throwIfError, toAppError } from "../lib/app-error";
 import { ProfileLayout } from "../lib/profile-blocks/types";
 
@@ -93,13 +93,9 @@ export class ProfileService {
    */
   static async uploadAvatar(userId: string, imageUri: string): Promise<string> {
     // Verify authentication
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession();
-
-    if (sessionError || !session) {
-      throw toAppError(sessionError ?? new Error("Authentication required"));
+    const accessToken = await getSupabaseAccessToken();
+    if (!accessToken) {
+      throw toAppError(new Error("Authentication required"));
     }
 
     // Use a fixed filename to replace the existing image

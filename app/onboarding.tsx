@@ -1,6 +1,13 @@
+import { useAuth, useClerk, useSignIn } from "@clerk/expo";
+import { useSignInWithApple } from "@clerk/expo/apple";
+import { useSignInWithGoogle } from "@clerk/expo/google";
+import AppleIcon from "@hugeicons-pro/core-solid-standard/AppleIcon";
+import GoogleIcon from "@hugeicons-pro/core-solid-standard/GoogleIcon";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Image } from "expo-image";
+import { useRouter } from "expo-router";
 import React, { useContext, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, Text, View } from "react-native";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -21,12 +28,142 @@ import Svg, {
   Stop,
 } from "react-native-svg";
 import Button from "../components/ui/button";
-import AuthSheet from "../components/ui/sheets/auth-sheet";
 import { ThemeContext } from "../contexts/theme-context";
+import { useToast } from "../contexts/toast-context";
 import { fontFamily } from "../lib/fonts";
+import { ProfileService } from "../services/profileService";
+
+// Clerk test account for the dev-only sign-in shortcut. The "+clerk_test"
+// suffix puts Clerk in test mode for this address: no real email is sent and
+// verification accepts the fixed code below. Development instances only.
+const DEV_IDENTIFIER = "dev+clerk_test@example.com";
+const DEV_TEST_CODE = "424242";
+
+// User dismissed the native Apple/Google sheet — not an error.
+const isCancellation = (error: unknown) => {
+  const code = (error as { code?: string | number })?.code;
+  const message = (error as { message?: string })?.message ?? "";
+  return (
+    code === "ERR_REQUEST_CANCELED" ||
+    code === "SIGN_IN_CANCELLED" ||
+    code === "-5" ||
+    code === -5 ||
+    /cancel/i.test(message)
+  );
+};
 
 const GetStarted = () => {
   const { theme } = useContext(ThemeContext);
+  const router = useRouter();
+  const clerk = useClerk();
+  const { isSignedIn } = useAuth();
+  const { signIn } = useSignIn();
+  const { startAppleAuthenticationFlow } = useSignInWithApple();
+  const { startGoogleAuthenticationFlow } = useSignInWithGoogle();
+  const { showToast } = useToast();
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+
+  // Returning users with a finished profile go straight to the app;
+  // everyone else continues through onboarding (/name → /media-preferences).
+  const routeAfterSignIn = async (userId: string | undefined) => {
+    let onboarded = false;
+    if (userId) {
+      try {
+        const profile = await ProfileService.getProfile(userId);
+        onboarded = profile?.media_preferences?.onboarding_completed === true;
+      } catch (error) {
+        console.warn("Failed to fetch profile after sign-in:", error);
+      }
+    }
+
+    router.replace(onboarded ? "/(tabs)" : "/name");
+  };
+
+  const runFlow = async (
+    startFlow: () => Promise<{
+      createdSessionId: string | null;
+      setActive?: (params: { session: string }) => Promise<void>;
+    }>
+  ) => {
+    if (isAuthenticating) return;
+    setIsAuthenticating(true);
+    try {
+      // A signed-in user can land here mid-onboarding (killed the app before
+      // finishing); skip the native flow and just resume routing.
+      if (isSignedIn) {
+        await routeAfterSignIn(clerk.user?.id);
+        return;
+      }
+
+      const { createdSessionId, setActive } = await startFlow();
+      if (createdSessionId && setActive) {
+        await setActive({ session: createdSessionId });
+        await routeAfterSignIn(clerk.user?.id ?? undefined);
+      }
+      // No createdSessionId → the user cancelled; do nothing.
+    } catch (error) {
+      if (!isCancellation(error)) {
+        console.error("Sign-in error:", error);
+        showToast({
+          message: "Sign in failed. Please try again.",
+        });
+      }
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
+
+  // Dev-only shortcut past the native Apple/Google sheets, which need a signed
+  // build and a real account. Uses a Clerk test user; the password lives in
+  // EXPO_PUBLIC_DEV_PASSWORD (.env.local), so this is a no-op without it.
+  const handleDevLogin = async () => {
+    if (isAuthenticating) return;
+    const password = process.env.EXPO_PUBLIC_DEV_PASSWORD;
+    if (!password) {
+      console.warn("Dev login: set EXPO_PUBLIC_DEV_PASSWORD in .env.local");
+      return;
+    }
+
+    setIsAuthenticating(true);
+    try {
+      const { error } = await signIn.password({
+        identifier: DEV_IDENTIFIER,
+        password,
+      });
+      if (error) {
+        console.error("Dev login failed:", error);
+        return;
+      }
+
+      // The dev account has an email-code second factor. A "+clerk_test"
+      // address skips the real email and accepts Clerk's fixed test code.
+      if (signIn.status === "needs_second_factor") {
+        const { error: sendError } = await signIn.emailCode.sendCode();
+        if (sendError) {
+          console.error("Dev login second factor failed:", sendError);
+          return;
+        }
+        const { error: verifyError } = await signIn.emailCode.verifyCode({
+          code: DEV_TEST_CODE,
+        });
+        if (verifyError) {
+          console.error("Dev login second factor failed:", verifyError);
+          return;
+        }
+      }
+
+      if (signIn.status !== "complete") {
+        console.warn("Dev login incomplete:", signIn.status);
+        return;
+      }
+      await signIn.finalize();
+      await routeAfterSignIn(clerk.user?.id ?? undefined);
+    } catch (error) {
+      console.error("Dev login error:", error);
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
 
   const posters = [
     require("../assets/images/onboarding/tlou.jpg"),
@@ -37,8 +174,6 @@ const GetStarted = () => {
     require("../assets/images/onboarding/frankenstein.jpg"),
     require("../assets/images/onboarding/tkamb.jpg"),
   ];
-
-  const [showModal, setShowModal] = useState(false);
 
   const CARD_WIDTH = 133;
   const CARD_GAP = 20;
@@ -310,17 +445,51 @@ const GetStarted = () => {
       </Animated.View>
 
       <Animated.View style={[styles.actionContainer, buttonAnimatedStyle]}>
-        <Button
-          title="Get Started"
-          styles={styles.button}
-          onPress={() => setShowModal(true)}
-        />
+        <View style={styles.buttonGroup}>
+          {/* Apple's native flow is iOS-only; Android users sign in with Google. */}
+          {Platform.OS === "ios" && (
+            <Button
+              title="Continue with Apple"
+              variant="secondary"
+              styles={styles.button}
+              disabled={isAuthenticating}
+              icon={
+                <HugeiconsIcon
+                  icon={AppleIcon}
+                  size={20}
+                  color={theme.secondaryButtonText}
+                />
+              }
+              onPress={() => runFlow(startAppleAuthenticationFlow)}
+            />
+          )}
+          <Button
+            title="Continue with Google"
+            styles={styles.button}
+            disabled={isAuthenticating}
+            icon={
+              <HugeiconsIcon
+                icon={GoogleIcon}
+                size={20}
+                color={theme.primaryButtonText}
+              />
+            }
+            onPress={() => runFlow(startGoogleAuthenticationFlow)}
+          />
+          {__DEV__ && (
+            <Button
+              title="Dev login"
+              styles={styles.button}
+              disabled={isAuthenticating}
+              onPress={handleDevLogin}
+            />
+          )}
+        </View>
         <Text style={[styles.info, { color: theme.text }]}>
           By proceeding to use Medley, you agree to the terms of service and
           privacy policy.
         </Text>
       </Animated.View>
-      <AuthSheet visible={showModal} onClose={() => setShowModal(false)} />
     </View>
   );
 };
@@ -379,6 +548,10 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 4,
     borderWidth: 1,
+  },
+  buttonGroup: {
+    width: "100%",
+    gap: 12,
   },
   button: {
     width: "100%",

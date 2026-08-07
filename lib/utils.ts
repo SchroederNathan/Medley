@@ -1,30 +1,21 @@
-import { AppState } from "react-native";
 import "react-native-url-polyfill/auto";
-import { createClient, processLock } from "@supabase/supabase-js";
-import { supabaseStorageAdapter } from "./storage";
+import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_KEY!;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    storage: supabaseStorageAdapter,
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: false,
-    lock: processLock,
-  },
-});
+// Clerk owns the session. The bridge component in app/_layout.tsx registers
+// a getter that returns the current Clerk session token (or null when signed
+// out). Do not cache tokens here — Clerk's getToken() caches and refreshes.
+let getClerkToken: () => Promise<string | null> = async () => null;
 
-// Tells Supabase Auth to continuously refresh the session automatically
-// if the app is in the foreground. When this is added, you will continue
-// to receive `onAuthStateChange` events with the `TOKEN_REFRESHED` or
-// `SIGNED_OUT` event if the user's session is terminated. This should
-// only be registered once.
-AppState.addEventListener("change", (state) => {
-  if (state === "active") {
-    supabase.auth.startAutoRefresh();
-  } else {
-    supabase.auth.stopAutoRefresh();
-  }
+export const setClerkTokenGetter = (fn: () => Promise<string | null>) => {
+  getClerkToken = fn;
+};
+
+/** Current Clerk session token, used as the Bearer token for edge functions. */
+export const getSupabaseAccessToken = () => getClerkToken();
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  accessToken: () => getClerkToken(),
 });

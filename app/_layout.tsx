@@ -1,3 +1,5 @@
+import { ClerkProvider, useAuth } from "@clerk/expo";
+import { tokenCache } from "@clerk/expo/token-cache";
 import { useIsRestoring } from "@tanstack/react-query";
 import * as Sentry from "@sentry/react-native";
 import { Stack } from "expo-router";
@@ -15,6 +17,9 @@ import { OverlayProvider } from "../contexts/overlay-context";
 import { ThemeContext, ThemeProvider } from "../contexts/theme-context";
 import { ToastProvider } from "../contexts/toast-context";
 import { useAppFonts } from "../lib/fonts";
+import { setClerkTokenGetter } from "../lib/utils";
+
+const clerkPublishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 
 if (Platform.OS === "ios" || Platform.OS === "android") {
   SplashScreen.preventAutoHideAsync();
@@ -41,6 +46,18 @@ Sentry.init({
   // spotlight: __DEV__,
 });
 
+// Feeds the current Clerk session token to the Supabase client, which sends
+// it as the Bearer token on every database/storage/function request.
+const SupabaseTokenBridge = () => {
+  const { getToken, isSignedIn } = useAuth();
+
+  useEffect(() => {
+    setClerkTokenGetter(async () => (isSignedIn ? await getToken() : null));
+  }, [getToken, isSignedIn]);
+
+  return null;
+};
+
 const RootLayout = () => {
   const { fontsLoaded, fontError } = useAppFonts();
   const fontsReady = fontsLoaded || fontError != null;
@@ -51,9 +68,12 @@ const RootLayout = () => {
   }
 
   return (
-    <ThemeProvider>
-      <AppContainer fontsReady={fontsReady} />
-    </ThemeProvider>
+    <ClerkProvider publishableKey={clerkPublishableKey} tokenCache={tokenCache}>
+      <SupabaseTokenBridge />
+      <ThemeProvider>
+        <AppContainer fontsReady={fontsReady} />
+      </ThemeProvider>
+    </ClerkProvider>
   );
 };
 
@@ -109,12 +129,6 @@ const AuthProviderWithProviders = ({ fontsReady }: { fontsReady: boolean }) => {
                     }}
                   />
                   <Stack.Screen
-                    name="login"
-                    options={{
-                      animation: "none",
-                    }}
-                  />
-                  <Stack.Screen
                     name="name"
                     options={{
                       animation: "none",
@@ -122,12 +136,6 @@ const AuthProviderWithProviders = ({ fontsReady }: { fontsReady: boolean }) => {
                   />
                   <Stack.Screen
                     name="media-preferences"
-                    options={{
-                      animation: "none",
-                    }}
-                  />
-                  <Stack.Screen
-                    name="signup"
                     options={{
                       animation: "none",
                     }}

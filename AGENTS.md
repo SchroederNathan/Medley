@@ -8,16 +8,35 @@ Medley is a React Native media tracking app (movies, TV shows, games, books) bui
 
 ## Development Commands
 
+This project uses **bun** as its package manager (`bun.lock` is committed). Do not
+use npm or yarn — they will create a competing lockfile.
+
 ```bash
-npm start              # Start Expo dev server
-npm run ios            # Run on iOS simulator
-npm run android        # Run on Android emulator
-npm run web            # Run in browser
-npm run lint           # ESLint with auto-fix
-npx expo prebuild      # Generate native projects
+bun install            # Install dependencies
+bun start              # Start Expo dev server
+bun run ios            # Run on iOS simulator
+bun run android        # Run on Android emulator
+bun run web            # Run in browser
+bun run lint           # ESLint with auto-fix
+bun expo prebuild      # Generate native projects
 ```
 
 No test runner is currently configured.
+
+### Dependency overrides
+
+`package.json` pins `zod-validation-error` to `^4.0.2`. Two ESLint plugins need
+different majors: `eslint-plugin-react-compiler` calls `fromZodError` from the root
+export, and `eslint-plugin-react-hooks@7` imports the `./v4` subpath. Yarn installed
+nested copies; bun's flat layout keeps one, and bun supports only flat overrides. v4
+satisfies both because its root still exports `fromZodError`. Without the pin, `bun run
+lint` fails with `ERR_PACKAGE_PATH_NOT_EXPORTED`.
+
+### Private registry
+
+`@hugeicons-pro/*` packages come from the private Hugeicons registry. `.npmrc` points
+that scope at `https://npm.hugeicons.com/` and reads the token from `HUGEICONS_TOKEN`,
+which bun loads from `.env.local`. Installs fail without it.
 
 ## Architecture
 
@@ -86,6 +105,7 @@ Required in `.env.local`:
 - `EXPO_PUBLIC_SUPABASE_KEY` — Supabase anon/publishable key
 - `TMDB_API_KEY` — TMDB API key (used in edge functions)
 - `SENTRY_AUTH_TOKEN` — Sentry auth token
+- `HUGEICONS_TOKEN` — Auth token for the private `@hugeicons-pro` npm registry (install-time)
 
 ## Agent Device (app/device automation)
 
