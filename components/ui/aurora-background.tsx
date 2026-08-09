@@ -93,9 +93,16 @@ float ray(float x, float ys, float t, float base, float halfWidth,
 
 // Independent opacity cycle per ray. depth is how far it fades: low values
 // just breathe, high values take the ray most of the way out and back.
+//
+// Two harmonics, not one: a single sine fades in and out like a metronome.
+// The second, faster harmonic makes a ray sometimes linger bright, sometimes
+// drop out early, so the fades read as random rather than scheduled. Its rate
+// (speed * 2 + 1) stays a whole number, which keeps the loop seamless.
 float breathe(float t, float speed, float phase, float depth) {
   float TAU = 6.2831853;
-  return (1.0 - depth) + depth * (0.5 + 0.5 * sin((t * speed + phase) * TAU));
+  float w = 0.5 + 0.5 * sin((t * speed + phase) * TAU);
+  w = clamp(w + 0.25 * sin((t * (speed * 2.0 + 1.0) + phase * 3.1) * TAU), 0.0, 1.0);
+  return (1.0 - depth) + depth * w;
 }
 
 half4 main(float2 fragCoord) {
@@ -105,6 +112,15 @@ half4 main(float2 fragCoord) {
   // Screen-heights below the screen's top edge; negative in the overhang.
   float ys = (fragCoord.y / u_res.y) * u_total - u_top;
   float t = u_t;
+
+  // Warped clock for all motion. u_t advances at a constant rate; summing two
+  // periodic offsets onto it makes the effective playback rate swell between
+  // roughly 0.5x and 1.5x, so the whole field surges and lulls instead of
+  // drifting at one even speed. Both offset rates are whole numbers, so tw
+  // still advances by exactly 1 per loop and the seamless wrap is preserved.
+  float tw = t
+           + 0.012 * sin((t * 3.0 + 0.37) * TAU)
+           + 0.006 * sin((t * 7.0 + 0.71) * TAU);
 
   // Six rays across the width, each with its own width, brightness, pair of
   // swing rates, bob and fade cycle. All speeds are whole numbers so every ray
@@ -118,12 +134,12 @@ half4 main(float2 fragCoord) {
   // which is why they can be packed closer than the earlier shallow-fade
   // versions allowed.
   float v = 0.0;
-  v += ray(x, ys, t, 0.02, 0.26, 0.090, 2.0, 0.00, 0.032, 3.0, 0.20, 0.055, 1.0, 0.00) * breathe(t, 1.0, 0.00, 0.85) * 0.85;
-  v += ray(x, ys, t, 0.22, 0.23, 0.072, 3.0, 0.31, 0.038, 2.0, 0.55, 0.066, 1.0, 0.30) * breathe(t, 2.0, 0.17, 0.90) * 0.90;
-  v += ray(x, ys, t, 0.42, 0.29, 0.105, 2.0, 0.62, 0.029, 4.0, 0.10, 0.050, 2.0, 0.60) * breathe(t, 1.0, 0.33, 0.80) * 0.82;
-  v += ray(x, ys, t, 0.62, 0.24, 0.080, 3.0, 0.14, 0.035, 2.0, 0.80, 0.060, 1.0, 0.85) * breathe(t, 3.0, 0.50, 0.90) * 0.88;
-  v += ray(x, ys, t, 0.82, 0.28, 0.096, 2.0, 0.45, 0.032, 3.0, 0.35, 0.055, 2.0, 0.20) * breathe(t, 2.0, 0.67, 0.85) * 0.84;
-  v += ray(x, ys, t, 1.00, 0.24, 0.077, 3.0, 0.78, 0.042, 2.0, 0.05, 0.066, 1.0, 0.55) * breathe(t, 1.0, 0.83, 0.88) * 0.86;
+  v += ray(x, ys, tw, 0.02, 0.26, 0.090, 2.0, 0.00, 0.032, 3.0, 0.20, 0.055, 1.0, 0.00) * breathe(tw, 1.0, 0.00, 0.85) * 0.85;
+  v += ray(x, ys, tw, 0.22, 0.23, 0.072, 3.0, 0.31, 0.038, 2.0, 0.55, 0.066, 1.0, 0.30) * breathe(tw, 2.0, 0.17, 0.90) * 0.90;
+  v += ray(x, ys, tw, 0.42, 0.29, 0.105, 2.0, 0.62, 0.029, 4.0, 0.10, 0.050, 2.0, 0.60) * breathe(tw, 1.0, 0.33, 0.80) * 0.82;
+  v += ray(x, ys, tw, 0.62, 0.24, 0.080, 3.0, 0.14, 0.035, 2.0, 0.80, 0.060, 1.0, 0.85) * breathe(tw, 3.0, 0.50, 0.90) * 0.88;
+  v += ray(x, ys, tw, 0.82, 0.28, 0.096, 2.0, 0.45, 0.032, 3.0, 0.35, 0.055, 2.0, 0.20) * breathe(tw, 2.0, 0.67, 0.85) * 0.84;
+  v += ray(x, ys, tw, 1.00, 0.24, 0.077, 3.0, 0.78, 0.042, 2.0, 0.05, 0.066, 1.0, 0.55) * breathe(tw, 1.0, 0.83, 0.88) * 0.86;
 
   // Soften the canvas's own top edge so pulling the screen down far never
   // reveals a hard cut where the overhang ends.
@@ -157,11 +173,16 @@ half4 main(float2 fragCoord) {
   a += (hash(floor(fragCoord / 0.5)) - 0.5) * 0.13 * (0.55 * g + 0.45 * v2);
   a = clamp(a, 0.0, 1.0);
 
-  // Tint drifts slightly across the rays and over time, so the light is not
-  // one flat colour. Both ends lean cool on purpose: the target's glow is a
-  // steel blue-grey, with blue clearly above red and green at both ends.
-  float m = 0.5 + 0.5 * sin((x * 1.3 + t) * TAU);
-  float3 tint = mix(float3(0.72, 0.78, 0.92), float3(0.80, 0.83, 0.92), m);
+  // Tint drifts across the rays and over time, so the light is not one flat
+  // colour. The target's rays are not grey: they lean blue in places and
+  // yellow-green in others, aurora-fashion. The two mix ends are those poles,
+  // kept desaturated so at this alpha they read as a cast on the light rather
+  // than as coloured stripes. x * 2.0 puts about two full blue-to-green cycles
+  // across the width, so neighbouring rays sit at visibly different hues; the
+  // t term keeps each ray's cast slowly trading places (integer rate, so the
+  // loop stays seamless).
+  float m = 0.5 + 0.5 * sin((x * 2.0 + t) * TAU);
+  float3 tint = mix(float3(0.78, 0.80, 0.83), float3(0.81, 0.82, 0.79), m);
 
   float3 rgb = tint * a;
   return half4(rgb.r, rgb.g, rgb.b, a);
@@ -191,7 +212,10 @@ const RENDER_SCALE = 1;
 // To change only one kind of motion, edit the per-ray speeds instead: the
 // swing speeds (2-4 here) drive the horizontal panning, the bob speeds (1-2)
 // drive the vertical drift. They have to stay whole numbers.
-const LOOP_MS = 19000;
+//
+// On top of this constant rate, the shader's tw warp makes the perceived
+// speed swell and settle within the loop, so the drift is not metronomic.
+const LOOP_MS = 14000;
 
 type AuroraBackgroundProps = {
   /** Master opacity, for screens that stage the aurora in. Defaults to 1. */
