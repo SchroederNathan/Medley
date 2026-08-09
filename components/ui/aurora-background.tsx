@@ -137,25 +137,30 @@ half4 main(float2 fragCoord) {
   float v2 = v / (1.0 + v);
   float a = clamp(v2 * 0.36, 0.0, 1.0);
 
-  // Grain, matched to the target's measured noise. Also does the job of
-  // dithering: large low-alpha gradients band badly on the #0A0A0A background.
+  // Grain, matched to the target's noise. Also does the job of dithering:
+  // large low-alpha gradients band badly on the #0A0A0A background.
   //
-  // This only comes out fine-grained at RENDER_SCALE 1 — shading at reduced
-  // resolution and scaling up smooths the noise away (it measured 8x weaker
-  // than the target that way).
+  // Cells are 2 physical pixels, not per-pixel: the target's grain stays
+  // visible when the screen is viewed below native resolution, and 1px hash
+  // noise averages away under any downscale. 3px cells were tried and read as
+  // visibly chunky blocks next to the target. Keep RENDER_SCALE at 1 so the
+  // cells stay square.
   //
-  // Faded in with the light rather than applied flat: alpha clamps at 0, so in
-  // fully dark areas only the positive half of the noise survives and flat
-  // grain would lift the whole background.
-  a += (hash(fragCoord) - 0.5) * 0.045 * (0.25 + 0.75 * v2);
+  // The floor term keeps most of the grain in fully dark areas: alpha clamps
+  // at 0 there, so only the positive half of the noise survives, which is
+  // exactly the dark-area speckle the target shows. The floor is faded out
+  // before both canvas edges — grain past the light would otherwise end in a
+  // visible line where the canvas does.
+  float g = (1.0 - smoothstep(0.24, 0.43, ys))
+          * smoothstep(-u_top, -u_top + 0.12, ys);
+  a += (hash(floor(fragCoord / 0.5)) - 0.5) * 0.13 * (0.55 * g + 0.45 * v2);
   a = clamp(a, 0.0, 1.0);
 
-  // Tint drifts very slightly cool-to-warm across the rays and over time, so
-  // the light is not one flat colour. Both ends sit close to neutral on
-  // purpose: measured on the target, the light is essentially grey with green
-  // a touch below red and blue, and a wider spread reads as coloured haze.
+  // Tint drifts slightly across the rays and over time, so the light is not
+  // one flat colour. Both ends lean cool on purpose: the target's glow is a
+  // steel blue-grey, with blue clearly above red and green at both ends.
   float m = 0.5 + 0.5 * sin((x * 1.3 + t) * TAU);
-  float3 tint = mix(float3(0.86, 0.88, 0.93), float3(0.93, 0.88, 0.90), m);
+  float3 tint = mix(float3(0.72, 0.78, 0.92), float3(0.80, 0.83, 0.92), m);
 
   float3 rgb = tint * a;
   return half4(rgb.r, rgb.g, rgb.b, a);
