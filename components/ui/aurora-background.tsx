@@ -78,8 +78,9 @@ float ray(float x, float ys, float t, float base, float halfWidth,
               + a2 * sin((td * s2 + p2) * TAU);
   float f = 1.0 - smoothstep(0.0, halfWidth, abs(x - (base + swing)));
   // Gentler than squaring: keeps the ray soft-edged so wide rays read as
-  // blurred light rather than as bands with a visible boundary.
-  f = pow(f, 1.4);
+  // blurred light rather than as bands with a visible boundary. Lower is
+  // blurrier.
+  f = pow(f, 1.25);
 
   // Each ray fades out at its own height, and that height drifts up and down,
   // so the ray lengthens and shortens — it bobs. This has to be per-ray: a
@@ -117,12 +118,12 @@ half4 main(float2 fragCoord) {
   // which is why they can be packed closer than the earlier shallow-fade
   // versions allowed.
   float v = 0.0;
-  v += ray(x, ys, t, 0.02, 0.22, 0.055, 2.0, 0.00, 0.020, 3.0, 0.20, 0.055, 1.0, 0.00) * breathe(t, 1.0, 0.00, 0.85) * 0.85;
-  v += ray(x, ys, t, 0.22, 0.19, 0.045, 3.0, 0.31, 0.024, 2.0, 0.55, 0.066, 1.0, 0.30) * breathe(t, 2.0, 0.17, 0.90) * 0.90;
-  v += ray(x, ys, t, 0.42, 0.24, 0.065, 2.0, 0.62, 0.018, 4.0, 0.10, 0.050, 2.0, 0.60) * breathe(t, 1.0, 0.33, 0.80) * 0.82;
-  v += ray(x, ys, t, 0.62, 0.20, 0.050, 3.0, 0.14, 0.022, 2.0, 0.80, 0.060, 1.0, 0.85) * breathe(t, 3.0, 0.50, 0.90) * 0.88;
-  v += ray(x, ys, t, 0.82, 0.23, 0.060, 2.0, 0.45, 0.020, 3.0, 0.35, 0.055, 2.0, 0.20) * breathe(t, 2.0, 0.67, 0.85) * 0.84;
-  v += ray(x, ys, t, 1.00, 0.20, 0.048, 3.0, 0.78, 0.026, 2.0, 0.05, 0.066, 1.0, 0.55) * breathe(t, 1.0, 0.83, 0.88) * 0.86;
+  v += ray(x, ys, t, 0.02, 0.26, 0.090, 2.0, 0.00, 0.032, 3.0, 0.20, 0.055, 1.0, 0.00) * breathe(t, 1.0, 0.00, 0.85) * 0.85;
+  v += ray(x, ys, t, 0.22, 0.23, 0.072, 3.0, 0.31, 0.038, 2.0, 0.55, 0.066, 1.0, 0.30) * breathe(t, 2.0, 0.17, 0.90) * 0.90;
+  v += ray(x, ys, t, 0.42, 0.29, 0.105, 2.0, 0.62, 0.029, 4.0, 0.10, 0.050, 2.0, 0.60) * breathe(t, 1.0, 0.33, 0.80) * 0.82;
+  v += ray(x, ys, t, 0.62, 0.24, 0.080, 3.0, 0.14, 0.035, 2.0, 0.80, 0.060, 1.0, 0.85) * breathe(t, 3.0, 0.50, 0.90) * 0.88;
+  v += ray(x, ys, t, 0.82, 0.28, 0.096, 2.0, 0.45, 0.032, 3.0, 0.35, 0.055, 2.0, 0.20) * breathe(t, 2.0, 0.67, 0.85) * 0.84;
+  v += ray(x, ys, t, 1.00, 0.24, 0.077, 3.0, 0.78, 0.042, 2.0, 0.05, 0.066, 1.0, 0.55) * breathe(t, 1.0, 0.83, 0.88) * 0.86;
 
   // Soften the canvas's own top edge so pulling the screen down far never
   // reveals a hard cut where the overhang ends.
@@ -267,12 +268,15 @@ const Aurora = ({ intensity = 1, background, scrollOffset }: AuroraProps) => {
 
   useAppState(onAppStateChange);
 
-  const uniforms = useDerivedValue(() => ({
-    u_res: [canvasWidth, canvasHeight],
-    u_t: t.get(),
-    u_top: OVERHANG,
-    u_total: CANVAS_H,
-  }));
+  const uniforms = useDerivedValue(
+    () => ({
+      u_res: [canvasWidth, canvasHeight],
+      u_t: t.get(),
+      u_top: OVERHANG,
+      u_total: CANVAS_H,
+    }),
+    [t, canvasWidth, canvasHeight]
+  );
 
   // Follow an overscroll drag only. contentOffset.y goes negative when the
   // user pulls past the top, and matching it 1:1 drags the overhang into view;
