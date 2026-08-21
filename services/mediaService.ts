@@ -12,6 +12,19 @@ export type SearchMediaResult = {
 /** @deprecated Use SearchMediaResult */
 export type SearchTmdbResult = SearchMediaResult;
 
+export type UpcomingMovieItem = {
+  media: Media;
+  /** Regional theatrical release date (YYYY-MM-DD) from TMDB discover. */
+  release_date: string;
+};
+
+export type UpcomingMoviesResponse = {
+  items: UpcomingMovieItem[];
+  /** TMDB page to continue from, or null when the window is exhausted. */
+  next_cursor: number | null;
+  window_end: string;
+};
+
 export class MediaService {
   private static async invokeEdgeFunction<T>(
     functionName: string,
@@ -54,6 +67,22 @@ export class MediaService {
 
   static async getMediaDetail(mediaId: string): Promise<Media> {
     return this.invokeEdgeFunction<Media>("media-detail", { id: mediaId });
+  }
+
+  /**
+   * Theatrical releases in the next 12 months via the upcoming-movies edge
+   * function. Cursor-paged: pass the previous response's `next_cursor`.
+   */
+  static async getUpcomingMovies(options: {
+    cursor?: number;
+    region: string;
+    language?: string;
+  }): Promise<UpcomingMoviesResponse> {
+    return this.invokeEdgeFunction<UpcomingMoviesResponse>("upcoming-movies", {
+      cursor: String(options.cursor ?? 1),
+      region: options.region,
+      ...(options.language ? { language: options.language } : {}),
+    });
   }
 
   /**

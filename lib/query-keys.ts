@@ -150,6 +150,8 @@ export const queryKeys = {
       ] as const,
     popularMovies: (limit: number = 20) =>
       ["popularMovies", { limit }] as const,
+    upcomingMovies: (region: string, language?: string) =>
+      ["upcomingMovies", { language: language ?? "en-US", region }] as const,
     seasonEpisodes: (mediaId: string, seasonNumber: number) =>
       ["seasonEpisodes", mediaId, seasonNumber] as const,
   },

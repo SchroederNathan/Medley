@@ -27,6 +27,7 @@ import Animated, {
   useSharedValue,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import AddCollection from "../../../../components/ui/add-collection";
 import { AnimatedProfileImage } from "../../../../components/ui/animated-profile-image";
 import Button from "../../../../components/ui/button";
 import CollectionCard from "../../../../components/ui/collection-card";
@@ -85,10 +86,13 @@ const formatReviewDate = (dateString: string): string => {
   }
 };
 
+// Short titles: TabPager disables header scrolling when centerTabs is set,
+// so all four must fit on one row.
 const tabs = [
-  { key: "library", title: "Library" },
+  { key: "library", title: "Media" },
   { key: "reviews", title: "Reviews" },
-  { key: "collections", title: "Collections" },
+  { key: "collections", title: "Lists" },
+  { key: "ranked", title: "Ranked" },
 ];
 
 const ProfileScreen = () => {
@@ -175,6 +179,16 @@ const ProfileScreen = () => {
   }, [media, contentReady]);
   const reviewsDeferred = !contentReady && activeTab !== "reviews";
   const collectionsDeferred = !contentReady && activeTab !== "collections";
+  const rankedDeferred = !contentReady && activeTab !== "ranked";
+
+  const unrankedCollections = useMemo(
+    () => (collections ?? []).filter((collection) => !collection.ranked),
+    [collections]
+  );
+  const rankedCollections = useMemo(
+    () => (collections ?? []).filter((collection) => collection.ranked),
+    [collections]
+  );
 
   const sortedReviews = useMemo(() => {
     if (!reviews) return [];
@@ -574,34 +588,108 @@ const ProfileScreen = () => {
                           Failed to load collections
                         </Text>
                       </View>
-                    ) : collections && collections.length > 0 ? (
-                      collections.map((collection) => (
-                        <CollectionCard
-                          key={collection.id}
-                          id={collection.id}
-                          title={collection.name}
-                          ranked={collection.ranked}
-                          mediaItems={
-                            collection.collection_items
-                              ?.sort((a, b) => a.position - b.position)
-                              .map((item) => item.media) ?? []
-                          }
+                    ) : (
+                      <>
+                        <AddCollection
+                          title="Add Collection"
                           onPress={() => {
-                            router.push(`/collection/${collection.id}`);
+                            router.push("/collection/form");
                           }}
                         />
-                      ))
-                    ) : (
-                      <View style={styles.emptyContainer}>
+                        {unrankedCollections.length > 0 ? (
+                          unrankedCollections.map((collection) => (
+                            <CollectionCard
+                              key={collection.id}
+                              id={collection.id}
+                              title={collection.name}
+                              ranked={false}
+                              mediaItems={
+                                collection.collection_items
+                                  ?.sort((a, b) => a.position - b.position)
+                                  .map((item) => item.media) ?? []
+                              }
+                              onPress={() => {
+                                router.push(`/collection/${collection.id}`);
+                              }}
+                            />
+                          ))
+                        ) : (
+                          <View style={styles.emptyContainer}>
+                            <Text
+                              style={[
+                                styles.emptyText,
+                                { color: theme.secondaryText },
+                              ]}
+                            >
+                              No collections yet
+                            </Text>
+                          </View>
+                        )}
+                      </>
+                    )}
+                  </View>,
+                  <View
+                    key="ranked"
+                    style={{ flex: 1, paddingTop: 20, gap: 16 }}
+                  >
+                    {collectionsLoading || rankedDeferred ? (
+                      <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="small" />
+                        <Text
+                          style={{ color: theme.secondaryText, marginTop: 8 }}
+                        >
+                          Loading rankings...
+                        </Text>
+                      </View>
+                    ) : collectionsError ? (
+                      <View style={styles.errorContainer}>
                         <Text
                           style={[
-                            styles.emptyText,
+                            styles.errorText,
                             { color: theme.secondaryText },
                           ]}
                         >
-                          No collections yet
+                          Failed to load rankings
                         </Text>
                       </View>
+                    ) : (
+                      <>
+                        <AddCollection
+                          title="Add Ranking"
+                          onPress={() => {
+                            router.push("/collection/form");
+                          }}
+                        />
+                        {rankedCollections.length > 0 ? (
+                          rankedCollections.map((collection) => (
+                            <CollectionCard
+                              key={collection.id}
+                              id={collection.id}
+                              title={collection.name}
+                              ranked={true}
+                              mediaItems={
+                                collection.collection_items
+                                  ?.sort((a, b) => a.position - b.position)
+                                  .map((item) => item.media) ?? []
+                              }
+                              onPress={() => {
+                                router.push(`/collection/${collection.id}`);
+                              }}
+                            />
+                          ))
+                        ) : (
+                          <View style={styles.emptyContainer}>
+                            <Text
+                              style={[
+                                styles.emptyText,
+                                { color: theme.secondaryText },
+                              ]}
+                            >
+                              No ranked collections yet
+                            </Text>
+                          </View>
+                        )}
+                      </>
                     )}
                   </View>,
                 ]}

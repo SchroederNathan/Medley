@@ -1,5 +1,10 @@
-import React, { FC } from "react";
-import { StyleSheet, View } from "react-native";
+import React, { FC, useCallback } from "react";
+import {
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  StyleSheet,
+  View,
+} from "react-native";
 import Animated, {
   Extrapolation,
   interpolate,
@@ -19,13 +24,32 @@ import { useHeaderHeight } from "../../hooks/use-header-height";
 import { SharedSearchResults } from "./shared-search-results";
 import { TopGradient } from "./top-gradient";
 
+/**
+ * Plain-JS scroll props handed to `renderList`. A list component (FlashList)
+ * intercepts `onScroll` and re-invokes it as a normal function, so a
+ * Reanimated worklet handler can't be attached there — these callbacks write
+ * the same shared values from the JS thread instead.
+ */
+export type PullToSearchScrollProps = {
+  onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+  onScrollBeginDrag: () => void;
+  onScrollEndDrag: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+  scrollEventThrottle: number;
+};
+
 type PullToSearchContentProps = {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   searchResults?: any[];
   searchQuery?: string;
   isSearchLoading?: boolean;
   isSearchError?: boolean;
   onSearch?: (query: string) => void;
+  /**
+   * Render an own-scrolling list (e.g. FlashList) instead of the default
+   * ScrollView. The list must spread the given scroll props so pull-to-search
+   * and the aurora keep following the scroll.
+   */
+  renderList?: (scrollProps: PullToSearchScrollProps) => React.ReactNode;
 };
 
 export const PullToSearchContent: FC<PullToSearchContentProps> = ({
@@ -34,6 +58,7 @@ export const PullToSearchContent: FC<PullToSearchContentProps> = ({
   searchQuery = "",
   isSearchLoading = false,
   isSearchError = false,
+  renderList,
 }) => {
   const insets = useSafeAreaInsets();
   const { grossHeight } = useHeaderHeight();
@@ -99,6 +124,41 @@ export const PullToSearchContent: FC<PullToSearchContentProps> = ({
     },
   });
 
+  // JS-thread twins of the worklet handler above, for renderList consumers.
+  // Writing `.value` from JS is supported; the dependent animations still run
+  // on the UI thread via their useAnimatedStyle hooks.
+  const handleListScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const offsetYValue = event.nativeEvent.contentOffset.y;
+      offsetY.value = offsetYValue;
+      auroraScroll?.set(offsetYValue);
+
+      if (screenView.value === "favorites") {
+        blurIntensity.value = interpolate(
+          offsetYValue,
+          [0, FULL_DRAG_DISTANCE],
+          [0, 100],
+          Extrapolation.CLAMP
+        );
+      }
+    },
+    [auroraScroll, blurIntensity, offsetY, screenView]
+  );
+
+  const handleListScrollBeginDrag = useCallback(() => {
+    isListDragging.value = true;
+  }, [isListDragging]);
+
+  const handleListScrollEndDrag = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      isListDragging.value = false;
+      if (event.nativeEvent.contentOffset.y < TRIGGER_DRAG_DISTANCE) {
+        onGoToCommands();
+      }
+    },
+    [isListDragging, onGoToCommands]
+  );
+
   const rContainerStyle = useAnimatedStyle(() => {
     return {
       pointerEvents: screenView.value === "commands" ? "none" : "auto",
@@ -126,21 +186,42 @@ export const PullToSearchContent: FC<PullToSearchContentProps> = ({
     <View style={styles.container}>
       {/* Main content with pull gesture */}
       <Animated.View style={[styles.mainContent, rContainerStyle]}>
-        <Animated.ScrollView
-          style={[
-            styles.scrollView,
-            {
-              paddingBottom: insets.bottom + 8,
-              paddingTop: grossHeight + 20,
-            },
-          ]}
-          scrollEventThrottle={16}
-          onScroll={scrollHandler}
-          showsVerticalScrollIndicator={false}
-          keyboardDismissMode="on-drag"
-        >
-          {children}
-        </Animated.ScrollView>
+        {renderList ? (
+          // Same paddings the ScrollView path applies to its own style.
+          <View
+            style={[
+              styles.scrollView,
+              {
+                flex: 1,
+                paddingBottom: insets.bottom + 8,
+                paddingTop: grossHeight + 20,
+              },
+            ]}
+          >
+            {renderList({
+              onScroll: handleListScroll,
+              onScrollBeginDrag: handleListScrollBeginDrag,
+              onScrollEndDrag: handleListScrollEndDrag,
+              scrollEventThrottle: 16,
+            })}
+          </View>
+        ) : (
+          <Animated.ScrollView
+            style={[
+              styles.scrollView,
+              {
+                paddingBottom: insets.bottom + 8,
+                paddingTop: grossHeight + 20,
+              },
+            ]}
+            scrollEventThrottle={16}
+            onScroll={scrollHandler}
+            showsVerticalScrollIndicator={false}
+            keyboardDismissMode="on-drag"
+          >
+            {children}
+          </Animated.ScrollView>
+        )}
       </Animated.View>
 
       {/* Search results overlay */}
