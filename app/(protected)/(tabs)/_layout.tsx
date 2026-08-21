@@ -1,9 +1,9 @@
-import FolderLibrarySolidIcon from "@hugeicons-pro/core-solid-standard/FolderLibraryIcon";
 import Home11SolidIcon from "@hugeicons-pro/core-solid-standard/Home11Icon";
+import Ticket01SolidIcon from "@hugeicons-pro/core-solid-standard/Ticket01Icon";
 import UserCircleSolidIcon from "@hugeicons-pro/core-solid-standard/UserCircleIcon";
 import UserMultiple02SolidIcon from "@hugeicons-pro/core-solid-standard/UserMultiple02Icon";
-import FolderLibraryIcon from "@hugeicons-pro/core-stroke-standard/FolderLibraryIcon";
 import Home11Icon from "@hugeicons-pro/core-stroke-standard/Home11Icon";
+import Ticket01Icon from "@hugeicons-pro/core-stroke-standard/Ticket01Icon";
 import UserCircleIcon from "@hugeicons-pro/core-stroke-standard/UserCircleIcon";
 import UserMultiple02Icon from "@hugeicons-pro/core-stroke-standard/UserMultiple02Icon";
 import { HugeiconsIcon, IconSvgElement } from "@hugeicons/react-native";
@@ -140,14 +140,14 @@ const TabsLayout = () => {
                 <RiveButton />
               </TabTrigger>
               <TabTrigger
-                name="library"
-                href="/(library)"
+                name="upcoming"
+                href="/(upcoming)"
                 onPress={() => {}}
                 asChild
               >
                 <TabButton
-                  outlineIcon={FolderLibraryIcon}
-                  filledIcon={FolderLibrarySolidIcon}
+                  outlineIcon={Ticket01Icon}
+                  filledIcon={Ticket01SolidIcon}
                 />
               </TabTrigger>
               <TabTrigger
@@ -167,7 +167,7 @@ const TabsLayout = () => {
             <TabTrigger name="home" href="/(home)" />
             <TabTrigger name="social" href="/(social)" />
             <TabTrigger name="match" href="/(match)" />
-            <TabTrigger name="library" href="/(library)" />
+            <TabTrigger name="upcoming" href="/(upcoming)" />
             <TabTrigger name="profile" href="/(profile)" />
           </TabList>
         </Tabs>

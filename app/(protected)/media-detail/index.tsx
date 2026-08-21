@@ -368,24 +368,28 @@ const MediaDetailScreen = () => {
                 {media.title}
               </Text>
               <View style={styles.titleDetailsContainer}>
-                <Image
-                  source={
-                    media.media_type === "movie" ||
-                    media.media_type === "tv_show"
-                      ? require("../../../assets/rating-logos/imdb.png")
-                      : media.media_type === "game"
-                        ? require("../../../assets/rating-logos/metacritic.png")
-                        : null
-                  }
-                  style={[
-                    styles.titleDetailsIcon,
-                    { aspectRatio: media.media_type === "game" ? 1 : 2 },
-                  ]}
-                />
+                {Number(media.rating_average) > 0 && (
+                  <Image
+                    source={
+                      media.media_type === "movie" ||
+                      media.media_type === "tv_show"
+                        ? require("../../../assets/rating-logos/imdb.png")
+                        : media.media_type === "game"
+                          ? require("../../../assets/rating-logos/metacritic.png")
+                          : null
+                    }
+                    style={[
+                      styles.titleDetailsIcon,
+                      { aspectRatio: media.media_type === "game" ? 1 : 2 },
+                    ]}
+                  />
+                )}
                 <Text
                   style={[styles.subtitleText, { color: theme.secondaryText }]}
                 >
-                  {media.rating_average} {" ·  "}
+                  {Number(media.rating_average) > 0
+                    ? `${media.rating_average}  ·  `
+                    : ""}
                   {media.year}
                   {media.media_type === "tv_show" &&
                   media.metadata?.number_of_seasons

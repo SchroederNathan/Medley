@@ -1,4 +1,4 @@
-import { queryOptions } from "@tanstack/react-query";
+import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query";
 import { queryKeys } from "./query-keys";
 import {
   CollectionService,
@@ -6,7 +6,10 @@ import {
 } from "../services/collectionService";
 import { FavouritesService } from "../services/favouritesService";
 import { FollowsService } from "../services/followsService";
-import { MediaService } from "../services/mediaService";
+import {
+  MediaService,
+  UpcomingMoviesResponse,
+} from "../services/mediaService";
 import { Profile, ProfileService } from "../services/profileService";
 import {
   MediaTypeDb,
@@ -117,6 +120,26 @@ export function popularMoviesQueryOptions(limit: number = 20) {
   return queryOptions<Media[]>({
     queryFn: () => MediaService.getPopularMovies(limit),
     queryKey: queryKeys.media.popularMovies(limit),
+    staleTime: 1000 * 60 * 60 * 12,
+  });
+}
+
+export function upcomingMoviesInfiniteQueryOptions(options: {
+  region: string;
+  language?: string;
+}) {
+  return infiniteQueryOptions({
+    gcTime: 1000 * 60 * 60 * 24,
+    getNextPageParam: (lastPage: UpcomingMoviesResponse) =>
+      lastPage.next_cursor,
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) =>
+      MediaService.getUpcomingMovies({
+        cursor: pageParam,
+        language: options.language,
+        region: options.region,
+      }),
+    queryKey: queryKeys.media.upcomingMovies(options.region, options.language),
     staleTime: 1000 * 60 * 60 * 12,
   });
 }

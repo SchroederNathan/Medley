@@ -1,7 +1,7 @@
 import { Stack } from "expo-router";
 import React from "react";
 
-const LibraryLayout = () => {
+const UpcomingLayout = () => {
   return (
     <Stack
       screenOptions={{
@@ -9,9 +9,9 @@ const LibraryLayout = () => {
         headerShown: false,
       }}
     >
-      <Stack.Screen name="index" options={{ title: "Library" }} />
+      <Stack.Screen name="index" options={{ title: "Upcoming" }} />
     </Stack>
   );
 };
 
-export default LibraryLayout;
+export default UpcomingLayout;
