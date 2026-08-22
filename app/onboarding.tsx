@@ -7,7 +7,7 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React, { useContext, useState } from "react";
-import { Platform, StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -28,6 +28,8 @@ import Svg, {
 } from "react-native-svg";
 import { AuroraBackground } from "../components/ui/aurora-background";
 import Button from "../components/ui/button";
+import { ThemedText } from "../components/ui/themed-text";
+import { motion, radius, spacing, type } from "../constants/theme";
 import { ThemeContext } from "../contexts/theme-context";
 import { useToast } from "../contexts/toast-context";
 import { fontFamily } from "../lib/fonts";
@@ -197,30 +199,30 @@ const GetStarted = () => {
   React.useEffect(() => {
     // Title animation - fade in up
     titleOpacity.value = withDelay(
-      200,
+      motion.quick,
       withTiming(1, { duration: 800, easing: Easing.out(Easing.cubic) })
     );
     titleTranslateY.value = withDelay(
-      200,
+      motion.quick,
       withTiming(0, { duration: 800, easing: Easing.out(Easing.cubic) })
     );
 
     // Subtitle and aurora animation - fade in together
     subtitleOpacity.value = withDelay(
-      600,
-      withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) })
+      motion.slow,
+      withTiming(1, { duration: motion.slow, easing: Easing.out(Easing.cubic) })
     );
     auroraOpacity.value = withDelay(
-      600,
-      withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) })
+      motion.slow,
+      withTiming(1, { duration: motion.slow, easing: Easing.out(Easing.cubic) })
     );
     auroraTranslateX.value = withDelay(
-      600,
-      withTiming(0, { duration: 600, easing: Easing.out(Easing.cubic) })
+      motion.slow,
+      withTiming(0, { duration: motion.slow, easing: Easing.out(Easing.cubic) })
     );
     auroraTranslateY.value = withDelay(
-      600,
-      withTiming(0, { duration: 600, easing: Easing.out(Easing.cubic) })
+      motion.slow,
+      withTiming(0, { duration: motion.slow, easing: Easing.out(Easing.cubic) })
     );
 
     // Poster carousel animation - fade in from bottom
@@ -242,7 +244,7 @@ const GetStarted = () => {
     // Bottom gradient animation - fade in after button
     bottomGradientOpacity.value = withDelay(
       1600,
-      withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) })
+      withTiming(1, { duration: motion.slow, easing: Easing.out(Easing.cubic) })
     );
   }, []);
 
@@ -474,10 +476,10 @@ const GetStarted = () => {
             />
           )}
         </View>
-        <Text style={[styles.info, { color: theme.text }]}>
+        <ThemedText style={styles.info}>
           By proceeding to use Medley, you agree to the terms of service and
           privacy policy.
-        </Text>
+        </ThemedText>
       </Animated.View>
     </View>
   );
@@ -490,7 +492,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 20,
+    paddingHorizontal: spacing.xl,
     paddingBottom: 120,
   },
   auroraContainer: {
@@ -507,7 +509,7 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.tanker.regular,
   },
   subtitle: {
-    fontSize: 20,
+    ...type.heading,
     fontFamily: fontFamily.plusJakarta.regular,
   },
   posterContainer: {
@@ -515,7 +517,7 @@ const styles = StyleSheet.create({
     height: 200,
 
     marginTop: 64, // Neutralize parent's horizontal padding so the track spans edge-to-edge
-    marginHorizontal: -20,
+    marginHorizontal: -spacing.xl,
   },
   row: {
     position: "absolute",
@@ -527,21 +529,19 @@ const styles = StyleSheet.create({
   poster: {
     width: 133,
     height: 200,
-    borderRadius: 4,
+    borderRadius: radius.xs,
     borderWidth: 1,
   },
   buttonGroup: {
     width: "100%",
-    gap: 12,
+    gap: spacing.md,
   },
   button: {
     width: "100%",
   },
   info: {
-    fontSize: 16,
-    fontFamily: fontFamily.plusJakarta.regular,
     textAlign: "center",
-    marginTop: 16,
+    marginTop: spacing.lg,
   },
   actionContainer: {
     flexDirection: "column",

@@ -1,9 +1,9 @@
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
-import React, { useContext, useState } from "react";
-import { StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
-import { ThemeContext } from "../../contexts/theme-context";
-import { fontFamily } from "../../lib/fonts";
+import React, { useState } from "react";
+import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
+import { spacing } from "../../constants/theme";
+import { ThemedText } from "./themed-text";
 
 type Platform = {
   name: string;
@@ -50,17 +50,18 @@ const WhereToWatchCarousel = ({
   title?: string;
   style?: StyleProp<ViewStyle>;
 }) => {
-  const { theme } = useContext(ThemeContext);
   const data = platforms?.length ? platforms : placeholderPlatforms;
 
   return (
     <View style={style}>
-      <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
+      <ThemedText variant="heading" style={styles.title}>
+        {title}
+      </ThemedText>
       <FlashList
         data={data}
         keyExtractor={(item) => item.name}
-        style={{ marginHorizontal: -20 }}
-        contentContainerStyle={{ paddingHorizontal: 20 }}
+        style={{ marginHorizontal: -spacing.xl }}
+        contentContainerStyle={{ paddingHorizontal: spacing.xl }}
         renderItem={({ item }) => <LogoItem logo_url={item.logo_url} />}
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -73,13 +74,11 @@ export default WhereToWatchCarousel;
 
 const styles = StyleSheet.create({
   title: {
-    fontSize: 20,
-    fontFamily: fontFamily.plusJakarta.bold,
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
 
   logoContainer: {
-    marginRight: 16,
+    marginRight: spacing.lg,
     alignItems: "center",
     justifyContent: "center",
   },

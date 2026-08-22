@@ -9,22 +9,17 @@ import React, {
   useRef,
   useState,
 } from "react";
-import {
-  Dimensions,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Dimensions, StyleSheet, TouchableOpacity, View } from "react-native";
 import Sortable, { type SortableGridRenderItem } from "react-native-sortables";
+import { radius, spacing } from "../../../constants/theme";
 import { useProfileEditMode } from "../../../contexts/profile-edit-mode-context";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { useFavourites } from "../../../hooks/use-favourites";
 import { useSetFavourites } from "../../../hooks/mutations";
-import { fontFamily } from "../../../lib/fonts";
 import type { ProfileBlockProps } from "../../../lib/profile-blocks/types";
 import { MAX_FAVOURITES } from "../../../services/favouritesService";
 import { Media } from "../../../types/media";
+import { ThemedText } from "../../ui/themed-text";
 import FavouriteCard from "./favourite-card";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -181,17 +176,16 @@ const FavouritesBlock = ({
   return (
     <View ref={containerRef} style={styles.container}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.text }]}>Favourites</Text>
+        <ThemedText variant="titleSm">Favourites</ThemedText>
         {isOwnProfile && items.length > 0 && (
           <TouchableOpacity onPress={toggleEdit} hitSlop={8}>
-            <Text
-              style={[
-                styles.editLabel,
-                { color: showEdit ? theme.text : theme.secondaryText },
-              ]}
+            <ThemedText
+              variant="subhead"
+              weight="medium"
+              color={showEdit ? "primary" : "secondary"}
             >
               {showEdit ? "Done" : "Edit"}
-            </Text>
+            </ThemedText>
           </TouchableOpacity>
         )}
       </View>
@@ -229,20 +223,12 @@ export default FavouritesBlock;
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    gap: 12,
+    gap: spacing.md,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-  },
-  title: {
-    fontSize: 18,
-    fontFamily: fontFamily.plusJakarta.bold,
-  },
-  editLabel: {
-    fontSize: 14,
-    fontFamily: fontFamily.plusJakarta.medium,
   },
   row: {
     flexDirection: "row",
@@ -250,7 +236,7 @@ const styles = StyleSheet.create({
     gap: GAP,
   },
   emptySlot: {
-    borderRadius: 8,
+    borderRadius: radius.sm,
     borderWidth: 1,
     justifyContent: "center",
     alignItems: "center",

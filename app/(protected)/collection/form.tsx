@@ -33,6 +33,13 @@ import Input from "../../../components/ui/input";
 import MediaCard from "../../../components/ui/media-card";
 import Search from "../../../components/ui/search";
 import { Switch } from "../../../components/ui/switch";
+import { ThemedText } from "../../../components/ui/themed-text";
+import {
+  motion,
+  radius,
+  spacing,
+  type,
+} from "../../../constants/theme";
 import { AuthContext } from "../../../contexts/auth-context";
 import { ThemeContext } from "../../../contexts/theme-context";
 import {
@@ -41,7 +48,6 @@ import {
 } from "../../../hooks/mutations";
 import { useCollection } from "../../../hooks/use-collection";
 import { useCollectionSearch } from "../../../hooks/use-collection-search";
-import { fontFamily } from "../../../lib/fonts";
 import { Media } from "../../../types/media";
 
 const CollectionForm = () => {
@@ -215,49 +221,52 @@ const CollectionForm = () => {
   const handleEditEntries = () => {
     if (!isEditingEntries) {
       // Fade out content to the left and fade in search from the right
-      contentOpacity.value = withTiming(0, { duration: 300 });
-      contentTranslateX.value = withTiming(-50, { duration: 300 });
+      contentOpacity.value = withTiming(0, { duration: motion.base });
+      contentTranslateX.value = withTiming(-50, { duration: motion.base });
 
-      searchOpacity.value = withTiming(1, { duration: 300 });
-      searchTranslateX.value = withTiming(0, { duration: 300 });
+      searchOpacity.value = withTiming(1, { duration: motion.base });
+      searchTranslateX.value = withTiming(0, { duration: motion.base });
 
-      backArrowTranslateX.value = withTiming(0, { duration: 300 });
+      backArrowTranslateX.value = withTiming(0, { duration: motion.base });
 
-      backArrowOpacity.value = withTiming(1, { duration: 300 }, () => {
+      backArrowOpacity.value = withTiming(1, { duration: motion.base }, () => {
         runOnJS(setIsEditingEntries)(true);
       });
 
       // Animate header: New Collection out (down), Search Media in (down)
-      headerNewOpacity.value = withTiming(0, { duration: 300 });
-      headerNewTranslateY.value = withSpring(10, { duration: 300 });
+      headerNewOpacity.value = withTiming(0, { duration: motion.base });
+      headerNewTranslateY.value = withSpring(10, { duration: motion.base });
       headerSearchOpacity.value = withDelay(
-        100,
-        withSpring(1, { duration: 300 })
+        motion.fast,
+        withSpring(1, { duration: motion.base })
       );
       headerSearchTranslateY.value = withDelay(
-        100,
-        withSpring(0, { duration: 300 })
+        motion.fast,
+        withSpring(0, { duration: motion.base })
       );
     } else {
       // Fade out search and fade in content
-      searchOpacity.value = withTiming(0, { duration: 300 });
-      searchTranslateX.value = withTiming(300, { duration: 300 });
+      searchOpacity.value = withTiming(0, { duration: motion.base });
+      searchTranslateX.value = withTiming(300, { duration: motion.base });
 
-      backArrowOpacity.value = withTiming(0, { duration: 300 });
-      backArrowTranslateX.value = withTiming(-50, { duration: 300 });
+      backArrowOpacity.value = withTiming(0, { duration: motion.base });
+      backArrowTranslateX.value = withTiming(-50, { duration: motion.base });
 
-      contentOpacity.value = withTiming(1, { duration: 300 });
-      contentTranslateX.value = withTiming(0, { duration: 300 }, () => {
+      contentOpacity.value = withTiming(1, { duration: motion.base });
+      contentTranslateX.value = withTiming(0, { duration: motion.base }, () => {
         runOnJS(setIsEditingEntries)(false);
       });
 
       // Animate header back: Search Media out (up), New Collection in (up)
-      headerSearchOpacity.value = withSpring(0, { duration: 300 });
-      headerSearchTranslateY.value = withSpring(-10, { duration: 300 });
-      headerNewOpacity.value = withDelay(100, withSpring(1, { duration: 300 }));
+      headerSearchOpacity.value = withSpring(0, { duration: motion.base });
+      headerSearchTranslateY.value = withSpring(-10, { duration: motion.base });
+      headerNewOpacity.value = withDelay(
+        motion.fast,
+        withSpring(1, { duration: motion.base })
+      );
       headerNewTranslateY.value = withDelay(
-        100,
-        withSpring(0, { duration: 300 })
+        motion.fast,
+        withSpring(0, { duration: motion.base })
       );
     }
   };
@@ -387,17 +396,9 @@ const CollectionForm = () => {
                   strokeWidth={2.5}
                   color={theme.text}
                 />
-                <Text
-                  style={[
-                    styles.rankedSwitchLabel,
-                    {
-                      color: theme.text,
-                      fontFamily: fontFamily.plusJakarta.medium,
-                    },
-                  ]}
-                >
+                <ThemedText variant="titleSm" weight="medium">
                   Ranked
-                </Text>
+                </ThemedText>
               </View>
               <Switch value={isRanked} onValueChange={setIsRanked} />
             </View>
@@ -407,14 +408,7 @@ const CollectionForm = () => {
                   style={styles.editEntriesHeaderButton}
                   onPress={handleEditEntries}
                 >
-                  <Text
-                    style={[
-                      styles.editEntriesHeaderButtonText,
-                      { color: theme.text },
-                    ]}
-                  >
-                    Edit Entries
-                  </Text>
+                  <ThemedText variant="heading">Edit Entries</ThemedText>
                   <HugeiconsIcon
                     icon={PlusSignIcon}
                     size={24}
@@ -441,18 +435,10 @@ const CollectionForm = () => {
                     ))}
                   </ScrollView>
                 ) : (
-                  <Text
-                    style={[
-                      styles.emptyStateText,
-                      {
-                        color: theme.secondaryText,
-                        fontFamily: fontFamily.plusJakarta.regular,
-                      },
-                    ]}
-                  >
+                  <ThemedText color="secondary" style={styles.emptyStateText}>
                     No media added yet. Tap &quot;Edit Entries&quot; to search
                     and add media.
-                  </Text>
+                  </ThemedText>
                 )}
               </View>
               <Button
@@ -479,7 +465,7 @@ const CollectionForm = () => {
           style={[
             styles.searchContainer,
             searchAnimatedStyle,
-            { bottom: -insets.bottom - 32 },
+            { bottom: -insets.bottom - spacing.xxxl },
           ]}
         >
           <Search
@@ -492,29 +478,13 @@ const CollectionForm = () => {
             {searchQuery ? (
               // When there's a search query, show search results
               searchLoading ? (
-                <Text
-                  style={[
-                    styles.searchEmptyText,
-                    {
-                      color: theme.secondaryText,
-                      fontFamily: fontFamily.plusJakarta.regular,
-                    },
-                  ]}
-                >
+                <ThemedText color="secondary" style={styles.searchEmptyText}>
                   Searching...
-                </Text>
+                </ThemedText>
               ) : searchError ? (
-                <Text
-                  style={[
-                    styles.searchEmptyText,
-                    {
-                      color: theme.text,
-                      fontFamily: fontFamily.plusJakarta.medium,
-                    },
-                  ]}
-                >
+                <ThemedText weight="medium" style={styles.searchEmptyText}>
                   Failed to load search results
-                </Text>
+                </ThemedText>
               ) : searchResults.length > 0 ? (
                 <ScrollView
                   style={styles.searchResultsScrollView}
@@ -545,17 +515,9 @@ const CollectionForm = () => {
                   ))}
                 </ScrollView>
               ) : (
-                <Text
-                  style={[
-                    styles.searchEmptyText,
-                    {
-                      color: theme.secondaryText,
-                      fontFamily: fontFamily.plusJakarta.regular,
-                    },
-                  ]}
-                >
+                <ThemedText color="secondary" style={styles.searchEmptyText}>
                   No results found for &quot;{searchQuery}&quot;
-                </Text>
+                </ThemedText>
               )
             ) : (
               // When there's no search query, show the draggable list (even if empty)
@@ -570,21 +532,13 @@ const CollectionForm = () => {
                 style={styles.searchDraggableList}
                 contentContainerStyle={[
                   styles.searchDraggableListContent,
-                  { paddingBottom: insets.bottom + 32 },
+                  { paddingBottom: insets.bottom + spacing.xxxl },
                 ]}
                 showsVerticalScrollIndicator={false}
                 ListEmptyComponent={
-                  <Text
-                    style={[
-                      styles.searchEmptyText,
-                      {
-                        color: theme.secondaryText,
-                        fontFamily: fontFamily.plusJakarta.regular,
-                      },
-                    ]}
-                  >
+                  <ThemedText color="secondary" style={styles.searchEmptyText}>
                     No media added yet. Start typing to search for media to add.
-                  </Text>
+                  </ThemedText>
                 }
               />
             )}
@@ -603,45 +557,29 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: spacing.xl,
   },
   searchContainer: {
     position: "absolute",
     top: 0,
-    left: 20,
-    right: 20,
-    gap: 12,
+    left: spacing.xl,
+    right: spacing.xl,
+    gap: spacing.md,
   },
   searchInput: {},
   searchContent: {
     flex: 1,
-    gap: 12,
-  },
-  searchTitle: {
-    fontSize: 20,
-    fontFamily: fontFamily.plusJakarta.semiBold,
-    textAlign: "center",
-  },
-  searchResults: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  emptyState: {
-    fontSize: 16,
-    fontFamily: fontFamily.plusJakarta.regular,
-    textAlign: "center",
+    gap: spacing.md,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 24,
+    paddingVertical: spacing.xxl,
   },
   headerTitle: {
-    fontSize: 24,
+    ...type.screenTitle,
     textAlign: "center",
-    fontFamily: fontFamily.tanker.regular,
   },
   headerTitleContainer: {
     position: "relative",
@@ -664,38 +602,27 @@ const styles = StyleSheet.create({
   rankedSwitchLabelContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: spacing.md,
   },
   backArrowButtonTouchable: {
     width: "100%",
     height: "100%",
-    paddingLeft: 20,
+    paddingLeft: spacing.xl,
     justifyContent: "center",
     alignItems: "flex-start",
 
     zIndex: 100,
   },
   inputContainer: {
-    gap: 12,
+    gap: spacing.md,
     zIndex: 1,
   },
-  editEntriesButton: {},
   entriesContainer: {
-    gap: 12,
+    gap: spacing.md,
   },
   entriesList: {
-    marginBottom: 52,
+    marginBottom: 52, // clears the absolutely-positioned 52pt button
   },
-  blurGradientContainer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 52,
-    zIndex: 0,
-    pointerEvents: "none",
-  },
-
   button: {
     position: "absolute",
     left: 0,
@@ -705,35 +632,20 @@ const styles = StyleSheet.create({
   // Search result styles
   searchResultsScrollView: {
     flex: 1,
-    borderRadius: 4,
+    borderRadius: radius.xs,
   },
   searchResultsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
     overflow: "hidden",
-    gap: 12,
+    gap: spacing.md,
   },
   searchResultItem: {},
   searchEmptyText: {
-    fontSize: 16,
     textAlign: "center",
-    paddingVertical: 40,
+    paddingVertical: spacing.huge,
   },
-  // Media cards styles for main screen
-  mediaCardsScrollView: {
-    flex: 1,
-    height: 300,
-    borderRadius: 4,
-  },
-  mediaCardsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    overflow: "hidden",
-    gap: 12,
-  },
-  mediaCardItem: {},
   editEntriesHeaderContainer: {
     position: "relative",
     zIndex: 1,
@@ -742,85 +654,41 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingTop: 24,
-    paddingBottom: 8,
+    paddingTop: spacing.xxl,
+    paddingBottom: spacing.sm,
     zIndex: 2,
-  },
-  editEntriesHeaderButtonText: {
-    fontSize: 20,
-    fontFamily: fontFamily.plusJakarta.bold,
   },
   // Draggable list styles
   draggableList: {
     flex: 1,
     maxHeight: 360,
     overflow: "hidden",
-    marginHorizontal: -20,
-    paddingHorizontal: 20,
+    marginHorizontal: -spacing.xl,
+    paddingHorizontal: spacing.xl,
   },
   draggableListContent: {
-    paddingBottom: 32,
+    paddingBottom: spacing.xxxl,
   },
   // Search screen draggable list styles
   searchDraggableList: {
-    // flex: 1,
-    marginTop: -12,
-    paddingTop: 12,
-    marginHorizontal: -20,
-    paddingHorizontal: 20,
+    marginTop: -spacing.md,
+    paddingTop: spacing.md,
+    marginHorizontal: -spacing.xl,
+    paddingHorizontal: spacing.xl,
   },
   searchDraggableListContent: {
-    paddingBottom: 32,
-  },
-  draggableItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 16,
-    gap: 12,
-  },
-  draggableContent: {
-    flex: 1,
-    justifyContent: "center",
-    gap: 4,
-  },
-  draggableTitle: {
-    fontSize: 16,
-  },
-  draggableYear: {
-    fontSize: 14,
-  },
-  rankNumber: {
-    fontSize: 24,
-    fontWeight: "bold",
-    fontFamily: fontFamily.plusJakarta.bold,
-  },
-  rankNumberSmall: {
-    fontSize: 18,
-    fontWeight: "bold",
-    fontFamily: fontFamily.plusJakarta.bold,
-    minWidth: 24,
-    textAlign: "center",
-  },
-  rankContainer: {
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
+    paddingBottom: spacing.xxxl,
   },
   emptyStateText: {
-    fontSize: 16,
     textAlign: "center",
-    paddingBottom: 72,
+    paddingBottom: 72, // optical centering between switch row and button
     paddingTop: 52,
   },
   rankedSwitchContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingTop: 16,
-    paddingBottom: 8,
-  },
-  rankedSwitchLabel: {
-    fontSize: 18,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.sm,
   },
 });

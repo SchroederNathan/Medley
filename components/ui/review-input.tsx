@@ -30,6 +30,7 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { radius, spacing, type } from "../../constants/theme";
 import { AuthContext } from "../../contexts/auth-context";
 import { ThemeContext } from "../../contexts/theme-context";
 import { useToast } from "../../contexts/toast-context";
@@ -41,6 +42,7 @@ import { AnimatedIconButton } from "./animated-icon-button";
 import { BottomGradient } from "./bottom-gradient";
 import MediaCard from "./media-card";
 import { StarRating } from "./star-rating";
+import { ThemedText } from "./themed-text";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
@@ -151,7 +153,7 @@ const ReviewInput: React.FC<ReviewInputProps> = ({ item, style }) => {
     const paddingBottom = interpolate(
       focusProgress.get(),
       [0, 1],
-      [insets.bottom + 12, 12]
+      [insets.bottom + spacing.md, spacing.md]
     );
     return { paddingBottom };
   });
@@ -180,7 +182,7 @@ const ReviewInput: React.FC<ReviewInputProps> = ({ item, style }) => {
     const borderRadius = interpolate(
       focusProgress.get(),
       [0, 1],
-      [MIN_HEIGHT / 2, 20]
+      [MIN_HEIGHT / 2, radius.xl]
     );
 
     return { width, height, borderRadius };
@@ -456,12 +458,13 @@ const ReviewInput: React.FC<ReviewInputProps> = ({ item, style }) => {
                           height={75}
                           isTouchable={false}
                         />
-                        <Text
-                          style={[styles.title, { color: theme.text }]}
+                        <ThemedText
+                          variant="headline"
+                          style={styles.title}
                           numberOfLines={2}
                         >
                           {item.title}
-                        </Text>
+                        </ThemedText>
                       </View>
                       <StarRating
                         rating={rating}
@@ -547,7 +550,7 @@ const styles = StyleSheet.create({
     zIndex: 0,
   },
   root: {
-    marginHorizontal: 16,
+    marginHorizontal: spacing.lg,
     zIndex: 1,
   },
   detentContainer: {
@@ -590,49 +593,38 @@ const styles = StyleSheet.create({
   placeholderPress: {
     flex: 1,
     justifyContent: "center",
-    paddingHorizontal: 20,
+    paddingHorizontal: spacing.xl,
   },
   placeholderText: {
-    fontSize: 16,
+    ...type.body,
     lineHeight: 16,
     fontFamily: fontFamily.plusJakarta.medium,
   },
   // Expanded state
   expanded: {
     flex: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.lg,
   },
   header: {
-    marginTop: 24,
-    marginBottom: 12,
-    gap: 8,
+    marginTop: spacing.xxl,
+    marginBottom: spacing.md,
+    gap: spacing.sm,
     alignItems: "center",
   },
   titleContainer: {
     alignItems: "center",
     maxWidth: 300,
-    gap: 8,
-  },
-  titleImage: {
-    borderRadius: 12,
+    gap: spacing.sm,
   },
   title: {
-    fontSize: 16,
     textAlign: "center",
-    fontFamily: fontFamily.plusJakarta.semiBold,
   },
   input: {
     minHeight: 100, // Ensure minimum height for input
     paddingBottom: 68,
-    fontSize: 16,
-    fontFamily: fontFamily.plusJakarta.regular,
+    ...type.body,
     textAlignVertical: "top",
-    paddingTop: Platform.OS === "ios" ? 0 : 8,
-  },
-  submitRow: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    marginTop: 12,
+    paddingTop: Platform.OS === "ios" ? 0 : spacing.sm,
   },
   submitBtn: {
     width: 44,
@@ -640,7 +632,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 12,
     bottom: 12,
-    borderRadius: 12,
+    borderRadius: radius.md,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -654,6 +646,6 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   contentContainer: {
-    gap: 20,
+    gap: spacing.xl,
   },
 });

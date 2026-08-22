@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
   Pressable,
   StyleSheet,
-  Text,
   useWindowDimensions,
 } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -21,6 +20,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { motion, radius, spacing } from "../../constants/theme";
 import {
   _timingConfig,
   useZoomAnimation,
@@ -28,7 +28,7 @@ import {
 import { ThemeContext } from "../../contexts/theme-context";
 import { useUploadAvatar } from "../../hooks/mutations";
 import { useUserProfile } from "../../hooks/use-user-profile";
-import { fontFamily } from "../../lib/fonts";
+import { ThemedText } from "./themed-text";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
@@ -108,8 +108,8 @@ export const AnimatedProfileImage: FC = () => {
     .onStart(() => {
       panStartX.value = imageXCoord.value;
       panStartY.value = imageYCoord.value;
-      closeBtnOpacity.value = withTiming(0, { duration: 200 });
-      changeImageRowOpacity.value = withTiming(0, { duration: 100 });
+      closeBtnOpacity.value = withTiming(0, { duration: motion.quick });
+      changeImageRowOpacity.value = withTiming(0, { duration: motion.fast });
     })
     .onChange((event) => {
       if (imageState.value === "close") return;
@@ -231,15 +231,15 @@ export const AnimatedProfileImage: FC = () => {
           {isPickingImage || uploadMutation.isPending ? (
             <>
               <ActivityIndicator size="small" color={theme.text} />
-              <Text style={[styles.changeImageText, { color: theme.text }]}>
+              <ThemedText variant="heading" weight="medium">
                 {uploadMutation.isPending ? "Uploading..." : "Picking..."}
-              </Text>
+              </ThemedText>
             </>
           ) : (
             <>
-              <Text style={[styles.changeImageText, { color: theme.text }]}>
+              <ThemedText variant="heading" weight="medium">
                 Change Image
-              </Text>
+              </ThemedText>
               <HugeiconsIcon
                 icon={ImageAdd01SolidIcon}
                 size={20}
@@ -258,12 +258,12 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 16,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
-    padding: 4,
-    borderRadius: 20,
+    padding: spacing.xs,
+    borderRadius: radius.full,
   },
   imageContainer: {
     position: "absolute",
-    borderRadius: 9999,
+    borderRadius: radius.full,
     overflow: "hidden",
   },
   placeholder: {
@@ -274,11 +274,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 12,
-    paddingHorizontal: 16,
-  },
-  changeImageText: {
-    fontFamily: fontFamily.plusJakarta.medium,
-    fontSize: 20,
+    gap: spacing.md,
+    paddingHorizontal: spacing.lg,
   },
 });

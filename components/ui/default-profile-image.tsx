@@ -3,6 +3,7 @@ import { StyleSheet, Pressable, Text, useWindowDimensions } from "react-native";
 import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import { useZoomAnimation } from "../../contexts/zoom-animation-context";
 import { Image } from "expo-image";
+import { radius } from "../../constants/theme";
 import { useUserProfile } from "../../hooks/use-user-profile";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
@@ -80,7 +81,7 @@ export const DefaultProfileImage: FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 9999,
+    borderRadius: radius.full,
     borderWidth: 1,
     overflow: "hidden",
     alignItems: "center",

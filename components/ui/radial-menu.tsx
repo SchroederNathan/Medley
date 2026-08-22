@@ -19,8 +19,8 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
+import { radius, type } from "../../constants/theme";
 import { ThemeContext } from "../../contexts/theme-context";
-import { fontFamily } from "../../lib/fonts";
 
 const BUTTON_RADIUS = 28; // 56px diameter
 const DEFAULT_RADIUS = 96; // distance from press point to button center
@@ -450,8 +450,7 @@ export const RadialMenu: FC<RadialMenuProps> = ({
               style={{
                 color: theme.text,
                 overflow: "visible",
-                fontSize: 40,
-                fontFamily: fontFamily.tanker.regular,
+                ...type.display,
                 textShadowColor:
                   theme.mode === "dark"
                     ? "rgba(0,0,0,1)"
@@ -473,7 +472,7 @@ const styles = StyleSheet.create({
   button: {
     position: "absolute",
     boxShadow: "0 1.5px 0 0 rgba(0, 0, 0, 0.2)",
-    borderRadius: 100,
+    borderRadius: radius.full,
     alignItems: "center",
     justifyContent: "center",
     width: BUTTON_RADIUS * 2,

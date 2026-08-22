@@ -10,11 +10,12 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { motion, radius, spacing, type } from "../../constants/theme";
 import { ThemeContext } from "../../contexts/theme-context";
 import { useSeasonEpisodes } from "../../hooks/use-season-episodes";
-import { fontFamily } from "../../lib/fonts";
 import { TvEpisode, TvSeason } from "../../types/media";
 import SeasonPicker from "./sheets/season-picker";
+import { ThemedText } from "./themed-text";
 
 interface SeasonEpisodesCarouselProps {
   mediaId: string;
@@ -39,7 +40,7 @@ const EpisodeCard = ({
             source={{ uri: episode.still_path }}
             contentFit="cover"
             cachePolicy="memory-disk"
-            transition={200}
+            transition={motion.quick}
             style={styles.image}
           />
         ) : (
@@ -90,7 +91,7 @@ const SeasonEpisodesCarousel = ({
         onPress={() => setShowPicker(true)}
         style={styles.titleRow}
       >
-        <Text style={[styles.title, { color: theme.text }]}>{seasonTitle}</Text>
+        <ThemedText variant="heading">{seasonTitle}</ThemedText>
         <HugeiconsIcon
           icon={ArrowDown01Icon}
           size={20}
@@ -107,16 +108,16 @@ const SeasonEpisodesCarousel = ({
         <FlashList
           data={episodes}
           keyExtractor={(item) => String(item.episode_number)}
-          style={{ marginHorizontal: -20 }}
-          contentContainerStyle={{ paddingHorizontal: 20 }}
+          style={{ marginHorizontal: -spacing.xl }}
+          contentContainerStyle={{ paddingHorizontal: spacing.xl }}
           renderItem={renderItem}
           horizontal
           showsHorizontalScrollIndicator={false}
         />
       ) : (
-        <Text style={[styles.emptyText, { color: theme.secondaryText }]}>
+        <ThemedText variant="subhead" color="secondary">
           No episodes available
-        </Text>
+        </ThemedText>
       )}
 
       <SeasonPicker
@@ -136,12 +137,8 @@ const styles = StyleSheet.create({
   titleRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 20,
-    fontFamily: fontFamily.plusJakarta.bold,
+    gap: spacing.xs,
+    marginBottom: spacing.lg,
   },
   loadingContainer: {
     height: CARD_HEIGHT,
@@ -150,12 +147,12 @@ const styles = StyleSheet.create({
   },
   card: {
     width: CARD_WIDTH,
-    marginRight: 16,
+    marginRight: spacing.lg,
   },
   imageContainer: {
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
-    borderRadius: 8,
+    borderRadius: radius.sm,
     overflow: "hidden",
   },
   image: {
@@ -163,16 +160,10 @@ const styles = StyleSheet.create({
     height: CARD_HEIGHT,
   },
   name: {
-    fontSize: 12,
-    fontFamily: fontFamily.plusJakarta.medium,
-    marginTop: 8,
+    ...type.caption,
+    marginTop: spacing.sm,
   },
   subtitle: {
-    fontSize: 12,
-    fontFamily: fontFamily.plusJakarta.medium,
-  },
-  emptyText: {
-    fontSize: 14,
-    fontFamily: fontFamily.plusJakarta.regular,
+    ...type.caption,
   },
 });

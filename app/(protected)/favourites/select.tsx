@@ -5,18 +5,18 @@ import {
   Keyboard,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MediaCard from "../../../components/ui/media-card";
 import Search from "../../../components/ui/search";
+import { ThemedText } from "../../../components/ui/themed-text";
+import { spacing } from "../../../constants/theme";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { useCollectionSearch } from "../../../hooks/use-collection-search";
 import { useFavourites } from "../../../hooks/use-favourites";
 import { useSetFavourites } from "../../../hooks/mutations";
-import { fontFamily } from "../../../lib/fonts";
 import { MAX_FAVOURITES } from "../../../services/favouritesService";
 import { Media } from "../../../types/media";
 
@@ -102,11 +102,11 @@ const FavouritesSelect = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>{title}</Text>
+        <ThemedText variant="screenTitle">{title}</ThemedText>
         <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
-          <Text style={[styles.cancel, { color: theme.secondaryText }]}>
+          <ThemedText weight="medium" color="secondary">
             Cancel
-          </Text>
+          </ThemedText>
         </TouchableOpacity>
       </View>
 
@@ -118,18 +118,18 @@ const FavouritesSelect = () => {
 
       <View style={styles.content}>
         {searchLoading ? (
-          <Text style={[styles.emptyText, { color: theme.secondaryText }]}>
+          <ThemedText color="secondary" style={styles.emptyText}>
             Searching...
-          </Text>
+          </ThemedText>
         ) : searchError ? (
-          <Text style={[styles.emptyText, { color: theme.text }]}>
+          <ThemedText style={styles.emptyText}>
             Failed to load results
-          </Text>
+          </ThemedText>
         ) : searchResults.length > 0 ? (
           <ScrollView
             contentContainerStyle={[
               styles.resultsGrid,
-              { paddingBottom: insets.bottom + 24 },
+              { paddingBottom: insets.bottom + spacing.xxl },
             ]}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
@@ -150,11 +150,11 @@ const FavouritesSelect = () => {
             ))}
           </ScrollView>
         ) : (
-          <Text style={[styles.emptyText, { color: theme.secondaryText }]}>
+          <ThemedText color="secondary" style={styles.emptyText}>
             {searchQuery
               ? `No results found for "${searchQuery}"`
               : "Search to find media to feature."}
-          </Text>
+          </ThemedText>
         )}
       </View>
     </View>
@@ -166,36 +166,26 @@ export default FavouritesSelect;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: spacing.xl,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 20,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontFamily: fontFamily.tanker.regular,
-  },
-  cancel: {
-    fontSize: 16,
-    fontFamily: fontFamily.plusJakarta.medium,
+    paddingVertical: spacing.xl,
   },
   content: {
     flex: 1,
-    marginTop: 12,
+    marginTop: spacing.md,
   },
   resultsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    gap: 12,
+    gap: spacing.md,
   },
   emptyText: {
-    fontSize: 16,
     textAlign: "center",
-    paddingVertical: 40,
-    fontFamily: fontFamily.plusJakarta.regular,
+    paddingVertical: spacing.huge,
   },
 });

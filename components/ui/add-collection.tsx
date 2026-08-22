@@ -1,9 +1,10 @@
 import PlusSignIcon from "@hugeicons-pro/core-stroke-standard/PlusSignIcon";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import React, { useContext } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { spacing } from "../../constants/theme";
 import { ThemeContext } from "../../contexts/theme-context";
-import { fontFamily } from "../../lib/fonts";
+import { ThemedText } from "./themed-text";
 
 const AddCollection = ({
   title,
@@ -31,7 +32,7 @@ const AddCollection = ({
           strokeWidth={2}
         />
       </View>
-      <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
+      <ThemedText variant="headline">{title}</ThemedText>
     </TouchableOpacity>
   );
 };
@@ -43,7 +44,7 @@ const styles = StyleSheet.create({
     width: "100%",
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
+    gap: spacing.lg,
     borderRadius: 10,
   },
   addBox: {
@@ -53,9 +54,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-  },
-  title: {
-    fontSize: 16,
-    fontFamily: fontFamily.plusJakarta.semiBold,
   },
 });

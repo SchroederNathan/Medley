@@ -19,11 +19,13 @@ import AuthScreenLayout, {
 } from "../components/ui/auth-screen-layout";
 import Button from "../components/ui/button";
 import Input from "../components/ui/input";
+import { motion, spacing, type } from "../constants/theme";
 import { AuthContext } from "../contexts/auth-context";
-import { fontFamily } from "../lib/fonts";
+import { ThemeContext } from "../contexts/theme-context";
 
 export default function NameScreen() {
   const authContext = useContext(AuthContext);
+  const { theme } = useContext(ThemeContext);
   const layoutRef = useRef<AuthScreenLayoutHandle>(null);
   // Prefilled with the name Clerk got from Apple/Google, when available.
   const [firstName, setFirstName] = useState<string>(
@@ -50,12 +52,12 @@ export default function NameScreen() {
       Animated.parallel([
         Animated.timing(errorOpacity, {
           toValue: 1,
-          duration: 200,
+          duration: motion.quick,
           useNativeDriver: true,
         }),
         Animated.timing(errorTranslateY, {
           toValue: 0,
-          duration: 200,
+          duration: motion.quick,
           useNativeDriver: true,
         }),
       ]).start();
@@ -68,12 +70,12 @@ export default function NameScreen() {
     Animated.parallel([
       Animated.timing(errorOpacity, {
         toValue: 0,
-        duration: 200,
+        duration: motion.quick,
         useNativeDriver: true,
       }),
       Animated.timing(errorTranslateY, {
         toValue: -10,
-        duration: 200,
+        duration: motion.quick,
         useNativeDriver: true,
       }),
     ]).start(() => setError(""));
@@ -106,12 +108,14 @@ export default function NameScreen() {
           {
             opacity: errorOpacity,
             transform: [{ translateY: errorTranslateY }],
-            marginBottom: error ? 8 : 0,
+            marginBottom: error ? spacing.sm : 0,
           },
         ]}
       >
         {error ? (
-          <Text style={[styles.errorText, { color: "#ff4444" }]}>{error}</Text>
+          <Text style={[styles.errorText, { color: theme.destructive }]}>
+            {error}
+          </Text>
         ) : null}
       </Animated.View>
       <Input
@@ -121,7 +125,7 @@ export default function NameScreen() {
         autoCapitalize="words"
         returnKeyType="done"
         onSubmitEditing={onContinue}
-        style={{ marginBottom: 24 }}
+        style={{ marginBottom: spacing.xxl }}
       />
 
       <Button title="Continue" onPress={onContinue} />
@@ -131,17 +135,10 @@ export default function NameScreen() {
 
 const styles = StyleSheet.create({
   errorContainer: {
-    marginBottom: 8,
-    paddingHorizontal: 4,
+    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.xs,
   },
   errorText: {
-    fontSize: 14,
-    fontFamily: fontFamily.plusJakarta.regular,
-  },
-  label: {
-    fontSize: 14,
-    fontFamily: fontFamily.plusJakarta.regular,
-    opacity: 0.8,
-    paddingHorizontal: 4,
+    ...type.subhead,
   },
 });

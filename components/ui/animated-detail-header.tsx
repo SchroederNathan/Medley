@@ -10,6 +10,7 @@ import Animated, {
   useDerivedValue,
   withTiming,
 } from "react-native-reanimated";
+import { motion, radius, spacing } from "../../constants/theme";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
 import { AnimatedIconButton } from "./animated-icon-button";
@@ -58,7 +59,7 @@ export const AnimatedDetailHeader: React.FC<AnimatedDetailHeaderProps> = ({
   const rHeaderTitleStyle = useAnimatedStyle(() => {
     return {
       opacity: withTiming(scrollY.value > rInputRange.value[1] ? 1 : 0, {
-        duration: 200,
+        duration: motion.quick,
       }),
     };
   });
@@ -67,7 +68,7 @@ export const AnimatedDetailHeader: React.FC<AnimatedDetailHeaderProps> = ({
   const rHeaderBackgroundStyle = useAnimatedStyle(() => {
     return {
       opacity: withTiming(scrollY.value > rInputRange.value[1] * 0.95 ? 1 : 0, {
-        duration: 200,
+        duration: motion.quick,
       }),
     };
   });
@@ -165,7 +166,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 60, // Space for back button
   },
   headerTitle: {
-    fontSize: 17,
+    fontSize: 17, // matches native iOS header title (17pt)
     fontFamily: fontFamily.plusJakarta.semiBold,
   },
 
@@ -175,7 +176,7 @@ const styles = StyleSheet.create({
     left: 16,
     height: 40,
     width: 40,
-    borderRadius: 20,
+    borderRadius: radius.full,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -186,7 +187,7 @@ const styles = StyleSheet.create({
     height: 40,
     zIndex: 20,
     flexDirection: "row",
-    gap: 4,
+    gap: spacing.xs,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -194,7 +195,7 @@ const styles = StyleSheet.create({
   rightButton: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: radius.full,
     justifyContent: "center",
     alignItems: "center",
   },

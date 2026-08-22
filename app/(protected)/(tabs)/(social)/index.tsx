@@ -1,13 +1,12 @@
-import React, { useContext } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { fontFamily } from "../../../../lib/fonts";
-import { ThemeContext } from "../../../../contexts/theme-context";
+import React from "react";
+import { StyleSheet, View } from "react-native";
+import { ThemedText } from "../../../../components/ui/themed-text";
+import { spacing } from "../../../../constants/theme";
 
 const SocialScreen = () => {
-  const { theme } = useContext(ThemeContext);
   return (
     <View style={styles.container}>
-      <Text style={[styles.title, { color: theme.text }]}>Social</Text>
+      <ThemedText variant="title">Social</ThemedText>
     </View>
   );
 };
@@ -15,13 +14,9 @@ const SocialScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: spacing.xl,
     justifyContent: "center",
     alignItems: "center",
-  },
-  title: {
-    fontSize: 24,
-    fontFamily: fontFamily.plusJakarta.bold,
   },
 });
 

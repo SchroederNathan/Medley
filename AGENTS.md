@@ -83,11 +83,28 @@ components/ui/ → hooks/ → services/ → Supabase client (lib/utils.ts)
 
 The Supabase client is initialized in `lib/utils.ts` with AsyncStorage-backed auth persistence.
 
-### Styling
+### Styling (design system)
 
-- `StyleSheet.create` for static styles, dynamic colors from `ThemeContext`
-- Theme tokens defined in `constants/colors.ts` (light + dark)
-- Three custom font families loaded in `lib/fonts.ts`: Plus Jakarta Sans, Bespoke Serif, Tanker
+- All design tokens are exported from one entry point: `constants/theme.ts`.
+  It re-exports `themes` (colors, light + dark), `spacing`, `radius`, `type`
+  (text styles), `shadows`, and `motion`.
+- `StyleSheet.create` for static styles; theme-dependent colors come from
+  `ThemeContext` at render time. Colors are never baked into static token files.
+- Text: use `components/ui/themed-text.tsx` (`variant` from the `type` ramp,
+  `weight` to swap the Plus Jakarta weight, `color="secondary"` for
+  `theme.secondaryText`). In `StyleSheet` entries or `Animated.Text`, spread a
+  ramp step instead: `...type.heading`. Never write raw `fontSize` values.
+- The app bundles static font files (`lib/fonts.ts`: Plus Jakarta Sans,
+  Bespoke Serif, Tanker) — weight comes from `fontFamily`, never `fontWeight`.
+- Spacing scale (4-point grid): xxs 2, xs 4, sm 8, md 12, lg 16, xl 20,
+  xxl 24, xxxl 32, huge 40. Use `gap` + tokens; snap new values to the
+  nearest step. A genuinely one-off value stays inline with a comment.
+- Radius: xs 4, sm 8, md 12, lg 16, xl 20, xxl 24, full 9999 (capsules).
+  Pair non-full radii with `borderCurve: "continuous"`.
+- Shadows are `boxShadow` strings from `constants/shadows.ts`. `elevation` is
+  only allowed paired with `zIndex` for Android stacking order.
+- Motion durations from `constants/motion.ts` (fast 100, quick 200, base 300,
+  slow 600); deliberately tuned one-off durations stay inline.
 - Heavy use of `LinearGradient`, `BlurView`, and Reanimated animations
 
 ## Code Conventions

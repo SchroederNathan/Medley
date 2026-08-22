@@ -3,19 +3,19 @@ import React, { useContext, useState } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../../components/ui/button";
 import Input from "../../components/ui/input";
+import { ThemedText } from "../../components/ui/themed-text";
+import { spacing } from "../../constants/theme";
 import { ThemeContext } from "../../contexts/theme-context";
 import {
   BUILD_CHANNEL,
   useUpdateChannel,
 } from "../../hooks/use-update-channel";
-import { fontFamily } from "../../lib/fonts";
 
 // Hidden screen, reached via the deep link posted on each PR:
 // com.schroedernathan.medley://channel-surf?channel=<branch-name>
@@ -39,28 +39,28 @@ const ChannelSurfScreen = () => {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 20 }]}>
+    <View style={[styles.container, { paddingTop: insets.top + spacing.xl }]}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.text }]}>
+        <ThemedText variant="heading" weight="semiBold">
           Channel surfing
-        </Text>
+        </ThemedText>
         <TouchableOpacity onPress={close} hitSlop={8}>
-          <Text style={[styles.cancel, { color: theme.secondaryText }]}>
+          <ThemedText weight="medium" color="secondary">
             Close
-          </Text>
+          </ThemedText>
         </TouchableOpacity>
       </View>
 
       {!canSurf ? (
-        <Text style={[styles.body, { color: theme.secondaryText }]}>
+        <ThemedText variant="subhead" color="secondary">
           Channel surfing only works in release preview builds.
-        </Text>
+        </ThemedText>
       ) : (
         <>
-          <Text style={[styles.body, { color: theme.secondaryText }]}>
+          <ThemedText variant="subhead" color="secondary">
             Current channel: {activeChannel}
             {isSurfing ? " (override active)" : ""}
-          </Text>
+          </ThemedText>
 
           <Input
             placeholder="PR branch name"
@@ -88,9 +88,9 @@ const ChannelSurfScreen = () => {
           {busy && <ActivityIndicator color={theme.text} />}
 
           {error && (
-            <Text style={[styles.body, { color: theme.destructive }]}>
+            <ThemedText variant="subhead" style={{ color: theme.destructive }}>
               {error}
-            </Text>
+            </ThemedText>
           )}
         </>
       )}
@@ -103,24 +103,12 @@ export default ChannelSurfScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 20,
-    gap: 16,
+    paddingHorizontal: spacing.xl,
+    gap: spacing.lg,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-  },
-  title: {
-    fontSize: 20,
-    fontFamily: fontFamily.plusJakarta.semiBold,
-  },
-  cancel: {
-    fontSize: 16,
-    fontFamily: fontFamily.plusJakarta.medium,
-  },
-  body: {
-    fontSize: 14,
-    fontFamily: fontFamily.plusJakarta.regular,
   },
 });

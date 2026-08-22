@@ -1,7 +1,7 @@
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useContext, useEffect } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -11,8 +11,9 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../../../../components/ui/button";
 import SegmentedPicker from "../../../../components/ui/segmented-picker";
+import { ThemedText } from "../../../../components/ui/themed-text";
+import { motion, radius, shadows, spacing } from "../../../../constants/theme";
 import { ThemeContext } from "../../../../contexts/theme-context";
-import { fontFamily } from "../../../../lib/fonts";
 
 const MatchScreen = () => {
   const { theme } = useContext(ThemeContext);
@@ -35,15 +36,15 @@ const MatchScreen = () => {
     setTimeout(() => {
       imageOpacity.value = withSpring(1);
       translateY.value = withSpring(0);
-      translateYSideImages.value = withDelay(100, withSpring(28));
-      rotateLeftImage.value = withDelay(100, withSpring(-10));
-      rotateRightImage.value = withDelay(100, withSpring(10));
+      translateYSideImages.value = withDelay(motion.fast, withSpring(28));
+      rotateLeftImage.value = withDelay(motion.fast, withSpring(-10));
+      rotateRightImage.value = withDelay(motion.fast, withSpring(10));
       titleOpacity.value = withDelay(500, withSpring(1));
       titleTranslateYTitle.value = withDelay(500, withSpring(0));
       subtitleOpacity.value = withDelay(550, withSpring(1));
       subtitleTranslateYSubtitle.value = withDelay(550, withSpring(0));
-      buttonOpacity.value = withDelay(600, withSpring(1));
-      buttonTranslateY.value = withDelay(600, withSpring(0));
+      buttonOpacity.value = withDelay(motion.slow, withSpring(1));
+      buttonTranslateY.value = withDelay(motion.slow, withSpring(0));
     }, 100);
   }, [
     translateY,
@@ -149,15 +150,15 @@ const MatchScreen = () => {
         </View>
         <View style={styles.textContainer}>
           <Animated.View style={titleAnimatedStyle}>
-            <Text style={[styles.text, { color: theme.text }]}>
+            <ThemedText variant="displaySm" style={styles.text}>
               Find your next obsession
-            </Text>
+            </ThemedText>
           </Animated.View>
           <Animated.View style={subtitleAnimatedStyle}>
-            <Text style={[styles.subtitle, { color: theme.secondaryText }]}>
+            <ThemedText color="secondary" style={styles.subtitle}>
               Swipe through to mark what hits and what doesn&apos;t. We&apos;ll
               handle the digging.
-            </Text>
+            </ThemedText>
           </Animated.View>
         </View>
         <LinearGradient
@@ -199,7 +200,7 @@ export default MatchScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: spacing.xl,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -224,7 +225,7 @@ const styles = StyleSheet.create({
     width: 150,
     height: 200,
     zIndex: 5,
-    marginHorizontal: -32,
+    marginHorizontal: -spacing.xxxl,
     boxShadow: "rgba(0,0,0,0.5) 0px 0px 20px 12px",
   },
   imageLeftContainer: { zIndex: 4, width: 112.5, height: 150 },
@@ -232,24 +233,20 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: "100%",
-    borderRadius: 4,
-    boxShadow: "rgba(204, 219, 232, 0.3) 0 1px 4px 0.5px inset",
+    borderRadius: radius.xs,
+    boxShadow: shadows.insetHighlight,
   },
   textContainer: {
-    gap: 4,
+    gap: spacing.xs,
     alignItems: "center",
-    marginTop: 32,
+    marginTop: spacing.xxxl,
     maxWidth: 400,
-    paddingHorizontal: 20,
+    paddingHorizontal: spacing.xl,
   },
   text: {
-    fontSize: 32,
-    fontFamily: fontFamily.tanker.regular,
     textAlign: "center",
   },
   subtitle: {
-    fontSize: 16,
-    fontFamily: fontFamily.plusJakarta.regular,
     textAlign: "center",
   },
   button: {

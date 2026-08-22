@@ -14,11 +14,12 @@ import Animated, {
   FadeOut,
   Layout,
 } from "react-native-reanimated";
+import { radius, spacing, type } from "../../constants/theme";
 import { AuthContext } from "../../contexts/auth-context";
 import { ThemeContext } from "../../contexts/theme-context";
 import { useAddToLibrary } from "../../hooks/mutations";
-import { fontFamily } from "../../lib/fonts";
 import { UserMediaStatus } from "../../services/userMediaService";
+import { ThemedText } from "./themed-text";
 
 interface StatusButtonProps {
   title: string;
@@ -182,15 +183,15 @@ const StatusButton = ({
                         ? "rgba(255,255,255,0.04)"
                         : "rgba(0,0,0,0.04)",
                   },
-                  index > 0 ? { marginTop: 8 } : null,
+                  index > 0 ? { marginTop: spacing.sm } : null,
                   savingStatus === key && { opacity: 0.6 },
                 ]}
                 onPressIn={() => onPressStatus(key)}
                 disabled={!!isSaving}
               >
-                <Text style={[styles.optionText, { color: theme.text }]}>
+                <ThemedText variant="subhead" weight="medium">
                   {label}
-                </Text>
+                </ThemedText>
               </TouchableOpacity>
             ))}
           </View>
@@ -204,40 +205,33 @@ export default StatusButton;
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 16,
+    borderRadius: radius.lg,
     borderWidth: 1,
     position: "relative",
     overflow: "hidden",
     borderCurve: "continuous",
   },
   buttonText: {
-    fontSize: 16,
-    fontWeight: "bold",
-
-    fontFamily: fontFamily.plusJakarta.semiBold,
+    ...type.headline,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 20,
-    paddingHorizontal: 32,
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.xxxl,
   },
   dropdownContainer: {
     width: "100%",
   },
   dropdownContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 12,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
   },
   optionRow: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radius.md,
     borderWidth: 1,
-  },
-  optionText: {
-    fontSize: 14,
-    fontFamily: fontFamily.plusJakarta.medium,
   },
 });

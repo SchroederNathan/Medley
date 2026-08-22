@@ -7,13 +7,7 @@ import React, {
   useContext,
   useImperativeHandle,
 } from "react";
-import {
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import Animated, {
   Easing,
@@ -23,9 +17,10 @@ import Animated, {
   withDelay,
   withTiming,
 } from "react-native-reanimated";
+import { motion, spacing } from "../../constants/theme";
 import { ThemeContext } from "../../contexts/theme-context";
-import { fontFamily } from "../../lib/fonts";
 import { AuroraBackground } from "./aurora-background";
+import { ThemedText } from "./themed-text";
 
 interface AuthScreenLayoutProps {
   title: string;
@@ -69,12 +64,12 @@ const AuthScreenLayout = forwardRef<
 
   const animateOut = (onDone?: () => void) => {
     opacity.value = withTiming(0, {
-      duration: 200,
+      duration: motion.quick,
       easing: Easing.in(Easing.cubic),
     });
     translateX.value = withTiming(
       -24,
-      { duration: 200, easing: Easing.in(Easing.cubic) },
+      { duration: motion.quick, easing: Easing.in(Easing.cubic) },
       (finished) => {
         if (finished && onDone) {
           runOnJS(onDone)();
@@ -101,7 +96,9 @@ const AuthScreenLayout = forwardRef<
         bottomOffset={20}
       >
         <Animated.View style={[styles.content, contentAnimatedStyle]}>
-          <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
+          <ThemedText variant="displaySm" style={styles.title}>
+            {title}
+          </ThemedText>
           {children}
         </Animated.View>
       </KeyboardAwareScrollView>
@@ -135,7 +132,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: "center",
-    padding: 20,
+    padding: spacing.xl,
     paddingTop: 80,
   },
   content: {
@@ -146,10 +143,8 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   title: {
-    fontSize: 32,
-    paddingHorizontal: 12,
-    marginBottom: 24,
-    fontFamily: fontFamily.tanker.regular,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.xxl,
   },
   backButton: {
     position: "absolute",

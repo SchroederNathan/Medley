@@ -1,9 +1,10 @@
 import React, { useContext } from "react";
-import { Pressable, StyleSheet, Text } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { radius } from "../../constants/theme";
 import { ThemeContext } from "../../contexts/theme-context";
 import { useUpdateChannel } from "../../hooks/use-update-channel";
-import { fontFamily } from "../../lib/fonts";
+import { ThemedText } from "./themed-text";
 
 // Shown whenever an EAS Update channel override is active (see
 // hooks/use-update-channel.ts), so nobody forgets they are running PR code.
@@ -29,9 +30,9 @@ const ChannelOverrideBanner = () => {
         },
       ]}
     >
-      <Text style={[styles.text, { color: theme.text }]}>
+      <ThemedText variant="caption">
         {busy ? "Returning..." : `Previewing "${activeChannel}", tap to return`}
-      </Text>
+      </ThemedText>
     </Pressable>
   );
 };
@@ -45,12 +46,8 @@ const styles = StyleSheet.create({
     zIndex: 100,
     paddingVertical: 6,
     paddingHorizontal: 14,
-    borderRadius: 16,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderCurve: "continuous",
-  },
-  text: {
-    fontSize: 12,
-    fontFamily: fontFamily.plusJakarta.medium,
   },
 });

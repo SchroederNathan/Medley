@@ -7,7 +7,6 @@ import {
   Pressable,
   StyleProp,
   StyleSheet,
-  Text,
   View,
   ViewStyle,
 } from "react-native";
@@ -21,8 +20,9 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
+import { spacing } from "../../constants/theme";
 import { ThemeContext } from "../../contexts/theme-context";
-import { fontFamily } from "../../lib/fonts";
+import { ThemedText } from "./themed-text";
 
 // Star rating geometry
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -279,9 +279,9 @@ export const StarRating: React.FC<StarRatingProps> = ({
           })}
         </View>
       </GestureDetector>
-      <Text style={[styles.ratingText, { color: theme.secondaryText }]}>
+      <ThemedText color="secondary" style={styles.ratingText}>
         {rating ? `Thank you for rating.` : "Tap to rate."}
-      </Text>
+      </ThemedText>
     </>
   );
 };
@@ -290,12 +290,10 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 2,
+    gap: spacing.xxs,
   },
   ratingText: {
-    fontSize: 16,
-    marginTop: -8,
-    fontFamily: fontFamily.plusJakarta.regular,
+    marginTop: -spacing.sm,
   },
 });
 

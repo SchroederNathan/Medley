@@ -13,6 +13,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { motion } from "../../constants/theme";
 import { ThemeContext } from "../../contexts/theme-context";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -54,7 +55,7 @@ export const AnimatedIconButton: React.FC<AnimatedIconButtonProps> = ({
     return {
       transform: [
         {
-          scale: withTiming(pressScale.value, { duration: 200 }),
+          scale: withTiming(pressScale.value, { duration: motion.quick }),
         },
       ],
     };

@@ -4,9 +4,10 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React, { useContext } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
+import { radius, shadows, spacing, type } from "../../constants/theme";
 import { ThemeContext } from "../../contexts/theme-context";
-import { fontFamily } from "../../lib/fonts";
+import { ThemedText } from "./themed-text";
 import { TruncatedText } from "./truncated-text";
 
 interface UserReviewCardProps {
@@ -34,7 +35,7 @@ const UserReviewCard = ({
         router.push(`/media-detail?id=${mediaId}`);
       }}
     >
-      <Text style={[styles.titleText, { color: theme.text }]}>{title}</Text>
+      <ThemedText variant="headline">{title}</ThemedText>
       <View style={styles.starRatingContainer}>
         <View style={styles.starRating}>
           {Array.from({ length: 5 }, (_, i) => {
@@ -87,10 +88,10 @@ const UserReviewCard = ({
           })}
         </View>
 
-        <Text style={[styles.dateText, { color: theme.secondaryText }]}>
+        <ThemedText variant="subhead" color="secondary">
           {"·    "}
           {createdAt}
-        </Text>
+        </ThemedText>
       </View>
 
       <View style={styles.posterReviewContainer}>
@@ -119,49 +120,40 @@ export default UserReviewCard;
 const styles = StyleSheet.create({
   container: {
     position: "relative",
-    marginRight: 40, // Space for options button
-  },
-  titleText: {
-    fontSize: 16,
-    fontFamily: fontFamily.plusJakarta.semiBold,
+    marginRight: spacing.huge, // Space for options button
   },
   starRatingContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    marginTop: 8,
+    gap: spacing.sm,
+    marginTop: spacing.sm,
   },
   starRating: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 2,
+    gap: spacing.xxs,
   },
   reviewContainer: {
     flex: 1,
     flexShrink: 1,
-    marginTop: -4,
+    marginTop: -spacing.xs,
   },
   reviewText: {
-    fontSize: 14,
+    ...type.subhead,
     lineHeight: 20,
     letterSpacing: 0.25,
-    fontFamily: fontFamily.plusJakarta.regular,
-  },
-  dateText: {
-    fontSize: 14,
-    fontFamily: fontFamily.plusJakarta.regular,
   },
   posterReviewContainer: {
     flexDirection: "row",
-    gap: 12,
-    marginTop: 12,
+    gap: spacing.md,
+    marginTop: spacing.md,
     alignItems: "flex-start",
   },
   posterImage: {
     width: 75,
     aspectRatio: 2 / 3,
-    borderRadius: 4,
-    boxShadow: "rgba(204, 219, 232, 0.3) 0 1px 4px -0.5px inset",
+    borderRadius: radius.xs,
+    boxShadow: shadows.insetHighlight,
     flexShrink: 0,
   },
   optionsButton: {

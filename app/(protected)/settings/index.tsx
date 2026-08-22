@@ -2,6 +2,7 @@ import React, { useContext, useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../../../components/ui/button";
+import { spacing } from "../../../constants/theme";
 import { AuthContext } from "../../../contexts/auth-context";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { queryClient } from "../../../lib/query-client";
@@ -39,7 +40,7 @@ const SettingsScreen = () => {
   };
 
   return (
-    <View style={{ paddingTop: insets.top + 20 }}>
+    <View style={{ paddingTop: insets.top + spacing.xl }}>
       <Text style={{ color: theme.text }}>Settings</Text>
       <Button
         title="Logout"
@@ -59,6 +60,6 @@ export default SettingsScreen;
 
 const styles = StyleSheet.create({
   button: {
-    marginTop: 20,
+    marginTop: spacing.xl,
   },
 });

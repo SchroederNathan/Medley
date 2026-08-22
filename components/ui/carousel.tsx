@@ -1,10 +1,10 @@
 import { FlashList } from "@shopify/flash-list";
-import React, { useCallback, useContext } from "react";
-import { StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
-import { ThemeContext } from "../../contexts/theme-context";
-import { fontFamily } from "../../lib/fonts";
+import React, { useCallback } from "react";
+import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
+import { spacing } from "../../constants/theme";
 import { Media } from "../../types/media";
 import MediaCard from "./media-card";
+import { ThemedText } from "./themed-text";
 const Carousel = ({
   media,
   title,
@@ -14,21 +14,22 @@ const Carousel = ({
   title: string;
   style?: StyleProp<ViewStyle>;
 }) => {
-  const { theme } = useContext(ThemeContext);
   const renderItem = useCallback(
     ({ item }: { item: Media }) => (
-      <MediaCard media={item} style={{ marginRight: 12 }} />
+      <MediaCard media={item} style={{ marginRight: spacing.md }} />
     ),
     []
   );
   return (
     <View style={style}>
-      <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
+      <ThemedText variant="heading" style={styles.title}>
+        {title}
+      </ThemedText>
       <FlashList
         data={media}
         keyExtractor={(item) => item.id}
-        style={{ marginHorizontal: -20 }}
-        contentContainerStyle={{ paddingHorizontal: 20 }}
+        style={{ marginHorizontal: -spacing.xl }}
+        contentContainerStyle={{ paddingHorizontal: spacing.xl }}
         renderItem={renderItem}
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -41,8 +42,6 @@ export default Carousel;
 
 const styles = StyleSheet.create({
   title: {
-    fontSize: 20,
-    fontFamily: fontFamily.plusJakarta.bold,
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
 });

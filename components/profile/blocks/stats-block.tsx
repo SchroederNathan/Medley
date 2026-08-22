@@ -1,13 +1,14 @@
 import StarSolidIcon from "@hugeicons-pro/core-solid-standard/StarIcon";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import React, { useContext, useMemo } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { radius, spacing } from "../../../constants/theme";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { useUserMedia } from "../../../hooks/use-user-media";
 import { useUserReviews } from "../../../hooks/use-user-reviews";
 import { computeProfileStats } from "../../../lib/profile-blocks/compute-stats";
-import { fontFamily } from "../../../lib/fonts";
 import type { ProfileBlockProps } from "../../../lib/profile-blocks/types";
+import { ThemedText } from "../../ui/themed-text";
 
 const StatCell = ({
   value,
@@ -23,11 +24,11 @@ const StatCell = ({
     <View style={[styles.cell, { backgroundColor: theme.card }]}>
       <View style={styles.valueRow}>
         {icon}
-        <Text style={[styles.value, { color: theme.text }]}>{value}</Text>
+        <ThemedText variant="heading">{value}</ThemedText>
       </View>
-      <Text style={[styles.label, { color: theme.secondaryText }]}>
+      <ThemedText variant="footnote" weight="medium" color="secondary">
         {label}
-      </Text>
+      </ThemedText>
     </View>
   );
 };
@@ -51,7 +52,7 @@ const StatsBlock = ({ isOwnProfile }: ProfileBlockProps) => {
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.title, { color: theme.text }]}>Stats</Text>
+      <ThemedText variant="titleSm">Stats</ThemedText>
       <View style={styles.grid}>
         <StatCell value={String(stats.totalTracked)} label="Tracked" />
         {stats.byType.map((entry) => (
@@ -81,36 +82,24 @@ export default StatsBlock;
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    gap: 12,
-  },
-  title: {
-    fontSize: 18,
-    fontFamily: fontFamily.plusJakarta.bold,
+    gap: spacing.md,
   },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
+    gap: spacing.sm,
   },
   cell: {
     minWidth: 88,
     flexGrow: 1,
-    borderRadius: 12,
-    paddingVertical: 12,
+    borderRadius: radius.md,
+    paddingVertical: spacing.md,
     paddingHorizontal: 14,
-    gap: 4,
+    gap: spacing.xs,
   },
   valueRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-  },
-  value: {
-    fontSize: 20,
-    fontFamily: fontFamily.plusJakarta.bold,
-  },
-  label: {
-    fontSize: 13,
-    fontFamily: fontFamily.plusJakarta.medium,
+    gap: spacing.xs,
   },
 });

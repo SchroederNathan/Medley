@@ -1,10 +1,12 @@
 import * as Haptics from "expo-haptics";
 import React, { useContext } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { spacing, type } from "../../../constants/theme";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { fontFamily } from "../../../lib/fonts";
 import { TvSeason } from "../../../types/media";
 import Sheet from "../sheet";
+import { ThemedText } from "../themed-text";
 
 interface SeasonPickerProps {
   visible: boolean;
@@ -51,11 +53,9 @@ const SeasonPicker = ({
               >
                 {season.name}
               </Text>
-              <Text
-                style={[styles.episodeCount, { color: theme.secondaryText }]}
-              >
+              <ThemedText variant="subhead" color="secondary">
                 {season.episode_count} episodes
-              </Text>
+              </ThemedText>
             </TouchableOpacity>
           );
         })}
@@ -68,23 +68,19 @@ export default SeasonPicker;
 
 const styles = StyleSheet.create({
   container: {
-    gap: 4,
-    marginVertical: -8,
+    gap: spacing.xs,
+    marginVertical: -spacing.sm,
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 12,
-    paddingHorizontal: 12,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
     borderRadius: 10,
   },
   seasonName: {
-    fontSize: 16,
+    ...type.body,
     fontFamily: fontFamily.plusJakarta.medium,
-  },
-  episodeCount: {
-    fontSize: 14,
-    fontFamily: fontFamily.plusJakarta.regular,
   },
 });

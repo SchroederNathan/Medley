@@ -4,7 +4,7 @@ import Share08Icon from "@hugeicons-pro/core-stroke-standard/Share08Icon";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import React, { useContext, useMemo, useRef } from "react";
-import { Alert, Share, StyleSheet, Text, View } from "react-native";
+import { Alert, Share, StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   runOnJS,
@@ -12,14 +12,15 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
+import { radius, spacing } from "../../constants/theme";
 import { AuthContext } from "../../contexts/auth-context";
 import { ThemeContext } from "../../contexts/theme-context";
 import { useToast } from "../../contexts/toast-context";
 import { useRadialOverlay } from "../../hooks/use-radial-overlay";
-import { fontFamily } from "../../lib/fonts";
 import { CollectionService } from "../../services/collectionService";
 import { Media } from "../../types/media";
 import MediaCard from "./media-card";
+import { ThemedText } from "./themed-text";
 
 const CollectionMediaGrid = ({ mediaItems }: { mediaItems: Media[] }) => {
   const { theme } = useContext(ThemeContext);
@@ -93,7 +94,6 @@ const CollectionCard = ({
   ranked?: boolean;
   onPress?: () => void;
 }) => {
-  const { theme } = useContext(ThemeContext);
   const { user } = useContext(AuthContext);
   const router = useRouter();
   const { showToast } = useToast();
@@ -106,15 +106,17 @@ const CollectionCard = ({
         opacity: isLoading ? 0.6 : 1,
         flexDirection: "row",
         flex: 1,
-        gap: 16,
+        gap: spacing.lg,
       }}
     >
       <CollectionMediaGrid mediaItems={mediaItems} />
       <View style={styles.rightContent}>
-        <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
-        <Text style={[styles.subtitle, { color: theme.secondaryText }]}>
+        <ThemedText variant="headline" style={styles.title}>
+          {title}
+        </ThemedText>
+        <ThemedText variant="subhead" color="secondary">
           {mediaItems.length} items
-        </Text>
+        </ThemedText>
       </View>
     </View>
   );
@@ -273,25 +275,25 @@ const styles = StyleSheet.create({
     // padding: 12,
     flexDirection: "row",
     // backgroundColor: "red",
-    gap: 12,
+    gap: spacing.md,
   },
 
   rightContent: {
     flex: 1,
-    gap: 4,
+    gap: spacing.xs,
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "flex-start",
   },
 
   mediaImages: {
-    borderRadius: 8,
+    borderRadius: radius.sm,
     borderWidth: 1,
     flexDirection: "row",
     height: 100, // Square-ish aspect ratio
     width: 100,
-    padding: 8,
-    gap: 4,
+    padding: spacing.sm,
+    gap: spacing.xs,
   },
 
   leftMedia: {
@@ -302,7 +304,7 @@ const styles = StyleSheet.create({
   rightMedia: {
     flex: 1,
     height: "100%",
-    gap: 4,
+    gap: spacing.xs,
   },
 
   topRightMedia: {
@@ -314,24 +316,10 @@ const styles = StyleSheet.create({
   },
 
   mediaCard: {
-    borderRadius: 4,
+    borderRadius: radius.xs,
   },
 
   title: {
-    fontSize: 16,
-    fontFamily: fontFamily.plusJakarta.semiBold,
     textAlign: "center",
-  },
-
-  subtitle: {
-    fontSize: 14,
-    fontFamily: fontFamily.plusJakarta.regular,
-  },
-
-  textContainer: {
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "flex-start",
-    gap: 4,
   },
 });

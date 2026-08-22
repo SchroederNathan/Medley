@@ -29,12 +29,18 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AnimatedDetailHeader } from "../../../components/ui/animated-detail-header";
 import MediaCard from "../../../components/ui/media-card";
 import ActionMenu from "../../../components/ui/sheets/action-menu";
+import { ThemedText } from "../../../components/ui/themed-text";
 import { TruncatedText } from "../../../components/ui/truncated-text";
+import {
+  motion,
+  radius,
+  spacing,
+  type,
+} from "../../../constants/theme";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { useToast } from "../../../contexts/toast-context";
 import { useCollection } from "../../../hooks/use-collection";
 import { useUserProfileById } from "../../../hooks/use-user-profile";
-import { fontFamily } from "../../../lib/fonts";
 import { CollectionService } from "../../../services/collectionService";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -61,7 +67,7 @@ const BackdropImage: React.FC<BackdropImageProps> = ({ imageUri }) => {
         source={{ uri: imageUri }}
         contentFit="cover"
         cachePolicy="memory-disk"
-        transition={200}
+        transition={motion.quick}
         style={{
           width: BACKDROP_WIDTH,
           height: BACKDROP_HEIGHT,
@@ -185,7 +191,7 @@ const CollectionDetail = () => {
           >
             <Image
               cachePolicy="memory-disk"
-              transition={200}
+              transition={motion.quick}
               source={require("../../../assets/badges/gold-badge.png")}
               style={{
                 position: "absolute",
@@ -198,7 +204,7 @@ const CollectionDetail = () => {
             />
             <Image
               cachePolicy="memory-disk"
-              transition={200}
+              transition={motion.quick}
               source={require("../../../assets/badges/gold-badge.png")}
               style={{
                 width: 32,
@@ -219,7 +225,7 @@ const CollectionDetail = () => {
           >
             <Image
               cachePolicy="memory-disk"
-              transition={200}
+              transition={motion.quick}
               source={require("../../../assets/badges/silver-badge.png")}
               style={{
                 position: "absolute",
@@ -232,7 +238,7 @@ const CollectionDetail = () => {
             />
             <Image
               cachePolicy="memory-disk"
-              transition={200}
+              transition={motion.quick}
               source={require("../../../assets/badges/silver-badge.png")}
               style={{
                 width: 32,
@@ -253,7 +259,7 @@ const CollectionDetail = () => {
           >
             <Image
               cachePolicy="memory-disk"
-              transition={200}
+              transition={motion.quick}
               source={require("../../../assets/badges/bronze-badge.png")}
               style={{
                 position: "absolute",
@@ -266,7 +272,7 @@ const CollectionDetail = () => {
             />
             <Image
               cachePolicy="memory-disk"
-              transition={200}
+              transition={motion.quick}
               source={require("../../../assets/badges/bronze-badge.png")}
               style={{
                 width: 32,
@@ -293,24 +299,24 @@ const CollectionDetail = () => {
                 width: 40,
                 height: 40,
                 backgroundColor: theme.background,
-                borderRadius: 30,
+                borderRadius: radius.full,
               }}
             />
-            <Text
+            <ThemedText
+              variant="subhead"
+              weight="bold"
+              color="secondary"
               style={{
-                fontSize: 14,
                 width: 32,
                 height: 32,
-                fontFamily: fontFamily.plusJakarta.bold,
-                color: theme.secondaryText,
                 backgroundColor: theme.buttonBackground,
-                borderRadius: 30,
+                borderRadius: radius.full,
                 textAlign: "center",
                 paddingTop: 6,
               }}
             >
               {rank}
-            </Text>
+            </ThemedText>
           </View>
         );
     }
@@ -345,10 +351,10 @@ const CollectionDetail = () => {
           { backgroundColor: theme.background, paddingTop: safeAreaInsets.top },
         ]}
       >
-        <Text style={{ color: theme.text, marginBottom: 12 }}>
+        <Text style={{ color: theme.text, marginBottom: spacing.md }}>
           Failed to load collection
         </Text>
-        <Text style={{ color: theme.secondaryText, marginBottom: 16 }}>
+        <Text style={{ color: theme.secondaryText, marginBottom: spacing.lg }}>
           {error instanceof Error ? error.message : "Unknown error"}
         </Text>
         <Text
@@ -368,7 +374,7 @@ const CollectionDetail = () => {
           { backgroundColor: theme.background, paddingTop: safeAreaInsets.top },
         ]}
       >
-        <Text style={{ color: theme.text, marginBottom: 12 }}>
+        <Text style={{ color: theme.text, marginBottom: spacing.md }}>
           Collection not found
         </Text>
         <Text
@@ -443,7 +449,7 @@ const CollectionDetail = () => {
           onScroll={scrollHandler}
           scrollEventThrottle={1000 / 60}
         >
-          <View style={[styles.content, { paddingHorizontal: 20 }]}>
+          <View style={[styles.content, { paddingHorizontal: spacing.xl }]}>
             {/* Owner Profile Section */}
             {ownerProfile && (
               <View style={styles.ownerSection}>
@@ -461,36 +467,31 @@ const CollectionDetail = () => {
                       source={{ uri: ownerProfile.avatar_url }}
                       contentFit="cover"
                       cachePolicy="memory-disk"
-                      transition={200}
+                      transition={motion.quick}
                       style={StyleSheet.absoluteFill}
                     />
                   ) : (
-                    <Text
-                      style={[
-                        styles.profilePlaceholderText,
-                        { color: theme.text },
-                      ]}
+                    <ThemedText
+                      variant="body"
+                      weight="medium"
+                      style={styles.profilePlaceholderText}
                     >
                       {ownerProfile.name?.charAt(0)?.toUpperCase() || "?"}
-                    </Text>
+                    </ThemedText>
                   )}
                 </View>
                 <View style={styles.ownerNameContainer}>
-                  <Text style={[styles.ownerName, { color: theme.text }]}>
+                  <ThemedText variant="subhead" weight="medium">
                     {ownerProfile.name || "Unknown User"}
-                  </Text>
-                  <Text
-                    style={[styles.dateCreated, { color: theme.secondaryText }]}
-                  >
+                  </ThemedText>
+                  <ThemedText variant="caption" color="secondary">
                     {formatCollectionDate(collection.created_at)}
-                  </Text>
+                  </ThemedText>
                 </View>
               </View>
             )}
 
-            <Text style={[styles.title, { color: theme.text }]}>
-              {collection.name}
-            </Text>
+            <ThemedText variant="display">{collection.name}</ThemedText>
             {collection.description ? (
               <TruncatedText
                 text={collection.description}
@@ -510,7 +511,7 @@ const CollectionDetail = () => {
                 <View
                   style={{
                     position: "relative",
-                    marginBottom: collection.ranked ? 20 : 0,
+                    marginBottom: collection.ranked ? spacing.xl : 0,
                   }}
                 >
                   <MediaCard
@@ -540,7 +541,7 @@ const CollectionDetail = () => {
                 <View style={{ height: CARD_SPACING }} />
               )}
               contentContainerStyle={{
-                paddingTop: 20,
+                paddingTop: spacing.xl,
                 paddingBottom: 120,
               }}
               scrollEnabled={false}
@@ -647,46 +648,31 @@ const styles = StyleSheet.create({
   ownerSection: {
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: 20,
-    marginBottom: 16,
+    paddingTop: spacing.xl,
+    marginBottom: spacing.lg,
   },
   profileImageContainer: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: radius.full,
     borderWidth: 1,
     overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 8,
+    marginRight: spacing.sm,
   },
   profilePlaceholderText: {
-    fontSize: 16,
-    fontFamily: fontFamily.plusJakarta.medium,
     textTransform: "uppercase",
   },
   ownerNameContainer: {
     flexDirection: "column",
-    gap: 2,
-  },
-  ownerName: {
-    fontSize: 14,
-    fontFamily: fontFamily.plusJakarta.medium,
-  },
-  dateCreated: {
-    fontSize: 12,
-    fontFamily: fontFamily.plusJakarta.medium,
-  },
-  title: {
-    fontSize: 40,
-    fontFamily: fontFamily.tanker.regular,
+    gap: spacing.xxs,
   },
   descriptionContainer: {
-    marginTop: 8,
+    marginTop: spacing.sm,
   },
   descriptionText: {
-    fontSize: 14,
-    fontFamily: fontFamily.plusJakarta.regular,
+    ...type.subhead,
     lineHeight: 20,
   },
 });

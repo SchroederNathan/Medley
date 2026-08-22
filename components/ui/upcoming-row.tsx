@@ -1,10 +1,10 @@
 import { useRouter } from "expo-router";
-import React, { useContext } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { ThemeContext } from "../../contexts/theme-context";
-import { fontFamily } from "../../lib/fonts";
+import React from "react";
+import { Pressable, StyleSheet, View } from "react-native";
+import { spacing } from "../../constants/theme";
 import { Media } from "../../types/media";
 import MediaCard from "./media-card";
+import { ThemedText } from "./themed-text";
 
 const POSTER_WIDTH = 64;
 const POSTER_HEIGHT = 96;
@@ -14,7 +14,6 @@ const POSTER_HEIGHT = 96;
  * long-press radial menu and save action) next to title, genres and synopsis.
  */
 const UpcomingRow = ({ media }: { media: Media }) => {
-  const { theme } = useContext(ThemeContext);
   const router = useRouter();
 
   return (
@@ -24,24 +23,28 @@ const UpcomingRow = ({ media }: { media: Media }) => {
         style={styles.details}
         onPress={() => router.push(`/media-detail?id=${media.id}`)}
       >
-        <Text style={[styles.title, { color: theme.text }]} numberOfLines={2}>
+        <ThemedText variant="headline" numberOfLines={2}>
           {media.title}
-        </Text>
+        </ThemedText>
         {media.genres.length > 0 ? (
-          <Text
-            style={[styles.genres, { color: theme.secondaryText }]}
+          <ThemedText
+            variant="footnote"
+            weight="medium"
+            color="secondary"
             numberOfLines={1}
           >
             {media.genres.slice(0, 3).join(" · ")}
-          </Text>
+          </ThemedText>
         ) : null}
         {media.description ? (
-          <Text
-            style={[styles.description, { color: theme.secondaryText }]}
+          <ThemedText
+            variant="footnote"
+            color="secondary"
+            style={styles.description}
             numberOfLines={2}
           >
             {media.description}
-          </Text>
+          </ThemedText>
         ) : null}
       </Pressable>
     </View>
@@ -54,24 +57,14 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
-    paddingVertical: 8,
+    gap: spacing.md,
+    paddingVertical: spacing.sm,
   },
   details: {
     flex: 1,
-    gap: 4,
-  },
-  title: {
-    fontSize: 16,
-    fontFamily: fontFamily.plusJakarta.semiBold,
-  },
-  genres: {
-    fontSize: 13,
-    fontFamily: fontFamily.plusJakarta.medium,
+    gap: spacing.xs,
   },
   description: {
-    fontSize: 13,
-    fontFamily: fontFamily.plusJakarta.regular,
     lineHeight: 18,
   },
 });

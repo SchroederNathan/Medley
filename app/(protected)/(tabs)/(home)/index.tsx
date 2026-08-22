@@ -9,11 +9,11 @@ import HomeCarousel from "../../../../components/ui/home-carousel";
 import ProfileButton from "../../../../components/ui/profile-button";
 import { PullToSearchContent } from "../../../../components/ui/pull-to-search-content";
 import { SharedHeader } from "../../../../components/ui/shared-header";
+import { spacing } from "../../../../constants/theme";
 import { ContentReadyContext } from "../../../../contexts/content-ready-context";
 import { usePopularMovies } from "../../../../hooks/use-popular-movies";
 import { useRecommendations } from "../../../../hooks/use-recommendations";
 import { useSharedSearch } from "../../../../hooks/use-shared-search";
-import { fontFamily } from "../../../../lib/fonts";
 
 const IndexScreen = () => {
   const { setContentReady } = useContext(ContentReadyContext);
@@ -110,7 +110,7 @@ const IndexScreen = () => {
           {favoriteRecommendations.data &&
           favoriteRecommendations.data.length > 0 ? (
             <Carousel
-              style={{ marginTop: 20 }}
+              style={{ marginTop: spacing.xl }}
               media={favoriteRecommendations.data}
               title="Based on your favorites"
             />
@@ -120,7 +120,7 @@ const IndexScreen = () => {
               marginTop:
                 favoriteRecommendations.data &&
                 favoriteRecommendations.data.length > 0
-                  ? 32
+                  ? spacing.xxxl
                   : 0,
             }}
             media={popularMovies.data ?? []}
@@ -155,20 +155,5 @@ const styles = StyleSheet.create({
   container: {
     overflow: "visible",
     flex: 1,
-  },
-  header: {
-    marginVertical: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  title: {
-    fontSize: 32,
-    fontFamily: fontFamily.plusJakarta.bold,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontFamily: fontFamily.plusJakarta.bold,
-    marginBottom: 16,
   },
 });

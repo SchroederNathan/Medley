@@ -14,8 +14,8 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { radius, spacing, type } from "../../constants/theme";
 import { ThemeContext } from "../../contexts/theme-context";
-import { fontFamily } from "../../lib/fonts";
 
 interface SegmentedPickerProps {
   items: string[];
@@ -144,7 +144,7 @@ const SegmentedPicker = ({
             >
               <Animated.Text
                 numberOfLines={1}
-                style={[styles.label, { fontSize: 12, color: labelColor }]}
+                style={[styles.label, { color: labelColor }]}
               >
                 {item}
               </Animated.Text>
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: "row",
-    borderRadius: 999,
+    borderRadius: radius.full,
     overflow: "hidden",
     borderWidth: StyleSheet.hairlineWidth,
     position: "relative",
@@ -177,9 +177,9 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 8,
+    paddingHorizontal: spacing.sm,
   },
   label: {
-    fontFamily: fontFamily.plusJakarta.medium,
+    ...type.caption,
   },
 });

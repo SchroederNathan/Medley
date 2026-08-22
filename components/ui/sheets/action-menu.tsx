@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { spacing, type } from "../../../constants/theme";
 import { ThemeContext } from "../../../contexts/theme-context";
-import { fontFamily } from "../../../lib/fonts";
 import Sheet from "../sheet";
 interface Action {
   title: string;
@@ -59,17 +59,16 @@ export default ActionMenu;
 
 const styles = StyleSheet.create({
   container: {
-    gap: 32,
-    marginVertical: -8,
+    gap: spacing.xxxl,
+    marginVertical: -spacing.sm,
   },
   actionContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: spacing.md,
   },
 
   title: {
-    fontSize: 16,
-    fontFamily: fontFamily.plusJakarta.regular,
+    ...type.body,
   },
 });

@@ -3,10 +3,11 @@ import { HugeiconsIcon } from "@hugeicons/react-native";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import React, { useCallback, useContext } from "react";
-import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import { Linking, Pressable, StyleSheet, View } from "react-native";
+import { motion, radius, spacing } from "../../constants/theme";
 import { ThemeContext } from "../../contexts/theme-context";
-import { fontFamily } from "../../lib/fonts";
 import { MediaTrailer } from "../../types/media";
+import { ThemedText } from "./themed-text";
 
 const TrailerThumbnail = ({ trailer }: { trailer: MediaTrailer }) => {
   const { theme } = useContext(ThemeContext);
@@ -18,7 +19,9 @@ const TrailerThumbnail = ({ trailer }: { trailer: MediaTrailer }) => {
 
   return (
     <View>
-      <Text style={[styles.title, { color: theme.text }]}>Trailer</Text>
+      <ThemedText variant="heading" style={styles.title}>
+        Trailer
+      </ThemedText>
       <Pressable
         onPress={handlePress}
         style={[styles.container, { borderColor: theme.border }]}
@@ -28,7 +31,7 @@ const TrailerThumbnail = ({ trailer }: { trailer: MediaTrailer }) => {
             uri: `https://img.youtube.com/vi/${trailer.key}/hqdefault.jpg`,
           }}
           cachePolicy="memory-disk"
-          transition={200}
+          transition={motion.quick}
           contentFit="cover"
           style={styles.thumbnail}
         />
@@ -54,12 +57,10 @@ export default TrailerThumbnail;
 
 const styles = StyleSheet.create({
   title: {
-    fontSize: 20,
-    fontFamily: fontFamily.plusJakarta.bold,
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   container: {
-    borderRadius: 8,
+    borderRadius: radius.sm,
     borderWidth: 1,
     overflow: "hidden",
     width: 230,
@@ -80,7 +81,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderWidth: 1,
-    borderRadius: 28,
+    borderRadius: radius.full,
     justifyContent: "center",
     alignItems: "center",
   },

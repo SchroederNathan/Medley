@@ -9,11 +9,13 @@ interface TopGradientProps {
   height?: number;
 }
 
-export const TopGradient = ({ height = 4 }: TopGradientProps) => {
+export const TopGradient = ({ height }: TopGradientProps) => {
   const { grossHeight } = useHeaderHeight();
   const { theme } = useContext(ThemeContext);
 
-  height = height || grossHeight;
+  // Both branches must read the same height, or the two platforms disagree on
+  // how much of the header the fade covers.
+  const resolvedHeight = height ?? grossHeight;
 
   if (Platform.OS === "android") {
     // Use pure gradient on Android—software blur is expensive and inconsistent across devices.
@@ -21,7 +23,7 @@ export const TopGradient = ({ height = 4 }: TopGradientProps) => {
     const rgb = theme.mode === "dark" ? "23, 23, 23" : "255, 255, 255";
     return (
       <LinearGradient
-        style={[StyleSheet.absoluteFill, { height: height * 1.2 }]}
+        style={[StyleSheet.absoluteFill, { height: resolvedHeight * 1.2 }]}
         colors={[`rgba(${rgb}, 0.9)`, `rgba(${rgb}, 0)`]}
         locations={[0.75, 1]}
       />
@@ -39,7 +41,7 @@ export const TopGradient = ({ height = 4 }: TopGradientProps) => {
           style={StyleSheet.absoluteFill}
         />
       }
-      style={[StyleSheet.absoluteFill, { height: grossHeight * 1.2 }]}
+      style={[StyleSheet.absoluteFill, { height: resolvedHeight * 1.2 }]}
     >
       <BlurView tint={theme.mode} style={StyleSheet.absoluteFill} />
     </MaskedView>

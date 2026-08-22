@@ -1,15 +1,10 @@
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import React, { useContext } from "react";
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ViewStyle,
-} from "react-native";
+import { StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
+import { radius, spacing } from "../../constants/theme";
 import { ThemeContext } from "../../contexts/theme-context";
-import { fontFamily } from "../../lib/fonts";
+import { ThemedText } from "./themed-text";
 
 interface RadioCardProps {
   title: string;
@@ -49,7 +44,7 @@ const RadioCard = ({
       >
         <View style={styles.leftContent}>
           {icon}
-          <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
+          <ThemedText>{title}</ThemedText>
         </View>
         <View
           style={[
@@ -76,8 +71,8 @@ export default RadioCard;
 
 const styles = StyleSheet.create({
   cardContainer: {
-    paddingVertical: 40,
-    borderRadius: 16,
+    paddingVertical: spacing.huge,
+    borderRadius: radius.lg,
     borderWidth: 1,
     position: "relative",
     overflow: "hidden",
@@ -92,21 +87,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 24,
+    paddingHorizontal: spacing.xxl,
   },
   leftContent: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
-  },
-  title: {
-    fontSize: 16,
-    fontFamily: fontFamily.plusJakarta.regular,
+    gap: spacing.lg,
   },
   radio: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: radius.full,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
@@ -114,6 +105,6 @@ const styles = StyleSheet.create({
   radioInner: {
     width: 20,
     height: 20,
-    borderRadius: 10,
+    borderRadius: radius.full,
   },
 });

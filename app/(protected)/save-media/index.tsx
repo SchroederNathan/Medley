@@ -5,6 +5,7 @@ import { StyleSheet, Text, View } from "react-native";
 import AddCollection from "../../../components/ui/add-collection";
 import CollectionCard from "../../../components/ui/collection-card";
 import ModalHeader from "../../../components/ui/modal-header";
+import { spacing } from "../../../constants/theme";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { useToast } from "../../../contexts/toast-context";
 import { useAddToCollection } from "../../../hooks/mutations";
@@ -125,7 +126,7 @@ const SaveMedia = () => {
                 style={{
                   color: theme.secondaryText,
                   textAlign: "center",
-                  marginTop: 40,
+                  marginTop: spacing.huge,
                   fontFamily: fontFamily.plusJakarta.regular,
                 }}
               >
@@ -137,7 +138,7 @@ const SaveMedia = () => {
                 renderItem={renderCollectionItem}
                 keyExtractor={(item) => item.id}
                 ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
-                contentContainerStyle={{ paddingTop: 16 }}
+                contentContainerStyle={{ paddingTop: spacing.lg }}
                 showsVerticalScrollIndicator={false}
               />
             )}
@@ -151,18 +152,11 @@ const SaveMedia = () => {
 export default SaveMedia;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   content: {
     flex: 1,
-    padding: 20,
+    padding: spacing.xl,
   },
   search: {
-    marginBottom: 16,
-  },
-  loadingText: {
-    fontFamily: fontFamily.plusJakarta.medium,
-    fontSize: 14,
+    marginBottom: spacing.lg,
   },
 });

@@ -22,6 +22,7 @@ import Animated, {
   type SharedValue,
 } from "react-native-reanimated";
 import { scheduleOnRN, scheduleOnUI } from "react-native-worklets";
+import { shadows, spacing } from "../../constants/theme";
 import { useRadialOverlay } from "../../hooks/use-radial-overlay";
 import { Media } from "../../types/media";
 import GradientSweepOverlay from "./gradient-sweep-overlay";
@@ -34,9 +35,6 @@ const LEFT_MARGIN = 20;
 const VISIBLE_STACK_COUNT = 6;
 const STACK_OFFSET =
   (SCREEN_WIDTH - LEFT_MARGIN - ITEM_WIDTH) / (VISIBLE_STACK_COUNT - 1);
-const DOT_SIZE = 6;
-const DOT_GAP = 4;
-const DOT_CONTAINER_WIDTH = DOT_SIZE + DOT_GAP;
 
 interface HomeCarouselProps {
   media: Media[];
@@ -324,8 +322,8 @@ const HomeCarousel: React.FC<HomeCarouselProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 12,
-    marginHorizontal: -20,
+    marginBottom: spacing.md,
+    marginHorizontal: -spacing.xl,
   },
   carouselArea: {
     height: ITEM_HEIGHT,
@@ -342,7 +340,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
 
     overflow: "hidden",
-    boxShadow: "rgba(204, 219, 232, 0.25) 0 2px 8px -1px inset", // deeper/larger subtle inset
+    boxShadow: shadows.insetHighlightDeep,
     backgroundColor: "rgba(0,0,0,0.16)",
   },
   image: {
@@ -352,25 +350,6 @@ const styles = StyleSheet.create({
   darkOverlay: {
     ...StyleSheet.absoluteFill,
     backgroundColor: "black",
-  },
-  paginationContainer: {
-    alignItems: "center",
-    marginTop: 8,
-  },
-  dotsContainer: {
-    flexDirection: "row",
-    padding: 8,
-    borderRadius: 20,
-  },
-  dotContainer: {
-    width: DOT_CONTAINER_WIDTH,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  dot: {
-    width: DOT_SIZE,
-    height: DOT_SIZE,
-    borderRadius: DOT_SIZE / 2,
   },
 });
 

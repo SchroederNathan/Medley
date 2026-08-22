@@ -25,6 +25,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Rive from "rive-react-native";
 import { AuroraBackground } from "../../../components/ui/aurora-background";
 import { BottomGradient } from "../../../components/ui/bottom-gradient";
+import { radius, spacing } from "../../../constants/theme";
 import {
   AuroraScrollProvider,
   useAuroraScroll,
@@ -186,7 +187,7 @@ const styles = StyleSheet.create({
   },
   tabBar: {
     flexDirection: "row",
-    paddingTop: 12,
+    paddingTop: spacing.md,
     paddingBottom: 34, // Account for iOS home indicator
     height: 80,
   },
@@ -195,22 +196,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  shadowContainer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  image: {
-    width: 52,
-    height: 52,
-  },
   riveButtonContainer: {
     position: "absolute",
     width: 60,
     height: 60,
-    borderRadius: 100,
+    borderRadius: radius.full,
     zIndex: 10,
     elevation: 10,
   },

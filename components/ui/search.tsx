@@ -17,8 +17,8 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
+import { radius, spacing, type } from "../../constants/theme";
 import { ThemeContext } from "../../contexts/theme-context";
-import { fontFamily } from "../../lib/fonts";
 
 interface SearchProps extends TextInputProps {
   placeholder?: string;
@@ -140,8 +140,8 @@ export default Search;
 const styles = StyleSheet.create({
   container: {
     height: 52,
-    paddingHorizontal: 32,
-    borderRadius: 16,
+    paddingHorizontal: spacing.xxxl,
+    borderRadius: radius.lg,
     borderWidth: 1,
     position: "relative",
     overflow: "hidden",
@@ -149,8 +149,7 @@ const styles = StyleSheet.create({
   },
   inputText: {
     flex: 1,
-    fontSize: 16,
-    fontFamily: fontFamily.plusJakarta.regular,
+    ...type.body,
   },
   blurView: {
     position: "absolute",
@@ -160,8 +159,8 @@ const styles = StyleSheet.create({
     bottom: 0,
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 16,
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
   },
   touchableContent: {
     width: "100%",

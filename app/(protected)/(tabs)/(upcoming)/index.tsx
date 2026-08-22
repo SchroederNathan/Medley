@@ -1,6 +1,6 @@
 import { FlashList } from "@shopify/flash-list";
-import React, { useCallback, useContext, useMemo } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import React, { useCallback, useMemo } from "react";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { AnimatedBlur } from "../../../../components/ui/animated-blur";
 import { AnimatedChevron } from "../../../../components/ui/animated-chevron";
 import ProfileButton from "../../../../components/ui/profile-button";
@@ -9,19 +9,18 @@ import {
   PullToSearchScrollProps,
 } from "../../../../components/ui/pull-to-search-content";
 import { SharedHeader } from "../../../../components/ui/shared-header";
+import { ThemedText } from "../../../../components/ui/themed-text";
 import UpcomingRow from "../../../../components/ui/upcoming-row";
-import { ThemeContext } from "../../../../contexts/theme-context";
+import { spacing } from "../../../../constants/theme";
 import { useMountAfterInteractions } from "../../../../hooks/use-mount-after-interactions";
 import { useSharedSearch } from "../../../../hooks/use-shared-search";
 import { useUpcomingMovies } from "../../../../hooks/use-upcoming-movies";
-import { fontFamily } from "../../../../lib/fonts";
 import {
   UpcomingListRow,
   buildUpcomingRows,
 } from "../../../../lib/upcoming-sections";
 
 const UpcomingScreen = () => {
-  const { theme } = useContext(ThemeContext);
   const {
     query: searchQuery,
     searchResults,
@@ -48,14 +47,12 @@ const UpcomingScreen = () => {
     ({ item }: { item: UpcomingListRow }) =>
       item.type === "header" ? (
         <View style={styles.dayHeader}>
-          <Text style={[styles.dayHeaderText, { color: theme.text }]}>
-            {item.title}
-          </Text>
+          <ThemedText variant="heading">{item.title}</ThemedText>
         </View>
       ) : (
         <UpcomingRow media={item.item.media} />
       ),
-    [theme]
+    []
   );
 
   const renderList = useCallback(
@@ -64,9 +61,9 @@ const UpcomingScreen = () => {
         return (
           <View style={styles.centered}>
             <ActivityIndicator size="small" />
-            <Text style={[styles.stateText, { color: theme.secondaryText }]}>
+            <ThemedText variant="subhead" color="secondary">
               Loading upcoming releases...
-            </Text>
+            </ThemedText>
           </View>
         );
       }
@@ -74,9 +71,9 @@ const UpcomingScreen = () => {
       if (query.isError && rows.length === 0) {
         return (
           <View style={styles.centered}>
-            <Text style={[styles.stateText, { color: theme.secondaryText }]}>
+            <ThemedText variant="subhead" color="secondary">
               Failed to load upcoming releases
-            </Text>
+            </ThemedText>
           </View>
         );
       }
@@ -110,7 +107,6 @@ const UpcomingScreen = () => {
       query.isLoading,
       renderItem,
       rows,
-      theme,
     ]
   );
 
@@ -152,25 +148,17 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
-  },
-  stateText: {
-    fontSize: 14,
-    fontFamily: fontFamily.plusJakarta.regular,
+    gap: spacing.sm,
   },
   listContent: {
     paddingBottom: 120,
   },
   dayHeader: {
-    paddingTop: 16,
-    paddingBottom: 8,
-  },
-  dayHeaderText: {
-    fontSize: 20,
-    fontFamily: fontFamily.plusJakarta.bold,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.sm,
   },
   footer: {
-    paddingVertical: 24,
+    paddingVertical: spacing.xxl,
     alignItems: "center",
   },
 });

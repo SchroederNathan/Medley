@@ -3,15 +3,16 @@ import PlusSignIcon from "@hugeicons-pro/core-stroke-standard/PlusSignIcon";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useRouter } from "expo-router";
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, StyleSheet, TouchableOpacity, View } from "react-native";
 import Sortable, { type SortableGridRenderItem } from "react-native-sortables";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../../../components/ui/button";
 import { Switch } from "../../../components/ui/switch";
+import { ThemedText } from "../../../components/ui/themed-text";
+import { radius, spacing } from "../../../constants/theme";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { useUpdateProfileLayout } from "../../../hooks/mutations";
 import { useProfileLayout } from "../../../hooks/use-profile-layout";
-import { fontFamily } from "../../../lib/fonts";
 import {
   ALL_BLOCK_KINDS,
   getBlockDefinition,
@@ -78,9 +79,9 @@ const ProfileCustomize = () => {
               strokeWidth={2}
             />
           </Sortable.Handle>
-          <Text style={[styles.rowTitle, { color: theme.text }]}>
+          <ThemedText variant="headline" style={styles.rowTitle}>
             {definition?.title ?? item.kind}
-          </Text>
+          </ThemedText>
           <Switch
             value={item.enabled}
             onValueChange={() => toggleEnabled(item.id)}
@@ -92,20 +93,18 @@ const ProfileCustomize = () => {
   );
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
-      <Text style={[styles.headerTitle, { color: theme.text }]}>
-        Customize Profile
-      </Text>
-      <Text style={[styles.subtitle, { color: theme.secondaryText }]}>
+    <View style={[styles.container, { paddingTop: insets.top + spacing.sm }]}>
+      <ThemedText variant="screenTitle">Customize Profile</ThemedText>
+      <ThemedText variant="subhead" color="secondary" style={styles.subtitle}>
         Drag to reorder. Toggle blocks on or off.
-      </Text>
+      </ThemedText>
 
       <Sortable.Grid
         columns={1}
         data={blocks}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
-        rowGap={12}
+        rowGap={spacing.md}
         customHandle
         sortEnabled={blocks.length > 1}
         onDragEnd={({ data }) => setBlocks(data)}
@@ -117,9 +116,9 @@ const ProfileCustomize = () => {
 
       {missingKinds.length > 0 && (
         <View style={styles.addSection}>
-          <Text style={[styles.addHeading, { color: theme.secondaryText }]}>
+          <ThemedText variant="subhead" weight="medium" color="secondary">
             Add a block
-          </Text>
+          </ThemedText>
           {missingKinds.map((kind) => (
             <TouchableOpacity
               key={kind}
@@ -133,9 +132,9 @@ const ProfileCustomize = () => {
                 color={theme.text}
                 strokeWidth={2}
               />
-              <Text style={[styles.rowTitle, { color: theme.text }]}>
+              <ThemedText variant="headline" style={styles.rowTitle}>
                 {getBlockDefinition(kind)?.title ?? kind}
-              </Text>
+              </ThemedText>
             </TouchableOpacity>
           ))}
         </View>
@@ -143,7 +142,9 @@ const ProfileCustomize = () => {
 
       <View style={styles.spacer} />
 
-      <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
+      <View
+        style={[styles.footer, { paddingBottom: insets.bottom + spacing.lg }]}
+      >
         <Button
           title={updateLayout.isPending ? "Saving..." : "Save"}
           onPress={handleSave}
@@ -160,17 +161,11 @@ export default ProfileCustomize;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 20,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontFamily: fontFamily.tanker.regular,
+    paddingHorizontal: spacing.xl,
   },
   subtitle: {
-    fontSize: 14,
-    marginTop: 4,
-    marginBottom: 16,
-    fontFamily: fontFamily.plusJakarta.regular,
+    marginTop: spacing.xs,
+    marginBottom: spacing.lg,
   },
   spacer: {
     flex: 1,
@@ -178,34 +173,28 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderRadius: 12,
+    gap: spacing.lg,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radius.md,
   },
   rowTitle: {
     flex: 1,
-    fontSize: 16,
-    fontFamily: fontFamily.plusJakarta.semiBold,
   },
   addSection: {
-    marginTop: 24,
-    gap: 12,
-  },
-  addHeading: {
-    fontSize: 14,
-    fontFamily: fontFamily.plusJakarta.medium,
+    marginTop: spacing.xxl,
+    gap: spacing.md,
   },
   addRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderRadius: 12,
+    gap: spacing.lg,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radius.md,
     borderWidth: 1,
   },
   footer: {
-    paddingTop: 12,
+    paddingTop: spacing.md,
   },
 });

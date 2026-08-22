@@ -11,6 +11,13 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  motion,
+  radius,
+  shadows,
+  spacing,
+  type,
+} from "../../constants/theme";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
 
@@ -82,7 +89,7 @@ const Toast: React.FC<ToastProps> = ({
       // Animate in
       translateY.value = withSpring(0);
       scale.value = withSpring(1);
-      opacity.value = withTiming(1, { duration: 200 });
+      opacity.value = withTiming(1, { duration: motion.quick });
 
       // Auto dismiss after 4 seconds
       const timer = setTimeout(() => {
@@ -164,17 +171,17 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 16,
     right: 16,
-    borderRadius: 16,
+    borderRadius: radius.lg,
     zIndex: 2000,
     elevation: 2000,
-    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.3)",
+    boxShadow: shadows.overlay,
   },
   content: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    gap: 12,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    gap: spacing.md,
   },
   iconContainer: {
     width: 32,
@@ -186,20 +193,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   message: {
-    fontSize: 14,
+    ...type.subhead,
     fontFamily: fontFamily.plusJakarta.semiBold,
     lineHeight: 20,
   },
   actionButton: {
-    paddingHorizontal: 12,
+    paddingHorizontal: spacing.md,
     paddingVertical: 6,
   },
   actionText: {
-    fontSize: 12,
+    ...type.caption,
     fontFamily: fontFamily.plusJakarta.semiBold,
     textTransform: "uppercase",
   },
   closeButton: {
-    padding: 4,
+    padding: spacing.xs,
   },
 });

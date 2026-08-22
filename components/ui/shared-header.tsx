@@ -1,19 +1,20 @@
 import SlidersHorizontalIcon from "@hugeicons-pro/core-stroke-standard/SlidersHorizontalIcon";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import React, { FC, useContext } from "react";
-import { Keyboard, Pressable, StyleSheet, Text, View } from "react-native";
+import { Keyboard, Pressable, StyleSheet, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   withTiming,
 } from "react-native-reanimated";
+import { spacing } from "../../constants/theme";
 import {
   CANCEL_BUTTON_GAP,
   useHomeAnimation,
 } from "../../contexts/home-animation-context";
 import { ThemeContext } from "../../contexts/theme-context";
 import { useHeaderHeight } from "../../hooks/use-header-height";
-import { fontFamily } from "../../lib/fonts";
 import { AnimatedSearchBar } from "./animated-search-bar";
+import { ThemedText } from "./themed-text";
 
 type SharedHeaderProps = {
   leftButton?: React.ReactNode;
@@ -134,18 +135,9 @@ export const SharedHeader: FC<SharedHeaderProps> = ({
               style={styles.cancelPressable}
               hitSlop={{ top: 10, bottom: 20, left: 20 }}
             >
-              <Text
-                numberOfLines={1}
-                style={[
-                  styles.cancelText,
-                  {
-                    color: theme.text,
-                    fontFamily: fontFamily.plusJakarta.medium,
-                  },
-                ]}
-              >
+              <ThemedText numberOfLines={1} weight="medium">
                 Cancel
-              </Text>
+              </ThemedText>
             </Pressable>
           </Animated.View>
         )}
@@ -200,10 +192,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   cancelPressable: {
-    paddingRight: 20,
+    paddingRight: spacing.xl,
     marginLeft: CANCEL_BUTTON_GAP, // Gap between search bar and cancel button
-  },
-  cancelText: {
-    fontSize: 16,
   },
 });

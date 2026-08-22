@@ -5,14 +5,14 @@ import React, { FC, useContext } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { radius, spacing } from "../../constants/theme";
 import { ThemeContext } from "../../contexts/theme-context";
 import { useHeaderHeight } from "../../hooks/use-header-height";
-import { fontFamily } from "../../lib/fonts";
+import { ThemedText } from "./themed-text";
 
 type SearchResult = {
   id: string;
@@ -57,29 +57,11 @@ export const SharedSearchResults: FC<SharedSearchResultsProps> = ({
         ]}
       />
       <View style={styles.resultContent}>
-        <Text
-          style={[
-            styles.resultTitle,
-            {
-              color: theme.text,
-              fontFamily: fontFamily.plusJakarta.bold,
-            },
-          ]}
-        >
-          {item.title}
-        </Text>
+        <ThemedText weight="bold">{item.title}</ThemedText>
         {item.year && (
-          <Text
-            style={[
-              styles.resultYear,
-              {
-                color: theme.secondaryText,
-                fontFamily: fontFamily.plusJakarta.regular,
-              },
-            ]}
-          >
+          <ThemedText variant="subhead" color="secondary">
             {item.year}
-          </Text>
+          </ThemedText>
         )}
       </View>
     </TouchableOpacity>
@@ -90,18 +72,12 @@ export const SharedSearchResults: FC<SharedSearchResultsProps> = ({
     return (
       <View style={styles.emptyContainer}>
         <ActivityIndicator size="large" color={theme.text} />
-        <Text
-          style={[
-            styles.emptyText,
-            {
-              color: theme.secondaryText,
-              fontFamily: fontFamily.plusJakarta.regular,
-              marginTop: 16,
-            },
-          ]}
+        <ThemedText
+          color="secondary"
+          style={[styles.emptyText, { marginTop: spacing.lg }]}
         >
           Searching...
-        </Text>
+        </ThemedText>
       </View>
     );
   }
@@ -110,30 +86,16 @@ export const SharedSearchResults: FC<SharedSearchResultsProps> = ({
   if (isError) {
     return (
       <View style={styles.emptyContainer}>
-        <Text
-          style={[
-            styles.emptyText,
-            {
-              color: theme.text,
-              fontFamily: fontFamily.plusJakarta.medium,
-            },
-          ]}
-        >
+        <ThemedText weight="medium" style={styles.emptyText}>
           Failed to load search results
-        </Text>
-        <Text
-          style={[
-            styles.emptyText,
-            {
-              color: theme.secondaryText,
-              fontFamily: fontFamily.plusJakarta.regular,
-              fontSize: 14,
-              marginTop: 8,
-            },
-          ]}
+        </ThemedText>
+        <ThemedText
+          variant="subhead"
+          color="secondary"
+          style={[styles.emptyText, { marginTop: spacing.sm }]}
         >
           Please try again
-        </Text>
+        </ThemedText>
       </View>
     );
   }
@@ -142,13 +104,16 @@ export const SharedSearchResults: FC<SharedSearchResultsProps> = ({
     return (
       <FlashList
         data={flatResults}
-        style={{ paddingHorizontal: 20 }}
+        style={{ paddingHorizontal: spacing.xl }}
         renderItem={renderFlatResult}
         keyExtractor={(item) => item.id}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
         contentContainerStyle={[
           styles.flatContainer,
-          { paddingTop: grossHeight + 20, paddingBottom: insets.bottom + 8 },
+          {
+            paddingTop: grossHeight + spacing.xl,
+            paddingBottom: insets.bottom + spacing.sm,
+          },
         ]}
         showsVerticalScrollIndicator={false}
       />
@@ -157,34 +122,26 @@ export const SharedSearchResults: FC<SharedSearchResultsProps> = ({
 
   return (
     <View style={styles.emptyContainer}>
-      <Text
-        style={[
-          styles.emptyText,
-          {
-            color: theme.secondaryText,
-            fontFamily: fontFamily.plusJakarta.regular,
-          },
-        ]}
-      >
+      <ThemedText color="secondary" style={styles.emptyText}>
         {searchQuery
           ? `No results found for "${searchQuery}"`
           : "Pull down to search"}
-      </Text>
+      </ThemedText>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   flatContainer: {
-    gap: 12,
+    gap: spacing.md,
   },
   flatResultItem: {
     flexDirection: "row",
-    gap: 12,
+    gap: spacing.md,
     alignItems: "center",
   },
   resultImage: {
-    borderRadius: 4,
+    borderRadius: radius.xs,
     borderWidth: 1,
     width: 150,
     aspectRatio: 940 / 549,
@@ -192,22 +149,15 @@ const styles = StyleSheet.create({
   resultContent: {
     flex: 1,
     justifyContent: "center",
-    gap: 4,
-  },
-  resultTitle: {
-    fontSize: 16,
-  },
-  resultYear: {
-    fontSize: 14,
+    gap: spacing.xs,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 40,
+    paddingVertical: spacing.huge,
   },
   emptyText: {
-    fontSize: 16,
     textAlign: "center",
   },
 });

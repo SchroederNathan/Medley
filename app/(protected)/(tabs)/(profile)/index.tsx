@@ -35,7 +35,9 @@ import { DefaultProfileImage } from "../../../../components/ui/default-profile-i
 import MediaCard from "../../../../components/ui/media-card";
 import ActionMenu from "../../../../components/ui/sheets/action-menu";
 import TabPager from "../../../../components/ui/tab-pager";
+import { ThemedText } from "../../../../components/ui/themed-text";
 import UserReviewCard from "../../../../components/ui/user-review-card";
+import { spacing, type } from "../../../../constants/theme";
 import { useAuroraScroll } from "../../../../contexts/aurora-scroll-context";
 import { AuthContext } from "../../../../contexts/auth-context";
 import { ProfileEditModeContext } from "../../../../contexts/profile-edit-mode-context";
@@ -49,7 +51,6 @@ import { useUserCollections } from "../../../../hooks/use-user-collections";
 import { useUserMedia } from "../../../../hooks/use-user-media";
 import { useUserProfile } from "../../../../hooks/use-user-profile";
 import { useUserReviews } from "../../../../hooks/use-user-reviews";
-import { fontFamily } from "../../../../lib/fonts";
 import { queryKeys } from "../../../../lib/query-keys";
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -336,8 +337,8 @@ const ProfileScreen = () => {
               />
             }
             contentContainerStyle={{
-              paddingTop: insets.top + 20,
-              paddingHorizontal: 20,
+              paddingTop: insets.top + spacing.xl,
+              paddingHorizontal: spacing.xl,
               alignItems: "center",
               paddingBottom: 100,
               // Ensure minimum height to allow scrolling even with minimal content
@@ -364,32 +365,28 @@ const ProfileScreen = () => {
 
             <View style={styles.profileContent}>
               <DefaultProfileImage />
-              <Text style={[styles.name, { color: theme.text }]}>
+              <ThemedText variant="title" style={styles.name}>
                 {profile?.name}
-              </Text>
+              </ThemedText>
               <View style={styles.profileInfoRow}>
                 <Pressable style={styles.countContainer}>
-                  <Text style={[styles.count, { color: theme.text }]}>
+                  <ThemedText weight="bold">
                     {followCounts?.followers ?? 0}
-                  </Text>
-                  <Text
-                    style={[styles.countLabel, { color: theme.secondaryText }]}
-                  >
+                  </ThemedText>
+                  <ThemedText weight="medium" color="secondary">
                     Followers
-                  </Text>
+                  </ThemedText>
                 </Pressable>
                 <View
                   style={[styles.separator, { backgroundColor: theme.border }]}
                 />
                 <Pressable style={styles.countContainer}>
-                  <Text style={[styles.count, { color: theme.text }]}>
+                  <ThemedText weight="bold">
                     {followCounts?.following ?? 0}
-                  </Text>
-                  <Text
-                    style={[styles.countLabel, { color: theme.secondaryText }]}
-                  >
+                  </ThemedText>
+                  <ThemedText weight="medium" color="secondary">
                     Following
-                  </Text>
+                  </ThemedText>
                 </Pressable>
               </View>
 
@@ -426,15 +423,21 @@ const ProfileScreen = () => {
                 tabs={tabs}
                 selectedKey={activeTab}
                 onChange={handleTabChange}
-                style={{ marginHorizontal: -20 }}
+                style={{ marginHorizontal: -spacing.xl }}
                 centerTabs={true}
                 pages={[
-                  <View key="library" style={{ flex: 1, paddingTop: 20 }}>
+                  <View
+                    key="library"
+                    style={{ flex: 1, paddingTop: spacing.xl }}
+                  >
                     {mediaLoading ? (
                       <View style={styles.loadingContainer}>
                         <ActivityIndicator size="small" />
                         <Text
-                          style={{ color: theme.secondaryText, marginTop: 8 }}
+                          style={{
+                            color: theme.secondaryText,
+                            marginTop: spacing.sm,
+                          }}
                         >
                           Loading library...
                         </Text>
@@ -477,18 +480,16 @@ const ProfileScreen = () => {
                       />
                     ) : (
                       <View style={styles.emptyContainer}>
-                        <Text
-                          style={[
-                            styles.emptyText,
-                            { color: theme.secondaryText },
-                          ]}
-                        >
+                        <ThemedText color="secondary">
                           Nothing tracked yet
-                        </Text>
+                        </ThemedText>
                       </View>
                     )}
                   </View>,
-                  <View key="reviews" style={{ flex: 1, paddingTop: 20 }}>
+                  <View
+                    key="reviews"
+                    style={{ flex: 1, paddingTop: spacing.xl }}
+                  >
                     {!reviewsDeferred && sortedReviews.length > 0 && (
                       <Pressable
                         onPress={() => setSortMenuVisible(true)}
@@ -501,21 +502,23 @@ const ProfileScreen = () => {
                           color={theme.secondaryText}
                           strokeWidth={2}
                         />
-                        <Text
-                          style={[
-                            styles.sortLabel,
-                            { color: theme.secondaryText },
-                          ]}
+                        <ThemedText
+                          variant="subhead"
+                          weight="medium"
+                          color="secondary"
                         >
                           {sortLabels[reviewSort]}
-                        </Text>
+                        </ThemedText>
                       </Pressable>
                     )}
                     {reviewsLoading || reviewsDeferred ? (
                       <View style={styles.loadingContainer}>
                         <ActivityIndicator size="small" />
                         <Text
-                          style={{ color: theme.secondaryText, marginTop: 8 }}
+                          style={{
+                            color: theme.secondaryText,
+                            marginTop: spacing.sm,
+                          }}
                         >
                           Loading reviews...
                         </Text>
@@ -553,26 +556,24 @@ const ProfileScreen = () => {
                       ))
                     ) : (
                       <View style={styles.emptyContainer}>
-                        <Text
-                          style={[
-                            styles.emptyText,
-                            { color: theme.secondaryText },
-                          ]}
-                        >
+                        <ThemedText color="secondary">
                           No reviews yet
-                        </Text>
+                        </ThemedText>
                       </View>
                     )}
                   </View>,
                   <View
                     key="collections"
-                    style={{ flex: 1, paddingTop: 20, gap: 16 }}
+                    style={{ flex: 1, paddingTop: spacing.xl, gap: spacing.lg }}
                   >
                     {collectionsLoading || collectionsDeferred ? (
                       <View style={styles.loadingContainer}>
                         <ActivityIndicator size="small" />
                         <Text
-                          style={{ color: theme.secondaryText, marginTop: 8 }}
+                          style={{
+                            color: theme.secondaryText,
+                            marginTop: spacing.sm,
+                          }}
                         >
                           Loading collections...
                         </Text>
@@ -615,14 +616,9 @@ const ProfileScreen = () => {
                           ))
                         ) : (
                           <View style={styles.emptyContainer}>
-                            <Text
-                              style={[
-                                styles.emptyText,
-                                { color: theme.secondaryText },
-                              ]}
-                            >
+                            <ThemedText color="secondary">
                               No collections yet
-                            </Text>
+                            </ThemedText>
                           </View>
                         )}
                       </>
@@ -630,13 +626,16 @@ const ProfileScreen = () => {
                   </View>,
                   <View
                     key="ranked"
-                    style={{ flex: 1, paddingTop: 20, gap: 16 }}
+                    style={{ flex: 1, paddingTop: spacing.xl, gap: spacing.lg }}
                   >
                     {collectionsLoading || rankedDeferred ? (
                       <View style={styles.loadingContainer}>
                         <ActivityIndicator size="small" />
                         <Text
-                          style={{ color: theme.secondaryText, marginTop: 8 }}
+                          style={{
+                            color: theme.secondaryText,
+                            marginTop: spacing.sm,
+                          }}
                         >
                           Loading rankings...
                         </Text>
@@ -679,14 +678,9 @@ const ProfileScreen = () => {
                           ))
                         ) : (
                           <View style={styles.emptyContainer}>
-                            <Text
-                              style={[
-                                styles.emptyText,
-                                { color: theme.secondaryText },
-                              ]}
-                            >
+                            <ThemedText color="secondary">
                               No ranked collections yet
-                            </Text>
+                            </ThemedText>
                           </View>
                         )}
                       </>
@@ -734,29 +728,13 @@ const styles = StyleSheet.create({
   },
 
   name: {
-    fontFamily: fontFamily.plusJakarta.bold,
-    fontSize: 24,
-    marginTop: 20,
-    marginBottom: 24,
-  },
-  preferences: {
-    fontFamily: fontFamily.plusJakarta.regular,
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  onboarding: {
-    fontFamily: fontFamily.plusJakarta.regular,
-    fontSize: 16,
-    marginBottom: 20,
+    marginTop: spacing.xl,
+    marginBottom: spacing.xxl,
   },
   errorText: {
-    fontFamily: fontFamily.plusJakarta.regular,
-    fontSize: 16,
+    ...type.body,
     color: "red",
-    marginBottom: 20,
-  },
-  button: {
-    width: "100%",
+    marginBottom: spacing.xl,
   },
   profileInfoRow: {
     flexDirection: "row",
@@ -767,26 +745,18 @@ const styles = StyleSheet.create({
   countContainer: {
     width: 100,
     alignItems: "center",
-    gap: 4,
-  },
-  count: {
-    fontFamily: fontFamily.plusJakarta.bold,
-    fontSize: 16,
-  },
-  countLabel: {
-    fontFamily: fontFamily.plusJakarta.medium,
-    fontSize: 16,
+    gap: spacing.xs,
   },
   separator: {
     width: 1,
     height: 30,
   },
   editProfileButton: {
-    marginTop: 24,
+    marginTop: spacing.xxl,
   },
   blocksContainer: {
     width: "100%",
-    marginTop: 32,
+    marginTop: spacing.xxxl,
   },
   profileContent: {
     width: "100%",
@@ -795,35 +765,27 @@ const styles = StyleSheet.create({
   loadingContainer: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 40,
+    paddingVertical: spacing.huge,
   },
   errorContainer: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 40,
+    paddingVertical: spacing.huge,
   },
   emptyContainer: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 40,
-  },
-  emptyText: {
-    fontFamily: fontFamily.plusJakarta.regular,
-    fontSize: 16,
+    paddingVertical: spacing.huge,
   },
   reviewCardContainer: {
-    marginBottom: 32,
+    marginBottom: spacing.xxxl,
   },
   sortButton: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
     alignSelf: "flex-end",
-    marginRight: 40,
-    marginBottom: 16,
-  },
-  sortLabel: {
-    fontFamily: fontFamily.plusJakarta.medium,
-    fontSize: 14,
+    marginRight: spacing.huge,
+    marginBottom: spacing.lg,
   },
 });

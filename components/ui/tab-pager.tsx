@@ -22,6 +22,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { spacing } from "../../constants/theme";
 import { ThemeContext } from "../../contexts/theme-context";
 import { fontFamily } from "../../lib/fonts";
 
@@ -399,7 +400,7 @@ const TabPager = ({
           }}
           contentContainerStyle={{
             width: measuredWidth * Math.max(1, tabs.length),
-            paddingHorizontal: 20,
+            paddingHorizontal: spacing.xl,
           }}
           style={styles.pages}
         >
@@ -425,14 +426,14 @@ const styles = StyleSheet.create({
   },
   header: {
     position: "relative",
-    marginHorizontal: 20,
+    marginHorizontal: spacing.xl,
   },
   headerCentered: {
     alignItems: "center",
     marginHorizontal: 0,
   },
   tab: {
-    paddingBottom: 8,
+    paddingBottom: spacing.sm,
   },
   indicator: {
     position: "absolute",

@@ -8,8 +8,8 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { motion, radius, spacing, type } from "../../constants/theme";
 import { ThemeContext } from "../../contexts/theme-context";
-import { fontFamily } from "../../lib/fonts";
 
 interface ButtonProps {
   title: string;
@@ -80,13 +80,13 @@ const Button = ({
       <Pressable
         onPressIn={() => {
           if (!disabled) {
-            scale.value = withTiming(0.98, { duration: 100 });
+            scale.value = withTiming(0.98, { duration: motion.fast });
             Haptics.selectionAsync();
           }
         }}
         onPressOut={() => {
           if (!disabled) {
-            scale.value = withTiming(1, { duration: 100 });
+            scale.value = withTiming(1, { duration: motion.fast });
           }
         }}
         onPress={disabled ? undefined : onPress}
@@ -128,23 +128,21 @@ export default Button;
 
 const styles = StyleSheet.create({
   gradientBorder: {
-    borderRadius: 12,
+    borderRadius: radius.md,
     padding: 1,
     borderCurve: "continuous",
   },
   buttonContainer: {
     height: 52,
-    paddingHorizontal: 32,
-    borderRadius: 11,
+    paddingHorizontal: spacing.xxxl,
+    borderRadius: radius.md - 1,
     position: "relative",
     overflow: "hidden",
     borderCurve: "continuous",
     justifyContent: "center",
   },
   buttonText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    fontFamily: fontFamily.plusJakarta.semiBold,
+    ...type.headline,
   },
   blurView: {
     flexDirection: "row",

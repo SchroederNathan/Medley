@@ -10,6 +10,7 @@ import AuthScreenLayout, {
 } from "../components/ui/auth-screen-layout";
 import Button from "../components/ui/button";
 import RadioCard from "../components/ui/radio-card";
+import { spacing } from "../constants/theme";
 import { AuthContext } from "../contexts/auth-context";
 import { ThemeContext } from "../contexts/theme-context";
 
@@ -98,11 +99,17 @@ export default function MediaPreferences() {
           icon={item.icon}
           selected={selected.includes(item.key)}
           onPress={() => toggle(item.key)}
-          style={{ marginBottom: idx === items.length - 1 ? 24 : 12 }}
+          style={{
+            marginBottom: idx === items.length - 1 ? spacing.xxl : spacing.md,
+          }}
         />
       ))}
 
-      <Button title="Next" onPress={onContinue} styles={{ marginTop: 8 }} />
+      <Button
+        title="Next"
+        onPress={onContinue}
+        styles={{ marginTop: spacing.sm }}
+      />
     </AuthScreenLayout>
   );
 }

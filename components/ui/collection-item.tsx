@@ -3,11 +3,12 @@ import GripVerticalIcon from "@hugeicons-pro/core-stroke-standard/GripVerticalIc
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Image } from "expo-image";
 import React, { useContext } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 import { ScaleDecorator } from "react-native-draggable-flatlist";
+import { motion, radius, spacing } from "../../constants/theme";
 import { ThemeContext } from "../../contexts/theme-context";
-import { fontFamily } from "../../lib/fonts";
 import { Media } from "../../types/media";
+import { ThemedText } from "./themed-text";
 
 interface CollectionItemProps {
   item: Media;
@@ -49,7 +50,7 @@ const CollectionItem = ({
           >
             <Image
               cachePolicy="memory-disk"
-              transition={200}
+              transition={motion.quick}
               source={require("../../assets/badges/gold-badge.png")}
               style={{
                 position: "absolute",
@@ -62,7 +63,7 @@ const CollectionItem = ({
             />
             <Image
               cachePolicy="memory-disk"
-              transition={200}
+              transition={motion.quick}
               source={require("../../assets/badges/gold-badge.png")}
               style={{
                 width: 40,
@@ -83,7 +84,7 @@ const CollectionItem = ({
           >
             <Image
               cachePolicy="memory-disk"
-              transition={200}
+              transition={motion.quick}
               source={require("../../assets/badges/silver-badge.png")}
               style={{
                 position: "absolute",
@@ -96,7 +97,7 @@ const CollectionItem = ({
             />
             <Image
               cachePolicy="memory-disk"
-              transition={200}
+              transition={motion.quick}
               source={require("../../assets/badges/silver-badge.png")}
               style={{
                 width: 40,
@@ -117,7 +118,7 @@ const CollectionItem = ({
           >
             <Image
               cachePolicy="memory-disk"
-              transition={200}
+              transition={motion.quick}
               source={require("../../assets/badges/bronze-badge.png")}
               style={{
                 position: "absolute",
@@ -130,7 +131,7 @@ const CollectionItem = ({
             />
             <Image
               cachePolicy="memory-disk"
-              transition={200}
+              transition={motion.quick}
               source={require("../../assets/badges/bronze-badge.png")}
               style={{
                 width: 40,
@@ -157,26 +158,24 @@ const CollectionItem = ({
                 width: 40,
                 height: 40,
                 backgroundColor: theme.background,
-                borderRadius: 20,
+                borderRadius: radius.full,
               }}
             />
-            <Text
+            <ThemedText
+              variant="titleSm"
+              color="secondary"
               style={{
-                fontSize: 18,
                 width: 32,
                 height: 32,
-                fontWeight: "bold",
-                fontFamily: fontFamily.plusJakarta.bold,
-                color: theme.secondaryText,
                 backgroundColor: theme.buttonBackground,
-                borderRadius: 20,
-                padding: 4,
+                borderRadius: radius.full,
+                padding: spacing.xs,
                 minWidth: 24,
                 textAlign: "center",
               }}
             >
               {rank}
-            </Text>
+            </ThemedText>
           </View>
         );
     }
@@ -187,8 +186,8 @@ const CollectionItem = ({
       style={{
         flexDirection: "row",
         alignItems: "center",
-        paddingVertical: 16,
-        borderRadius: 16,
+        paddingVertical: spacing.lg,
+        borderRadius: radius.lg,
       }}
     >
       {/* Left side: Badge/Number for ranked collections */}
@@ -202,7 +201,7 @@ const CollectionItem = ({
             height: 40,
             justifyContent: "center",
             alignItems: "center",
-            marginRight: 12,
+            marginRight: spacing.md,
             zIndex: 1,
           }}
         >
@@ -212,41 +211,34 @@ const CollectionItem = ({
 
       <Image
         cachePolicy="memory-disk"
-        transition={200}
+        transition={motion.quick}
         source={{ uri: item.poster_url }}
         style={{
           width: 80,
           height: 120,
-          borderRadius: 4,
-          marginRight: 12,
+          borderRadius: radius.xs,
+          marginRight: spacing.md,
         }}
       />
 
       <View style={{ flex: 1 }}>
-        <Text
-          style={{
-            fontSize: 16,
-            fontFamily: fontFamily.plusJakarta.bold,
-            color: theme.text,
-            marginBottom: 4,
-          }}
+        <ThemedText
+          variant="headline"
+          weight="bold"
+          style={{ marginBottom: spacing.xs }}
         >
           {item.title}
-        </Text>
-        <Text
-          style={{
-            fontSize: 14,
-            fontFamily: fontFamily.plusJakarta.regular,
-            color: theme.secondaryText,
-          }}
-        >
+        </ThemedText>
+        <ThemedText variant="subhead" color="secondary">
           {item.year}
-        </Text>
+        </ThemedText>
       </View>
 
       {/* Right side: Remove button and GripVertical for draggable items */}
       {isDraggable && (
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <View
+          style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}
+        >
           {onRemove && (
             // Temp removal UI
             <TouchableOpacity
@@ -254,7 +246,7 @@ const CollectionItem = ({
               style={{
                 width: 32,
                 height: 32,
-                borderRadius: 16,
+                borderRadius: radius.full,
                 backgroundColor: theme.buttonBackground,
                 alignItems: "center",
                 justifyContent: "center",

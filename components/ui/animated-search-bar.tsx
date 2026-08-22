@@ -27,8 +27,8 @@ import {
   SETTINGS_CONTAINER_WIDTH,
   CANCEL_BUTTON_GAP,
 } from "../../contexts/home-animation-context";
+import { radius, spacing, type } from "../../constants/theme";
 import { ThemeContext } from "../../contexts/theme-context";
-import { fontFamily } from "../../lib/fonts";
 
 type AnimatedSearchBarProps = {
   value?: string;
@@ -123,7 +123,9 @@ export const AnimatedSearchBar: FC<AnimatedSearchBarProps> = ({
       return {
         transformOrigin: "center",
         transform: [{ scale: withTiming(1.05) }],
-        marginRight: withSpring(screenView.value === "favorites" ? -4 : 0),
+        marginRight: withSpring(
+          screenView.value === "favorites" ? -spacing.xs : 0
+        ),
       };
     }
 
@@ -135,7 +137,9 @@ export const AnimatedSearchBar: FC<AnimatedSearchBarProps> = ({
     return {
       width: withSpring(targetWidth),
       transform: [{ scale: withTiming(1) }],
-      marginRight: withSpring(screenView.value === "favorites" ? -4 : 0),
+      marginRight: withSpring(
+        screenView.value === "favorites" ? -spacing.xs : 0
+      ),
       // While dragging center the origin to avoid noticeable skew
       // Otherwise anchor to the right so width change feels like Cancel button appears
       transformOrigin: isListDragging.value ? "center" : "right",
@@ -173,13 +177,7 @@ export const AnimatedSearchBar: FC<AnimatedSearchBarProps> = ({
           />
           <TextInput
             ref={inputRef}
-            style={[
-              styles.inputText,
-              {
-                color: theme.inputText,
-                fontFamily: fontFamily.plusJakarta.regular,
-              },
-            ]}
+            style={[styles.inputText, { color: theme.inputText }]}
             placeholder={placeholder}
             placeholderTextColor={theme.inputPlaceholderText}
             value={value}
@@ -230,15 +228,15 @@ const styles = StyleSheet.create({
     bottom: 0,
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 16,
-    borderRadius: 16,
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderCurve: "continuous",
     overflow: "hidden",
   },
   inputText: {
     flex: 1,
-    fontSize: 16,
+    ...type.body,
   },
 });

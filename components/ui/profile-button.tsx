@@ -4,6 +4,7 @@ import { Image } from "expo-image";
 import { router } from "expo-router";
 import React, { useContext } from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
+import { radius } from "../../constants/theme";
 import { AuthContext } from "../../contexts/auth-context";
 import { ThemeContext } from "../../contexts/theme-context";
 
@@ -27,7 +28,7 @@ const ProfileButton = () => {
         <Image
           source={{ uri: user.avatar_url }}
           contentFit="cover"
-          style={[StyleSheet.absoluteFill, { borderRadius: 26 }]}
+          style={[StyleSheet.absoluteFill, { borderRadius: radius.full }]}
         />
       ) : (
         <HugeiconsIcon
@@ -49,7 +50,7 @@ const styles = StyleSheet.create({
     width: 52,
     borderWidth: 1,
     aspectRatio: 1,
-    borderRadius: 26,
+    borderRadius: radius.full,
     overflow: "hidden",
     justifyContent: "center",
     alignItems: "center",

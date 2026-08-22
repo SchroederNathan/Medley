@@ -8,7 +8,6 @@ import {
   Modal,
   Platform,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
   ViewStyle,
@@ -22,9 +21,10 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { radius, spacing } from "../../constants/theme";
 import { ThemeContext } from "../../contexts/theme-context";
-import { fontFamily } from "../../lib/fonts";
 import Button from "./button";
+import { ThemedText } from "./themed-text";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -143,7 +143,7 @@ const Sheet = ({
     const borderRadius = interpolate(
       translateY.value,
       [0, closePosition],
-      [20, 8],
+      [radius.xl, radius.sm],
       "clamp"
     );
 
@@ -249,9 +249,9 @@ const Sheet = ({
               {/* Header */}
               {headerVisible && (
                 <View style={styles.header}>
-                  <Text style={[styles.title, { color: theme.text }]}>
+                  <ThemedText variant="heading" weight="semiBold">
                     {title}
-                  </Text>
+                  </ThemedText>
                   {showCloseButton && (
                     <TouchableOpacity
                       style={[
@@ -333,37 +333,32 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   blurView: {
-    paddingTop: 8,
+    paddingTop: spacing.sm,
   },
   handle: {
     width: 40,
     height: 4,
     borderRadius: 2,
     alignSelf: "center",
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  title: {
-    fontSize: 20,
-    fontFamily: fontFamily.plusJakarta.semiBold,
-    fontWeight: "600",
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.lg,
   },
   closeButton: {
-    padding: 8,
-    borderRadius: 24,
+    padding: spacing.sm,
+    borderRadius: radius.full,
   },
   content: {
     flexShrink: 1,
   },
   contentContainer: {
-    padding: 20,
-    paddingBottom: Platform.OS === "ios" ? 40 : 20,
+    padding: spacing.xl,
+    paddingBottom: Platform.OS === "ios" ? spacing.huge : spacing.xl,
   },
   cancelButtonContainer: {
     position: "absolute",

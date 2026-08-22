@@ -11,6 +11,7 @@ import {
   EDIT_HOME_CONTAINER_WIDTH,
   useHomeAnimation,
 } from "../../contexts/home-animation-context";
+import { motion, spacing } from "../../constants/theme";
 import { ThemeContext } from "../../contexts/theme-context";
 
 type FilterButtonProps = {
@@ -31,7 +32,7 @@ export const FilterButton: FC<FilterButtonProps> = ({ onPress }) => {
     }
 
     return {
-      opacity: withDelay(300, withTiming(1, { duration: 0 })),
+      opacity: withDelay(motion.base, withTiming(1, { duration: 0 })),
       pointerEvents: "auto",
     };
   });
@@ -68,6 +69,6 @@ const styles = StyleSheet.create({
   pressable: {
     alignItems: "center",
     justifyContent: "center",
-    padding: 8,
+    padding: spacing.sm,
   },
 });

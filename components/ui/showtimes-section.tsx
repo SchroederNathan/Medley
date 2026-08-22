@@ -17,11 +17,13 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
+import { radius, spacing } from "../../constants/theme";
 import { ThemeContext } from "../../contexts/theme-context";
 import { useShowtimesForMovie } from "../../hooks/use-showtimes";
 import { fontFamily } from "../../lib/fonts";
 import { ShowtimeEntry } from "../../services/showtimesService";
 import { Media } from "../../types/media";
+import { ThemedText } from "./themed-text";
 
 type ShowtimesSectionProps = {
   media: Media;
@@ -186,9 +188,9 @@ const TheaterAccordionItem: React.FC<TheaterAccordionItemProps> = ({
               key={`${theater.theaterId}-${time.dateTime}-${time.bargain ? "b" : "n"}`}
               style={[styles.timeChip, themeStyles.timeChip]}
             >
-              <Text style={[styles.timeChipText, themeStyles.primaryText]}>
+              <ThemedText variant="footnote" weight="medium">
                 {formatTime(time.dateTime)}
-              </Text>
+              </ThemedText>
             </View>
           ))}
         </View>
@@ -208,24 +210,12 @@ function createThemeStyles(theme: {
     chipSelectedDayText: {
       color: theme.text,
     },
-    chipSelectedNumberText: {
-      color: theme.text,
-    },
     chipUnselectedDayText: {
       color: theme.text,
-    },
-    chipUnselectedNumberText: {
-      color: theme.text,
-    },
-    emptyText: {
-      color: theme.secondaryText,
     },
     pill: {
       backgroundColor: theme.card,
       borderColor: theme.border,
-    },
-    pillText: {
-      color: theme.text,
     },
     primaryText: {
       color: theme.text,
@@ -350,9 +340,9 @@ export const ShowtimesSection: React.FC<ShowtimesSectionProps> = ({
             pressed && styles.pressed,
           ]}
         >
-          <Text style={[styles.pillText, themeStyles.pillText]}>
+          <ThemedText variant="footnote" weight="semiBold">
             {pillCopy}
-          </Text>
+          </ThemedText>
         </Pressable>
       </View>
     );
@@ -384,9 +374,9 @@ export const ShowtimesSection: React.FC<ShowtimesSectionProps> = ({
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.title, themeStyles.primaryText]}>
+      <ThemedText variant="heading" style={styles.title}>
         Showtimes near you
-      </Text>
+      </ThemedText>
 
       {dateTabs.length > 0 ? (
         <ScrollView
@@ -414,16 +404,13 @@ export const ShowtimesSection: React.FC<ShowtimesSectionProps> = ({
                   >
                     {tab.weekday}
                   </Text>
-                  <Text
-                    style={[
-                      styles.dateTabNumberText,
-                      selected
-                        ? themeStyles.chipSelectedNumberText
-                        : themeStyles.chipUnselectedNumberText,
-                    ]}
+                  <ThemedText
+                    variant="subhead"
+                    weight="semiBold"
+                    style={styles.dateTabNumberText}
                   >
                     {tab.dayNumber}
-                  </Text>
+                  </ThemedText>
                 </Pressable>
               );
             })}
@@ -443,18 +430,18 @@ export const ShowtimesSection: React.FC<ShowtimesSectionProps> = ({
       ) : null}
 
       {query.isError ? (
-        <Text style={[styles.empty, themeStyles.emptyText]}>
+        <ThemedText variant="subhead" weight="medium" color="secondary">
           Could not load showtimes. Try again later.
-        </Text>
+        </ThemedText>
       ) : null}
 
       {!query.isLoading &&
       !query.isFetching &&
       query.data &&
       (!movie || theaters.length === 0) ? (
-        <Text style={[styles.empty, themeStyles.emptyText]}>
+        <ThemedText variant="subhead" weight="medium" color="secondary">
           No local showtimes for this date.
-        </Text>
+        </ThemedText>
       ) : null}
 
       {theaters.length > 0 ? (
@@ -487,13 +474,13 @@ const styles = StyleSheet.create({
     transform: [{ rotate: "180deg" }],
   },
   container: {
-    gap: 12,
+    gap: spacing.md,
   },
   dateTab: {
     alignItems: "center",
     minWidth: 84,
     paddingHorizontal: 10,
-    paddingBottom: 8,
+    paddingBottom: spacing.sm,
     position: "relative",
   },
   dateTabDayText: {
@@ -510,49 +497,39 @@ const styles = StyleSheet.create({
     position: "absolute",
   },
   dateTabNumberText: {
-    fontFamily: fontFamily.plusJakarta.semiBold,
-    fontSize: 14,
-    marginTop: 2,
+    marginTop: spacing.xxs,
   },
   dateTabRow: {
-    paddingHorizontal: 2,
+    paddingHorizontal: spacing.xxs,
   },
   dateTabsTrack: {
-    gap: 32,
-    paddingBottom: 2,
+    gap: spacing.xxxl,
+    paddingBottom: spacing.xxs,
     position: "relative",
     flexDirection: "row",
   },
-  empty: {
-    fontFamily: fontFamily.plusJakarta.medium,
-    fontSize: 14,
-  },
   pill: {
     alignSelf: "flex-start",
-    borderRadius: 999,
+    borderRadius: radius.full,
     borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 14,
     paddingVertical: 10,
-  },
-  pillText: {
-    fontFamily: fontFamily.plusJakarta.semiBold,
-    fontSize: 13,
   },
   pressed: {
     opacity: 0.7,
   },
   theaterCard: {
-    gap: 2,
+    gap: spacing.xxs,
   },
   theaterHeader: {
     alignItems: "center",
     flexDirection: "row",
-    gap: 12,
+    gap: spacing.md,
     justifyContent: "space-between",
     paddingVertical: 6,
   },
   theaterList: {
-    gap: 16,
+    gap: spacing.lg,
   },
   theaterName: {
     flex: 1,
@@ -562,25 +539,19 @@ const styles = StyleSheet.create({
   timeChip: {
     borderRadius: 10,
     borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  timeChipText: {
-    fontFamily: fontFamily.plusJakarta.medium,
-    fontSize: 13,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
   chipRow: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
+    gap: spacing.sm,
   },
   chipRowExpanded: {
-    marginTop: 8,
+    marginTop: spacing.sm,
   },
   title: {
-    fontFamily: fontFamily.plusJakarta.bold,
-    fontSize: 20,
-    marginBottom: 4,
+    marginBottom: spacing.xs,
   },
 });
 

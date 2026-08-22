@@ -16,9 +16,10 @@ import Animated, {
   useAnimatedRef,
   useAnimatedStyle,
 } from "react-native-reanimated";
+import { motion, radius, spacing, type } from "../../constants/theme";
 import { ThemeContext } from "../../contexts/theme-context";
 import { useZoomAnimation } from "../../contexts/zoom-animation-context";
-import { fontFamily } from "../../lib/fonts";
+import { ThemedText } from "./themed-text";
 
 export type PeopleCarouselItem = {
   id: string;
@@ -94,7 +95,7 @@ const PeopleCarouselCardInner = ({
               source={{ uri: item.imageUrl }}
               contentFit="cover"
               cachePolicy="memory-disk"
-              transition={200}
+              transition={motion.quick}
               style={[styles.image, { borderColor: theme.border }]}
             />
           ) : (
@@ -153,12 +154,14 @@ const PeopleCarousel = ({
 
   return (
     <View style={style}>
-      <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
+      <ThemedText variant="heading" style={styles.title}>
+        {title}
+      </ThemedText>
       <FlashList
         data={data}
         keyExtractor={(item) => item.id}
-        style={{ marginHorizontal: -20 }}
-        contentContainerStyle={{ paddingHorizontal: 20 }}
+        style={{ marginHorizontal: -spacing.xl }}
+        contentContainerStyle={{ paddingHorizontal: spacing.xl }}
         renderItem={renderItem}
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -171,32 +174,28 @@ export default PeopleCarousel;
 
 const styles = StyleSheet.create({
   title: {
-    fontSize: 20,
-    fontFamily: fontFamily.plusJakarta.bold,
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   item: {
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 16,
+    marginRight: spacing.lg,
   },
   image: {
     width: 104,
     height: 104,
-    borderRadius: 52,
+    borderRadius: radius.full,
     borderWidth: 1,
   },
   name: {
-    fontSize: 12,
-    fontFamily: fontFamily.plusJakarta.medium,
-    marginTop: 8,
+    ...type.caption,
+    marginTop: spacing.sm,
     textAlign: "center",
     maxWidth: 104,
   },
   subtitle: {
-    fontSize: 12,
+    ...type.caption,
     maxWidth: 104,
-    fontFamily: fontFamily.plusJakarta.medium,
     textAlign: "center",
   },
 });

@@ -37,11 +37,18 @@ import { ShowtimesSection } from "../../../components/ui/showtimes-section";
 import TrailerThumbnail from "../../../components/ui/trailer-thumbnail";
 import SeasonEpisodesCarousel from "../../../components/ui/season-episodes-carousel";
 import ActionMenu from "../../../components/ui/sheets/action-menu";
+import { ThemedText } from "../../../components/ui/themed-text";
 import { TruncatedText } from "../../../components/ui/truncated-text";
+import {
+  motion,
+  radius,
+  shadows,
+  spacing,
+  type,
+} from "../../../constants/theme";
 import { ThemeContext } from "../../../contexts/theme-context";
 import { ZoomAnimationProvider } from "../../../contexts/zoom-animation-context";
 import { useMediaItem } from "../../../hooks/use-media-item";
-import { fontFamily } from "../../../lib/fonts";
 import { useRecommendations } from "../../../hooks/use-recommendations";
 import {
   MediaCastMember,
@@ -68,7 +75,7 @@ const BackdropImage: FC<BackdropImageProps> = ({ imageUri }) => {
         source={{ uri: imageUri }}
         contentFit="cover"
         cachePolicy="memory-disk"
-        transition={200}
+        transition={motion.quick}
         style={{
           width: BACKDROP_WIDTH,
           height: BACKDROP_HEIGHT,
@@ -361,12 +368,13 @@ const MediaDetailScreen = () => {
               height={180}
             />
             <View style={styles.posterDetails}>
-              <Text
-                style={[styles.titleText, { color: theme.text }]}
+              <ThemedText
+                variant="title"
+                style={styles.titleText}
                 numberOfLines={3}
               >
                 {media.title}
-              </Text>
+              </ThemedText>
               <View style={styles.titleDetailsContainer}>
                 {Number(media.rating_average) > 0 && (
                   <Image
@@ -384,9 +392,7 @@ const MediaDetailScreen = () => {
                     ]}
                   />
                 )}
-                <Text
-                  style={[styles.subtitleText, { color: theme.secondaryText }]}
-                >
+                <ThemedText variant="subhead" weight="medium" color="secondary">
                   {Number(media.rating_average) > 0
                     ? `${media.rating_average}  ·  `
                     : ""}
@@ -398,7 +404,7 @@ const MediaDetailScreen = () => {
                         media.duration_minutes > 0
                       ? `  ·  ${media.duration_minutes} mins`
                       : ""}
-                </Text>
+                </ThemedText>
               </View>
             </View>
           </View>
@@ -433,13 +439,13 @@ const MediaDetailScreen = () => {
             </View>
             {(media.media_type === "movie" || media.media_type === "tv_show") &&
               media.metadata?.trailer && (
-                <View style={{ marginTop: 24 }}>
+                <View style={{ marginTop: spacing.xxl }}>
                   <TrailerThumbnail trailer={media.metadata.trailer} />
                 </View>
               )}
             {media.media_type === "tv_show" &&
               (media.metadata?.seasons?.length ?? 0) > 0 && (
-                <View style={{ marginTop: 24 }}>
+                <View style={{ marginTop: spacing.xxl }}>
                   <SeasonEpisodesCarousel
                     mediaId={media.id}
                     seasons={media.metadata!.seasons!}
@@ -447,22 +453,22 @@ const MediaDetailScreen = () => {
                 </View>
               )}
             {castItems.length > 0 && (
-              <View style={{ marginTop: 24 }}>
+              <View style={{ marginTop: spacing.xxl }}>
                 <PeopleCarousel title="Cast" people={castItems} />
               </View>
             )}
             {crewItems.length > 0 && (
-              <View style={{ marginTop: 24 }}>
+              <View style={{ marginTop: spacing.xxl }}>
                 <PeopleCarousel title="Crew" people={crewItems} />
               </View>
             )}
             {recs.length > 0 && (
-              <View style={{ marginTop: 24 }}>
+              <View style={{ marginTop: spacing.xxl }}>
                 <Carousel title="You might also like" media={recs as any} />
               </View>
             )}
             {media.media_type === "movie" && (
-              <View style={{ marginTop: 24 }}>
+              <View style={{ marginTop: spacing.xxl }}>
                 <ShowtimesSection media={media} />
               </View>
             )}
@@ -530,26 +536,26 @@ const styles = StyleSheet.create({
   // Error states
   errorContainer: {
     flex: 1,
-    padding: 16,
+    padding: spacing.lg,
     justifyContent: "center",
     alignItems: "center",
   },
   errorTitle: {
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
   errorMessage: {
-    marginBottom: 24,
+    marginBottom: spacing.xxl,
   },
 
   // Not found states
   notFoundContainer: {
     flex: 1,
-    padding: 16,
+    padding: spacing.lg,
     justifyContent: "center",
     alignItems: "center",
   },
   notFoundText: {
-    marginBottom: 24,
+    marginBottom: spacing.xxl,
   },
 
   // Main content
@@ -560,26 +566,6 @@ const styles = StyleSheet.create({
     paddingBottom: 118,
   },
 
-  // Backdrop section
-  backdropContainer: {
-    height: 320,
-    marginTop: -16,
-  },
-  backdropImage: {
-    position: "absolute",
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
-  backdropGradient: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    top: 0,
-  },
-
   // Poster row
   posterRow: {
     position: "absolute",
@@ -587,46 +573,37 @@ const styles = StyleSheet.create({
     right: 16,
     top: 80,
     flexDirection: "row",
-    gap: 16,
+    gap: spacing.lg,
     alignItems: "flex-end",
   },
   posterImage: {
     width: 120,
     aspectRatio: 2 / 3,
-    borderRadius: 4,
-    boxShadow: "rgba(204, 219, 232, 0.3) 0 1px 4px -0.5px inset",
+    borderRadius: radius.xs,
+    boxShadow: shadows.insetHighlight,
     zIndex: 1000,
   },
   posterDetails: {
     flex: 1,
   },
   titleText: {
-    fontSize: 24,
+    ...type.title,
     lineHeight: 30,
-    fontFamily: fontFamily.plusJakarta.bold,
     marginBottom: 6,
-  },
-  subtitleText: {
-    fontSize: 14,
-    fontFamily: fontFamily.plusJakarta.medium,
   },
 
   // Body content
   bodyContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.lg,
     paddingTop: 100,
   },
-  button: {
-    marginBottom: 16,
-  },
   descriptionText: {
+    ...type.body,
     lineHeight: 22,
-    fontSize: 16,
-    fontFamily: fontFamily.plusJakarta.regular,
   },
   metadataContainer: {
-    marginTop: 16,
-    gap: 8,
+    marginTop: spacing.lg,
+    gap: spacing.sm,
   },
   metadataText: {
     // Colors are applied inline
@@ -634,10 +611,10 @@ const styles = StyleSheet.create({
   titleDetailsContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: spacing.xs,
   },
   titleDetailsIcon: {
     height: 16,
-    marginRight: 2,
+    marginRight: spacing.xxs,
   },
 });
